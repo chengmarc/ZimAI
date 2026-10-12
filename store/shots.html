@@ -1,0 +1,119 @@
+<!doctype html>
+<!-- The Store's screenshots: render.ps1 loads this page at 1366 x 768 (rendered at 2x) once per shot, named by the
+     hash (#promo, #home, ...). Each is a caption on the left and the real app on the right: the home page
+     (src/app/home.html) drawing the state 2B.exe would send it, or the terminal demo (media/demo.svg) stopped at a
+     moment. Needs Edge's --allow-file-access-from-files, to read those files from file://. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="brand.css">
+<style>
+  html, body { width: 1366px; height: 768px; }
+  /* The dots fade out behind the window. */
+  body::before { mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.6) 30%, transparent 55%); }
+
+  .caption { position: absolute; left: 60px; top: 0; bottom: 0; width: 330px; display: flex; flex-direction: column; justify-content: center; }
+  .caption .app { display: flex; align-items: center; gap: 12px; margin-bottom: 34px; font-size: 19px; font-weight: 600; }
+  .caption .app img { width: 44px; height: 44px; }
+  h1 { margin: 0; font-size: 40px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; }
+  .caption p { margin: 20px 0 0; font: 400 17px/1.5 "Segoe UI Variable Text", "Segoe UI", sans-serif; color: rgba(255, 255, 255, 0.78); }
+  .facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+  .facts span {
+    padding: 6px 13px; border-radius: 999px; font: 600 13px "Segoe UI Variable Text", "Segoe UI", sans-serif;
+    background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* The window, at the app's own size (940 x 680, app.cs), scaled to the height of the shot. */
+  .window {
+    position: absolute; right: 44px; top: 50%; transform-origin: right center; transform: translateY(-50%) scale(0.95);
+    width: 940px; border-radius: 9px; overflow: hidden; background: var(--bg);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 32px 80px rgba(0, 0, 0, 0.55), 0 10px 24px rgba(0, 0, 0, 0.3);
+  }
+  /* A Windows 11 title bar, with the icon and title 2B.exe and its terminal both set. */
+  .titlebar { height: 32px; display: flex; align-items: center; background: #f3efe8; color: #1b1b1b; font: 12px "Segoe UI", sans-serif; }
+  .titlebar img { width: 16px; height: 16px; margin: 0 10px 0 12px; }
+  .titlebar span { flex: 1; }
+  .titlebar i { width: 46px; text-align: center; font: normal 10px "Segoe Fluent Icons", "Segoe MDL2 Assets"; }
+  .client { display: block; width: 940px; height: 680px; border: 0; background: var(--bg); }
+  /* demo.svg without its own title bar; a line cut by the top of its screen fades out. */
+  svg.client { height: 685px; mask-image: linear-gradient(transparent 0, #000 36px); }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <div class="app"><img src="../src/app/icon.svg" alt=""><span>Agent 2B</span></div>
+    <h1 id="title"></h1>
+    <p id="text"></p>
+    <div class="facts" id="facts"></div>
+  </div>
+  <div class="window">
+    <div class="titlebar"><img src="../src/app/icon.svg" alt=""><span>Agent 2B</span><i>&#xE921;</i><i>&#xE922;</i><i>&#xE8BB;</i></div>
+  </div>
+
+<script>
+// What 2B.exe sends the home page on this developer's PC (an RTX 5060 Laptop GPU with 8 GB and 16 GB of RAM), as in
+// app.cs; the plan is llama-fit-params' for it.
+const MODEL = { name: "GPT OSS 20B", size: 12109566624, parameters: "20.9", license: "Apache-2.0", need: 12109566624, free: 412e9, drive: "C:" };
+const SYSTEM = { name: "NVIDIA GeForce RTX 5060 Laptop GPU", vram: 8, ram: 16, cuda: "12.8", verdict: "good", reason: null };
+const READY = {
+  version: "1.0.0", system: SYSTEM, model: { ...MODEL, ready: true }, download: null,
+  server: { state: "ready", plan: { context: 65536, gpu: 5896, ram: 7673 } }, error: null,
+};
+const DOWNLOADING = {
+  ...READY, model: { ...MODEL, ready: false },
+  download: { active: true, done: Math.round(MODEL.size * 0.43), total: MODEL.size, speed: 31e6, error: null },
+  server: { state: "stopped", plan: null },
+};
+
+// Each shot: its caption, and what's in the window: a home page state, or the demo at a time (s).
+const SHOTS = {
+  promo: {
+    title: 'An AI coding agent on <span class="brand">your own GPU.</span>',
+    text: "No cloud, no account, no subscription. 2B reads, edits and runs things in your projects, and asks before it changes anything.",
+    facts: ["Runs offline", "NVIDIA, 6 GB VRAM+", "Open source"],
+    demo: 31,
+  },
+  home: {
+    title: 'Fitted to <span class="brand">your PC.</span>',
+    text: "2B checks your GPU before anything downloads, then splits the model between VRAM and RAM to fit. There's nothing to set up.",
+    home: READY,
+  },
+  download: {
+    title: 'One download, <span class="brand">then it\'s yours.</span>',
+    text: "The model is a 12 GB download, once. If it's interrupted, it resumes, even after a restart. After that it runs without the internet.",
+    home: DOWNLOADING,
+  },
+  permission: {
+    title: 'It asks <span class="brand">first.</span>',
+    text: "Commands, file edits and web pages wait for your yes. Edits show as a diff first, and after a no you can say why.",
+    demo: 10,
+  },
+};
+
+const shot = SHOTS[location.hash.slice(1)];
+if (!shot) throw new Error("Unknown shot " + location.hash);
+document.getElementById("title").innerHTML = shot.title;
+document.getElementById("text").textContent = shot.text;
+document.getElementById("facts").innerHTML = (shot.facts || []).map(f => `<span>${f}</span>`).join("");
+const win = document.querySelector(".window");
+
+if (shot.home) {
+  const frame = document.createElement("iframe");
+  frame.className = "client";
+  frame.src = "../src/app/home.html";
+  frame.onload = () => frame.contentWindow.render(shot.home);
+  win.append(frame);
+} else {
+  // The demo, stopped at its time, without its own (macOS-style) title bar: the window has one.
+  fetch("../media/demo.svg").then(r => r.text()).then(text => {
+    win.insertAdjacentHTML("beforeend", text);
+    const svg = win.querySelector("svg");
+    svg.classList.add("client");
+    svg.setAttribute("viewBox", "0 35 940 685");
+    svg.querySelectorAll(":scope > rect, :scope > circle, :scope > .ttl").forEach(e => e.remove());
+    svg.getAnimations({ subtree: true }).forEach(a => { a.pause(); a.currentTime = shot.demo * 1000; });
+  });
+}
+</script>
+</body>
+</html>

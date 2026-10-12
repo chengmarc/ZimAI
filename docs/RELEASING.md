@@ -31,7 +31,8 @@ plus `makeappx.exe` for the Store package. Nothing in `tools/` ships inside the 
    (below).
 5. Tag the release, push the tag, and publish a GitHub release with `dist/release/Agent-2B-portable.zip` attached.
    GitHub takes release files up to 2 GB; the zip is about 860 MB.
-6. Upload `dist/store/Agent 2B.msix` in a new Partner Center submission.
+6. Upload `dist/store/Agent 2B.msix` in a new Partner Center submission. If the window or the demo changed, re-render
+   the listing images first (below).
 
 ### Try a change to the app
 
@@ -74,16 +75,21 @@ folder.
 
 ### Fill in the Partner Center submission
 
-- **Restricted capabilities.** The package declares two, and the submission asks why:
-  - `runFullTrust`: 2B is a desktop app (a terminal, Node.js, Git Bash and llama.cpp).
-  - `unvirtualizedResources`: suggested wording: "Agent 2B is a coding agent that runs commands in a terminal on the
-    user's behalf, such as git, npm and pip. With write virtualization, their changes to AppData and the registry
-    would be hidden from the rest of the system, so tools installed or configured in 2B wouldn't work outside it."
-- **System requirements.** The same as the README's and as `Requirements` in `src/app/app.cs`, which the window
-  checks: an NVIDIA GPU with 6 GB of VRAM or more (GTX 1060 6 GB, GTX 1660, any desktop RTX), a driver with CUDA 12.4
-  or later, 16 GB of RAM (8 GB with a 12 GB GPU), and 13 GB of free disk space for the model, which the app downloads
-  on its first run. Say all of it in the description too.
-- **Privacy policy URL:** [PRIVACY.md](../PRIVACY.md) on GitHub.
+[`store/LISTING.md`](../store/LISTING.md) has every field to paste, in Partner Center's order: the description,
+features, keywords, system requirements, the wording for the two restricted capabilities (`runFullTrust`,
+`unvirtualizedResources`) and the notes for certification. Its images are in `store/listing/`.
+
+### Re-render the listing images
+
+```powershell
+powershell -ExecutionPolicy Bypass -File storeender.ps1
+```
+
+It redraws `store/listing/` with Microsoft Edge in headless mode, from `store/logo.html` (box art, poster art, tile
+icon) and `store/shots.html` (the screenshots). The screenshots show the real home page, `src/app/home.html`, drawing
+the state written in `shots.html`, and the README's terminal demo, `media/demo.svg`, stopped at a moment. Change the
+captions or the state there, and the system requirements in `LISTING.md` when `Requirements` in `src/app/app.cs`
+changes.
 
 ## Explanation
 
@@ -130,3 +136,5 @@ the app.
 | [`tools/build.ps1`](../tools/build.ps1) | Builds `src/2B.exe` and the portable zip; `-Msix` adds the Store package, `-Exe` builds only `2B.exe` |
 | [`tools/AppxManifest.xml`](../tools/AppxManifest.xml) | The package manifest; `build.ps1` fills in the identity and version |
 | [`media/badges.ps1`](../media/badges.ps1) | Draws the README's badges |
+| [`store/LISTING.md`](../store/LISTING.md) | The Store listing's text, field by field |
+| [`store/render.ps1`](../store/render.ps1) | Renders the listing's images into `store/listing/` |

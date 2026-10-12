@@ -1,0 +1,35 @@
+/* The look shared by the Store's designed images (logo.html, shots.html): the icon's dot matrix and its gradient
+   (amber -> rose -> violet, palette.css's) glowing on warm near-black, so the icon's light tile stands out. Sizes are
+   relative where a page is rendered at more than one size. */
+@import url("../src/app/palette.css");
+
+:root {
+  --night: #1f1915;   /* --ink, darker */
+  --brand: linear-gradient(90deg, var(--gold), var(--rose) 55%, var(--violet));
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; overflow: hidden; }
+
+body {
+  position: relative;
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif;
+  color: #fff;
+  background:
+    radial-gradient(60% 75% at 0% 0%, color-mix(in srgb, var(--gold) 38%, transparent), transparent 70%),
+    radial-gradient(55% 70% at 100% 100%, color-mix(in srgb, var(--violet) 45%, transparent), transparent 70%),
+    radial-gradient(45% 55% at 85% 10%, color-mix(in srgb, var(--rose) 22%, transparent), transparent 70%),
+    var(--night);
+}
+
+/* The icon's dot matrix. Each page fades it out where its content sits, with mask-image. */
+body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.09) 1.2px, transparent 1.6px);
+  background-size: 14px 14px;
+}
+
+/* Text in the brand gradient. */
+.brand { background: var(--brand); -webkit-background-clip: text; background-clip: text; color: transparent; }
