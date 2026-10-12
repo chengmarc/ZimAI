@@ -105,6 +105,25 @@ Leave empty.
   private AI assistant
   ```
 
+- **Additional system requirements** (each line one item, 200 characters each):
+
+  Minimum hardware:
+
+  ```
+  NVIDIA GPU with 6 GB of video memory or more: GTX 1060 6 GB, GTX 1660 or any desktop RTX
+  NVIDIA driver with CUDA 12.4 or later
+  16 GB of RAM, or 8 GB with a 12 GB GPU
+  13 GB of free disk space for the model, downloaded on first run
+  AMD and Intel graphics aren't supported
+  ```
+
+  Recommended hardware:
+
+  ```
+  NVIDIA RTX GPU with 8 GB of video memory or more
+  With 16 GB of video memory, the whole model runs on the GPU
+  ```
+
 - **Copyright and trademark info:** `© 2026 chengmarc`
 - **Additional license terms:** `Apache License 2.0: https://github.com/chengmarc/agent-2b/blob/main/LICENSE`
 - **Developed by:** `chengmarc`
@@ -115,19 +134,21 @@ Leave empty.
 - **Privacy policy URL:** `https://github.com/chengmarc/agent-2b/blob/main/PRIVACY.md`
 - **Website:** `https://github.com/chengmarc/agent-2b`
 - **Support contact info:** `https://github.com/chengmarc/agent-2b/issues`
-- **System requirements** (the same as `Requirements` in `src/app/app.cs`, which the window checks):
+- **System requirements:** what the Store shows under the listing, and a warning on a PC that doesn't meet the
+  minimum. It doesn't stop the install; 2B's own check does that (`Requirements` in `src/app/app.cs`, which these
+  follow). Leave every other row unchecked: no touch, camera, microphone, Bluetooth or the like.
 
-  | | Minimum | Recommended |
+  | | Minimum hardware | Recommended hardware |
   |---|---|---|
+  | Keyboard | ✓ (the terminal is typed into) | |
   | Memory | 16 GB | 16 GB |
-  | Video memory | 6 GB | 8 GB or more |
-  | Architecture | x64 | x64 |
+  | Video memory | 6 GB | the largest option offered (8 GB or more) |
+  | Processor | `64-bit (x64)` | |
+  | Graphics | `NVIDIA GTX 1060 6 GB or better, CUDA 12.4+` | `NVIDIA RTX, 8 GB VRAM or more` |
+  | DirectX | leave empty: 2B uses CUDA, not DirectX | |
 
-  Under **Additional system requirement notes**, minimum:
-
-  ```
-  An NVIDIA GPU with 6 GB of video memory or more (GTX 1060 6 GB, GTX 1660, any desktop RTX) and a driver with CUDA 12.4 or later. 8 GB of RAM is enough with a 12 GB GPU. 13 GB of free disk space for the model, which the app downloads on first run. AMD and Intel graphics aren't supported.
-  ```
+  Minimum memory is 16 GB, though 8 GB is enough with a 12 GB GPU: the Store has one value per row, and most PCs
+  with 8 GB of RAM can't run 2B. The text in Additional system requirements (above) says so.
 
 - **Product declarations:** none apply. Leave "This product has been tested to meet accessibility guidelines" unchecked unless it has been.
 
