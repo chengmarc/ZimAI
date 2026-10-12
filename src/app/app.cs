@@ -47,7 +47,7 @@ static class Paths {
     public static string Browser { get { return Path.Combine(Data, "browser"); } }   // the window's browser data, chat history included
     public static string Logs { get { return Path.Combine(Data, "logs"); } }
     public static string Log { get { return Path.Combine(Logs, "server.log"); } }            // llama-server's own log
-    public static string ServerPid { get { return Path.Combine(Logs, "server.pid"); } }      // while the keeper's server runs
+    public static string ServerPid { get { return Path.Combine(Logs, "server.pid"); } }      // the keeper's, while it runs
     public static string ServerPlan { get { return Path.Combine(Logs, "server-plan"); } }    // how it runs (Plan.Describe)
     public static string LoadSeconds { get { return Path.Combine(Logs, "load-seconds"); } }  // the last load time, for estimates
     public static string Clients { get { return Path.Combine(Logs, "clients"); } }           // <pid>: each open 2B window and agent
@@ -356,6 +356,9 @@ static class Keeper {
             if (!File.Exists(Paths.Model) || !File.Exists(Paths.Llama)) return 1;
             Directory.CreateDirectory(Paths.Logs);
             var started = DateTime.Now;
+            // This process's pid, from the start: it runs exactly as long as the server, planning included, so the
+            // window and the agent see one start time (the file's) and one process to check.
+            File.WriteAllText(Paths.ServerPid, Process.GetCurrentProcess().Id.ToString());
             Plan plan = Plan.Make();
             if (plan != null) File.WriteAllText(Paths.ServerPlan, plan.Describe());
             else try { File.Delete(Paths.ServerPlan); } catch { }
@@ -364,7 +367,6 @@ static class Keeper {
             };
             Defaults.Apply(start.EnvironmentVariables);
             var server = Process.Start(start);
-            File.WriteAllText(Paths.ServerPid, server.Id.ToString());
             bool loaded = false;
             int idle = 0;
             while (!server.WaitForExit(1000)) {

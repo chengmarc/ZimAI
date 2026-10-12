@@ -17,11 +17,12 @@ One language per layer, and each layer owns what it does:
 computer (`Plan` in `app.cs`): llama.cpp's dry run (`llama-fit-params`) splits it between GPU and RAM; every computer
 gets a 64k context, the model's full 128k only when it all fits on the GPU; and the RAM part is loaded into RAM only
 if that leaves 2 GB free, otherwise it's memory-mapped. The plan goes to `data/logs/server-plan` for the window's Server
-row. Then it starts llama-server with that plan, writes its pid to `data/logs/server.pid`, and stops it, by that pid, a few seconds after the last
-2B window or agent is gone. Each of those leaves a file named by its pid in `data/logs/clients/` while it runs. The
+row. The keeper writes its own pid to `data/logs/server.pid` before it plans, so the server counts as starting from
+then; it starts llama-server with the plan, and stops it a few seconds after the last 2B window or agent is gone,
+then exits. Each of those leaves a file named by its pid in `data/logs/clients/` while it runs. The
 window's Chat and each `2b` ask for the server by running `2B.exe --server`; if a keeper is already running, the new
-one quits. A server counts as this install's only if its pid is the one in `server.pid`, so two 2B installs on one
-computer never stop each other's server. They do share its port, so only one of them can have a server running.
+one quits. A server counts as this install's only while the keeper in `server.pid` runs, so two 2B installs on one computer
+never stop each other's server. They do share its port, so only one of them can have a server running.
 
 **What the agent gets.** `2B.exe` sets these for everything it starts, so `2b` in its terminal has them:
 
@@ -62,7 +63,7 @@ src/
     browser/            the window's browser data, chat history included
     logs/
       server.log        llama-server's log, overwritten at each start
-      server.pid        the running server's pid
+      server.pid        the keeper's pid, while it runs (planning included)
       server-plan       how it was fitted to this computer: context, GPU and RAM use
       load-seconds      how long the last load took, for the loading estimates
       clients/<pid>     one empty file per open 2B window and agent

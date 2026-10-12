@@ -63,7 +63,8 @@ export function serverReady(): Promise<boolean> {
   });
 }
 
-/** Whether this install's llama-server is running: 2B.exe leaves its pid in SERVER_PID while it runs. */
+/** Whether this install's server is running (or still being planned): the keeper (2B.exe --server) leaves its pid
+ *  in SERVER_PID for as long as it runs, which is as long as llama-server does. */
 export function running(): boolean {
   try {
     const pid = Number(fs.readFileSync(SERVER_PID, "utf8"));
