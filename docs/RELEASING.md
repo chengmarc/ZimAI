@@ -52,10 +52,15 @@ Add-AppxPackage -Register "build\Agent 2B\AppxManifest.xml"
 Start **Agent 2B** from the Start menu. Its data folder is `%LOCALAPPDATA%\Packages\<package family name>\LocalCache\`.
 
 In each case, check that:
-- without a model, the first run downloads it into the data folder, and starting again after an interruption resumes it.
-- the model loads, a request gets an answer, and Bash and Edit work after asking.
-- `/exit` leaves a Git Bash prompt where `2b` starts the agent again.
-- closing the window stops `llama-server.exe`.
+- the window shows the GPU. Without a model, Download model fills the progress bar, Cancel keeps what was downloaded,
+  and Resume download continues from there.
+- Chat loads the model and opens the chat page. A message gets an answer, and **← 2B** goes back.
+- Terminal opens Git Bash with the agent. A request gets an answer, and Bash and Edit work after asking. `/exit`
+  leaves a prompt where `2b` starts the agent again.
+- with the window and a terminal open, closing either one leaves `llama-server.exe` running, and closing the other
+  stops it.
+
+To look inside the window, start `2B.exe` with `AGENT_2B_DEVTOOLS=1` set, which turns on DevTools (F12).
 
 Remove the Store app afterwards with `Get-AppxPackage <identity name> | Remove-AppxPackage`. That also deletes its data
 folder.
@@ -74,10 +79,10 @@ folder.
 ## Explanation
 
 **One app, two places for its data.** `2B.exe` ([`src/launcher/launcher.cs`](../src/launcher/launcher.cs)) is the
-entry point of both. It runs `app.cmd`. The portable app keeps the model and logs in `data/` beside it. The Store
-package is installed read-only (under `C:\Program Files\WindowsApps\`), so there `2B.exe` first sets
-`AGENT_2B_DATA` to the package's `LocalCache` folder, which is deleted when the app is uninstalled.
-[`src/agent/paths.ts`](../src/agent/paths.ts) is the only code that reads it.
+entry point of both: the window with Download model, Chat and Terminal. The portable app keeps the model, logs and
+chat history in `data/` beside it. The Store package is installed read-only (under `C:\Program Files\WindowsApps\`),
+so there `2B.exe` uses the package's `LocalCache` folder instead, which is deleted when the app is uninstalled. It
+passes the folder on in `AGENT_2B_DATA`, which [`src/agent/paths.ts`](../src/agent/paths.ts) reads.
 
 **Why write virtualization is off.** A packaged app's processes, and every process they start, normally have their
 writes to AppData and the registry redirected into a private copy. For 2B that would include everything the user
@@ -85,8 +90,9 @@ and the agent run in its terminal. The manifest turns that off (`desktop6:FileSy
 `desktop6:RegistryWriteVirtualization`), which needs the `unvirtualizedResources` capability.
 
 **Why the build needs no new tools.** It runs on the Node.js in `src/runtime/`. It compiles `2B.exe` with the C#
-compiler that comes with Windows (.NET Framework 4), zips with Windows' `tar.exe`, and draws the logos from
-`media/app-icon.svg` with Edge. Only `makeappx.exe` comes from somewhere else.
+compiler that comes with Windows (.NET Framework 4), against the WebView2 SDK DLLs that `tools\fetch.cmd` downloads.
+It zips with Windows' `tar.exe` and draws the logos from `src/launcher/app-icon.svg` with Edge. Only `makeappx.exe`
+comes from somewhere else. For a change to the window alone, `tools/build.ts --exe` builds just `src/2B.exe`.
 
 ## Reference
 
@@ -102,7 +108,7 @@ compiler that comes with Windows (.NET Framework 4), zips with Windows' `tar.exe
 
 ### Build prerequisites
 
-- `tools\fetch.cmd` has run, so `src/runtime/node`, `src/runtime/git` and `src/runtime/llama` exist.
+- `tools\fetch.cmd` has run, so `src/runtime/` has `node`, `git`, `llama` and `webview2`.
 - For `--msix` only: `makeappx.exe`, from either the full
   [Windows SDK](https://developer.microsoft.com/windows/downloads/windows-sdk/) or, much smaller (~22 MB), the
   [Microsoft.Windows.SDK.BuildTools](https://www.nuget.org/packages/Microsoft.Windows.SDK.BuildTools) NuGet package:
@@ -113,7 +119,8 @@ compiler that comes with Windows (.NET Framework 4), zips with Windows' `tar.exe
 
 | File | Role |
 |---|---|
-| [`tools/fetch.cmd`](../tools/fetch.cmd) | Downloads Node.js, Git Bash and llama.cpp into `src/runtime/` |
-| [`tools/build.ts`](../tools/build.ts) | Builds `src/2B.exe` and the portable zip, and with `--msix` the Store package |
+| [`tools/fetch.cmd`](../tools/fetch.cmd) | Downloads Node.js, Git Bash, llama.cpp and the WebView2 SDK into `src/runtime/` |
+| [`tools/build.ts`](../tools/build.ts) | Builds `src/2B.exe` and the portable zip, with `--msix` the Store package too, with `--exe` only `2B.exe` |
 | [`tools/AppxManifest.xml`](../tools/AppxManifest.xml) | The package manifest; `build.ts` fills in the identity and version |
-| [`src/launcher/launcher.cs`](../src/launcher/launcher.cs) | `2B.exe`, the app's entry point |
+| [`src/launcher/launcher.cs`](../src/launcher/launcher.cs) | `2B.exe`, the app's window and entry point |
+| [`src/launcher/home.html`](../src/launcher/home.html) | The page the window shows |

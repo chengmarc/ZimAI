@@ -22,7 +22,8 @@ echo (using the Windows proxy %SERVER%)
 :proxied
 
 rem The components: where each goes, whether to strip its zip's one top folder, its URL(s).
-rem A .zip or .7z.exe is unpacked into the destination folder; anything else is saved as the destination file.
+rem A .zip or .7z.exe is unpacked into the destination folder, a .nupkg's .NET Framework and x64 DLLs are copied
+rem into it; anything else is saved as the destination file.
 rem To upgrade one: change its URL, delete the old copy, run this again.
 rem Node.js 24.21.0 LTS (the agent needs 22.18+ to run its .ts files as they are)          ~30 MB
 call :get src\runtime\node 1 "https://nodejs.org/dist/v24.21.0/node-v24.21.0-win-x64.zip" || goto failed
@@ -30,6 +31,8 @@ rem Git for Windows 2.55.0.5, portable (Git Bash)                               
 call :get src\runtime\git 0 "https://github.com/git-for-windows/git/releases/download/v2.55.0.windows.5/PortableGit-2.55.0.5-64-bit.7z.exe" || goto failed
 rem llama.cpp b10434, CUDA 12.4 build + its CUDA runtime (NVIDIA driver with CUDA 12.4+)   ~640 MB
 call :get src\runtime\llama 0 "https://github.com/ggml-org/llama.cpp/releases/download/b10434/llama-b10434-bin-win-cuda-12.4-x64.zip" "https://github.com/ggml-org/llama.cpp/releases/download/b10434/cudart-llama-bin-win-cuda-12.4-x64.zip" || goto failed
+rem WebView2 SDK 1.0.2903.40, for 2B.exe's window (the runtime comes with Windows)         ~1 MB
+call :get src\runtime\webview2 0 "https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/1.0.2903.40/microsoft.web.webview2.1.0.2903.40.nupkg" || goto failed
 rmdir "%STAGING%" 2>nul
 
 echo.
@@ -80,7 +83,14 @@ exit /b
 set "FILE=%STAGING%\%~nx1"
 if /i "%FILE:~-4%"==".zip" goto unzip
 if /i "%FILE:~-7%"==".7z.exe" goto sfx
+if /i "%FILE:~-6%"==".nupkg" goto nupkg
 move "%FILE%" "%DEST%.new" >nul
+exit /b
+:nupkg
+rem A NuGet package is a zip: just its .NET Framework assemblies and its x64 native DLLs, side by side.
+if not exist "%DEST%.new" mkdir "%DEST%.new"
+"%TAR%" -xf "%FILE%" -C "%DEST%.new" --strip-components 2 "lib/net462/*.dll" || exit /b 1
+"%TAR%" -xf "%FILE%" -C "%DEST%.new" --strip-components 3 "runtimes/win-x64/native/*.dll"
 exit /b
 :unzip
 if not exist "%DEST%.new" mkdir "%DEST%.new"

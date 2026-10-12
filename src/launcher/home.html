@@ -1,0 +1,226 @@
+<!doctype html>
+<!-- The home page 2B.exe shows (launcher.cs): the GPU, the model, and the two ways in. It only draws the state
+     2B.exe sends it, and sends back what was clicked ({ do: "download" } and so on). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Agent 2B</title>
+<style>
+  :root {
+    --bg: #fbf8f3; --card: #fffdf9; --line: #e2d8c8; --strong: #3d342b; --muted: #6b5f52; --faint: #a39684;
+    --gold: #c88214; --rose: #dc4b78; --violet: #9664d7;
+    --ok: #007d28; --warn: #9b6400; --bad: #b41414;
+    --brand: linear-gradient(90deg, var(--gold), var(--rose) 55%, var(--violet));
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg); color: var(--strong);
+    font: 14px/1.5 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 40px 24px 20px; user-select: none; overflow-y: auto;
+  }
+  main { width: 100%; max-width: 640px; flex: 1; display: flex; flex-direction: column; gap: 22px; }
+
+  header { display: flex; align-items: center; gap: 18px; }
+  header img { width: 72px; height: 72px; }
+  h1 { margin: 0; font: 650 28px/1.15 "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; letter-spacing: -0.01em; }
+  h1 span { background: var(--brand); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  header p { margin: 4px 0 0; color: var(--muted); }
+
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+  .row { display: grid; grid-template-columns: 70px 1fr auto; align-items: center; gap: 4px 14px; padding: 14px 18px; }
+  .row + .row { border-top: 1px solid var(--line); }
+  .label { color: var(--faint); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+  .value { min-width: 0; }
+  .value b { font-weight: 600; }
+  .sub { color: var(--muted); font-size: 13px; }
+  .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+
+  .bar { grid-column: 2 / 4; height: 6px; border-radius: 3px; background: #ece4d6; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--brand); border-radius: 3px; transition: width 0.4s; }
+  .bar.sweep i { width: 30%; animation: sweep 1.4s ease-in-out infinite alternate; }
+  @keyframes sweep { from { margin-left: 0; } to { margin-left: 70%; } }
+
+  button { font: inherit; cursor: pointer; }
+  .btn {
+    padding: 7px 16px; border-radius: 9px; border: 1px solid var(--line); background: var(--bg); color: var(--strong);
+    font-weight: 600; white-space: nowrap;
+  }
+  .btn:hover { background: #f3ece1; }
+  .btn.primary { border: 0; color: #fff; background: var(--brand); padding: 8px 18px; }
+  .btn.primary:hover { filter: brightness(1.06); }
+
+  .ways { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .way {
+    text-align: left; padding: 20px 20px 18px; border-radius: 14px; border: 1px solid var(--line); background: var(--card);
+    color: var(--strong); display: flex; flex-direction: column; gap: 6px; position: relative; overflow: hidden;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+  }
+  .way::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--brand); opacity: 0; transition: opacity 0.15s; }
+  .way:hover:not(:disabled) { border-color: #d4c6b0; box-shadow: 0 4px 14px rgba(61, 52, 43, 0.08); transform: translateY(-1px); }
+  .way:hover:not(:disabled)::before { opacity: 1; }
+  .way:disabled { cursor: default; opacity: 0.5; }
+  .way svg { width: 26px; height: 26px; color: var(--rose); }
+  .way strong { font-size: 17px; font-weight: 650; }
+  .way span { color: var(--muted); font-size: 13px; }
+  .way .bar { margin-top: 6px; }
+
+  .error {
+    border: 1px solid #ebc0b8; background: #fbefea; color: var(--bad); border-radius: 10px; padding: 10px 14px;
+    display: flex; gap: 12px; align-items: flex-start; justify-content: space-between;
+  }
+  .error button { border: 0; background: none; color: var(--bad); text-decoration: underline; padding: 0; }
+
+  footer { width: 100%; max-width: 640px; display: flex; gap: 18px; color: var(--faint); font-size: 12px; padding-top: 18px; }
+  footer button { border: 0; background: none; padding: 0; color: var(--muted); }
+  footer button:hover { color: var(--strong); text-decoration: underline; }
+  footer .spacer { flex: 1; }
+
+  @media (max-width: 560px) {
+    .ways { grid-template-columns: 1fr; }
+    .row { grid-template-columns: 1fr auto; }
+    .row .label { grid-column: 1 / 3; }
+    .bar { grid-column: 1 / 3; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <img src="app-icon.svg" alt="">
+    <div>
+      <h1>Agent <span>2B</span></h1>
+      <p>A coding agent that runs on your own GPU.</p>
+    </div>
+  </header>
+
+  <div id="error" class="error" hidden><span id="error-text"></span><button id="error-log">Server log</button></div>
+
+  <section class="card">
+    <div class="row">
+      <div class="label">GPU</div>
+      <div class="value" id="gpu"><span class="sub">Checking...</span></div>
+      <div></div>
+    </div>
+    <div class="row">
+      <div class="label">Model</div>
+      <div class="value" id="model"><b>gpt-oss-20b</b> <span class="sub">&middot; 12.1 GB</span></div>
+      <div id="model-action"></div>
+      <div class="bar" id="download-bar" hidden><i></i></div>
+    </div>
+  </section>
+
+  <section class="ways">
+    <button class="way" id="chat" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
+      <strong>Chat</strong>
+      <span id="chat-text">Talk with the model, here in this window.</span>
+      <div class="bar sweep" id="chat-bar" hidden><i></i></div>
+    </button>
+    <button class="way" id="terminal" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 9l3 3-3 3M12.5 15H17"/></svg>
+      <strong>Terminal</strong>
+      <span>The coding agent in Git Bash: it reads, edits and runs things in your projects.</span>
+    </button>
+  </section>
+</main>
+<footer>
+  <button id="folder">Data folder</button>
+  <button id="log">Server log</button>
+  <span class="spacer"></span>
+  <span>Everything runs on this computer.</span>
+</footer>
+
+<script>
+const host = window.chrome && window.chrome.webview;
+const send = what => host && host.postMessage({ do: what });
+const $ = id => document.getElementById(id);
+
+for (const [id, what] of [["chat", "chat"], ["terminal", "terminal"], ["folder", "folder"], ["log", "log"], ["error-log", "log"]]) {
+  $(id).addEventListener("click", () => send(what));
+}
+
+const gb = n => (n / 1e9).toFixed(1) + " GB";
+function eta(seconds) {
+  if (!isFinite(seconds) || seconds <= 0) return "";
+  if (seconds < 90) return Math.round(seconds) + " s left";
+  if (seconds < 5400) return Math.round(seconds / 60) + " min left";
+  return (seconds / 3600).toFixed(1) + " h left";
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function button(label, what, primary) {
+  const b = document.createElement("button");
+  b.className = "btn" + (primary ? " primary" : "");
+  b.textContent = label;
+  b.onclick = () => send(what);
+  return b;
+}
+
+function render(s) {
+  // GPU
+  const gpu = $("gpu");
+  if (s.gpu === false) gpu.innerHTML = '<span class="sub">Checking...</span>';
+  else if (!s.gpu) gpu.innerHTML = '<span class="warn">No NVIDIA GPU found.</span> <span class="sub">2B needs one, with its driver installed.</span>';
+  else {
+    const cuda = s.gpu.cuda ? parseFloat(s.gpu.cuda) : 0;
+    const driver = !s.gpu.cuda ? "" : cuda >= 12.4
+      ? ` &middot; CUDA ${esc(s.gpu.cuda)} <span class="ok">&#10003;</span>`
+      : ` &middot; <span class="warn">CUDA ${esc(s.gpu.cuda)}: update the NVIDIA driver (12.4 or later)</span>`;
+    gpu.innerHTML = `<b>${esc(s.gpu.name)}</b> <span class="sub">&middot; ${s.gpu.vram} GB${driver}</span>`;
+  }
+
+  // Model
+  const d = s.download, action = $("model-action"), bar = $("download-bar"), model = $("model");
+  action.replaceChildren();
+  bar.hidden = true;
+  if (s.model) {
+    model.innerHTML = '<b>gpt-oss-20b</b> <span class="sub">&middot; 12.1 GB &middot; <span class="ok">ready</span></span>';
+  } else if (d && d.active) {
+    const pct = d.total ? (100 * d.done / d.total) : 0;
+    const speed = d.speed > 0 ? ` &middot; ${(d.speed / 1e6).toFixed(0)} MB/s &middot; ${eta((d.total - d.done) / d.speed)}` : "";
+    model.innerHTML = `<b>Downloading</b> <span class="sub">&middot; ${gb(d.done)} of ${gb(d.total)}${speed}</span>`;
+    bar.hidden = false;
+    bar.firstChild.style.width = pct.toFixed(1) + "%";
+    action.append(button("Cancel", "cancel"));
+  } else {
+    const resume = d && d.done > 0;
+    model.innerHTML = '<b>gpt-oss-20b</b> <span class="sub">&middot; 12.1 GB' +
+      (d && d.error ? ` &middot; <span class="bad">${esc(d.error)}</span>` : resume ? ` &middot; ${gb(d.done)} downloaded` : " &middot; not downloaded yet") +
+      "</span>";
+    if (resume) {
+      bar.hidden = false;
+      bar.firstChild.style.width = (100 * d.done / d.total).toFixed(1) + "%";
+    }
+    action.append(button(resume ? "Resume download" : "Download model", "download", true));
+  }
+
+  // The two ways in
+  $("chat").disabled = !s.model || !!s.loading;
+  $("terminal").disabled = !s.model;
+  const chatBar = $("chat-bar"), chatText = $("chat-text");
+  if (s.loading) {
+    const est = s.loading.estimate;
+    chatText.textContent = `Loading the model... ${s.loading.seconds} s` + (est ? ` of about ${est} s` : ", the first time can take a minute");
+    chatBar.hidden = false;
+    chatBar.classList.toggle("sweep", !est);
+    chatBar.firstChild.style.width = est ? Math.min(95, 100 * s.loading.seconds / est).toFixed(0) + "%" : "";
+  } else {
+    chatText.textContent = s.server === "ready" ? "Talk with the model, here in this window. It's loaded."
+                                                : "Talk with the model, here in this window.";
+    chatBar.hidden = true;
+  }
+
+  // Errors
+  $("error").hidden = !s.error;
+  $("error-text").textContent = s.error || "";
+}
+
+if (host) {
+  host.addEventListener("message", e => render(e.data));
+  send("hello");
+}
+</script>
+</body>
+</html>

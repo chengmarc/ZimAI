@@ -1,7 +1,7 @@
 // The server's stopper: when this agent ends, however it ends (quitting, Ctrl+C, or killed along with its
 // closed window, where no exit handler runs), a hidden process outside the window stops llama-server,
-// unless another agent is still running. Each running agent leaves an empty file named by its pid in AGENTS.
-// Run as a script (node stopper.ts PID), this file is that process.
+// unless another 2B window is still open. Each running agent, and the launcher window (launcher/launcher.cs), leaves
+// an empty file named by its pid in AGENTS. Run as a script (node stopper.ts PID), this file is that process.
 import { execFile, spawn } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";

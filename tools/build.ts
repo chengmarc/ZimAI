@@ -1,6 +1,7 @@
 // Builds 2B from src/ (docs/RELEASING.md): src/2B.exe, then the ready-to-run zip for GitHub and, with --msix, the
 // Microsoft Store package. Both hold src/ as it is after tools/fetch.cmd, minus data/ (the model is downloaded on
-// the first run). Run from the repo root: src/runtime/node/node.exe tools/build.ts [--clean] [--msix]
+// the first run). Run from the repo root: src/runtime/node/node.exe tools/build.ts [--clean] [--msix | --exe]
+// --exe builds only src/2B.exe, for trying a change to the launcher.
 import { execFileSync } from "node:child_process";
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -72,10 +73,10 @@ function makeappx(): string {
   return found.at(-1)!;
 }
 
-/** The app icon at each logo size, drawn from media/app-icon.svg by Edge (it comes with Windows). */
+/** The app icon at each logo size, drawn from src/launcher/app-icon.svg by Edge (it comes with Windows). */
 function logos(dir: string) {
   fs.mkdirSync(dir, { recursive: true });
-  const svg = "file:///" + path.join(ROOT, "media", "app-icon.svg").replaceAll("\\", "/");
+  const svg = "file:///" + path.join(SRC, "launcher", "app-icon.svg").replaceAll("\\", "/");
   for (const [name, size] of Object.entries(LOGOS)) {
     const page = path.join(BUILD, `logo-${size}.html`);
     fs.writeFileSync(page, `<body style="margin:0"><img src="${svg}" width="${size}" height="${size}" style="display:block">`);
@@ -88,8 +89,12 @@ function logos(dir: string) {
 
 /** src/2B.exe, with the C# compiler that comes with Windows (.NET Framework 4). */
 function launcher() {
-  run(CSC, ["/nologo", "/target:winexe", `/win32icon:${path.join(SRC, "app-icon.ico")}`, `/out:${EXE}`,
-            path.join(SRC, "launcher", "launcher.cs")]);
+  const webview2 = path.join(SRC, "runtime", "webview2");
+  if (!fs.existsSync(webview2)) fail("src/runtime/webview2 is missing: run tools\\fetch.cmd first");
+  const refs = ["System.Net.Http.dll", "System.Web.Extensions.dll", "System.Windows.Forms.dll", "System.Drawing.dll",
+                path.join(webview2, "Microsoft.Web.WebView2.Core.dll"), path.join(webview2, "Microsoft.Web.WebView2.WinForms.dll")];
+  run(CSC, ["/nologo", "/target:winexe", "/optimize+", `/win32icon:${path.join(SRC, "app-icon.ico")}`, `/out:${EXE}`,
+            ...refs.map(r => `/r:${r}`), path.join(SRC, "launcher", "launcher.cs")]);
 }
 
 /** build/Agent 2B: src/ without data/, and the license. */
@@ -119,13 +124,14 @@ function store(text: string) {
 }
 
 const args = process.argv.slice(2);
-const unknown = args.find(a => a !== "--clean" && a !== "--msix");
-if (unknown) fail(`unknown option ${unknown} (options: --clean, --msix)`);
+const unknown = args.find(a => !["--clean", "--msix", "--exe"].includes(a));
+if (unknown) fail(`unknown option ${unknown} (options: --clean, --msix, --exe)`);
 const msix = args.includes("--msix");
 if (args.includes("--clean")) for (const dir of [BUILD, DIST]) fs.rmSync(dir, { recursive: true, force: true });
 fs.mkdirSync(BUILD, { recursive: true });
 const text = msix ? manifest() : "";   // before the slow part: fail on a missing identity first
 launcher();
+if (args.includes("--exe")) process.exit(0);
 stage();
 portable();   // before store(), which adds the package's own files to the staged app
 if (msix) store(text);

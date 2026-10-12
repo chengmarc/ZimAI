@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="media/app-icon.svg" width="180"><br>
+  <img src="src/launcher/app-icon.svg" width="180"><br>
 
   <a href="#try-it"><img src="media/badge-windows.svg"></a>
   <a href="#try-it"><img src="media/badge-nvidia.svg"></a>
@@ -20,13 +20,18 @@ CUDA itself doesn't need to be installed.
 
 1. **Download `Agent-2B-portable.zip`** from the [latest release](https://github.com/chengmarc/agent-2b/releases/latest)
    and unzip it anywhere, a flash drive included. It holds portable Git Bash, Node.js and llama.cpp (CUDA build).
-2. **Double-click `2B.exe`.** A terminal opens in your home folder with 2B running. The first time, it downloads the
-   gpt-oss-20b model (12 GB) into `data/` beside it. If the download is interrupted, start 2B again and it resumes.
-   It uses the Windows proxy setting if one is on. `/exit` leaves a normal Git Bash prompt: `cd` into a project and
-   type `2b` to work there.
+2. **Double-click `2B.exe`.** The 2B window shows your GPU and the model.
+3. **Click Download model** the first time. It downloads gpt-oss-20b (12 GB) into `data/` beside `2B.exe`. If it's
+   interrupted, click Resume download, even after a restart. It uses the Windows proxy setting if one is on.
+4. **Click Chat or Terminal.**
+   - **Chat** talks with the model in the same window, using llama.cpp's own chat page. **← 2B** at the top right
+     goes back.
+   - **Terminal** opens Git Bash in your home folder with the 2B coding agent running. `/exit` leaves a normal
+     prompt: `cd` into a project and type `2b` to work there.
 
-The first start loads the model (~30 s). llama.cpp splits it between GPU and CPU to fit whatever VRAM is free at that
-moment, so there is nothing to configure per computer. The server stops when the last 2B window closes.
+Loading the model takes about 30 s. llama.cpp splits it between GPU and CPU to fit whatever VRAM is free at that
+moment, so there is nothing to configure per computer. Chat and every terminal share one model server, which stops
+when the last 2B window closes.
 
 ## What it can do
 
@@ -49,7 +54,8 @@ or on the machine; give it tight tasks rather than open-ended ones.
 
 The agent is plain TypeScript run directly by Node: no build step, no npm packages. Everything the model reads is a
 text file in [`src/agent/prompt/`](src/agent/prompt/), and each tool is one file in [`src/agent/tools/`](src/agent/tools/).
-In a clone, run `tools\fetch.cmd` once to download the runtimes into `src/runtime/`, then `src\app.cmd` starts 2B.
+In a clone, run `tools\fetch.cmd` once to download the runtimes into `src/runtime/`, and
+`src/runtime/node/node.exe tools/build.ts --exe` to build `src/2B.exe`.
 [`src/agent/README.md`](src/agent/README.md) covers running a change, adding a tool, upgrading a component and swapping the
 model.
 

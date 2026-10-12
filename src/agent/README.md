@@ -56,23 +56,29 @@ llama-server runs as a hidden process of its own. The agent appears at once, and
 
 ## Reference
 
-The layout of `src/`, the app as it ships. `paths.ts` defines it for the agent; `app.cmd` and
-`tools/fetch.cmd` spell out the same paths, so a rename touches all three.
+The layout of `src/`, the app as it ships. `paths.ts` defines it for the agent; `launcher/launcher.cs`, `app.cmd`
+and `tools/fetch.cmd` spell out the same paths, so a rename touches all four.
 
 ```
 src/
+  2B.exe                the app's window, built from launcher/ by tools/build.ts (untracked)
+  launcher/             launcher.cs (2B.exe) and home.html, the page it shows
+  app.cmd               opens the terminal with the agent (the window's Terminal button runs it)
   agent/                this folder
-  app.cmd               starts the terminal with 2B (2B.exe runs it)
-  2B.exe                built from launcher/ by tools/build.ts (untracked)
   runtime/              downloaded by tools/fetch.cmd (untracked)
     node/  git/  llama/ Node.js, portable Git Bash, llama.cpp (CUDA build)
+    webview2/           the WebView2 SDK's DLLs, for 2B.exe's window
   data/                 written at runtime (untracked; the Store app keeps it elsewhere, see below)
-    model/_model.gguf   the model, downloaded on the first run (download.ts)
+    model/_model.gguf   the model, downloaded by the window's Download button
+    webview2/           the window's browser data, including the chat history of llama.cpp's chat page
     logs/
       server.log        llama-server's log, overwritten at each start
-      load-seconds      the last load time, for the loading bar's estimate
-      agents/<pid>      one empty file per running agent, for the stopper
+      load-seconds      the last load time, for the loading estimates
+      agents/<pid>      one empty file per open 2B window (agent or launcher), for the stopper
 ```
+
+The launcher starts the model server by running `server/server.ts` as a script, so the server's settings stay in
+one place, and it registers with `server/stopper.ts` like an agent does.
 
 In the Microsoft Store app, the install folder is read-only, so `data/` is the package's own data folder instead
 (`AGENT_2B_DATA`, set by `2B.exe`). [`docs/RELEASING.md`](../../docs/RELEASING.md) covers building and publishing.

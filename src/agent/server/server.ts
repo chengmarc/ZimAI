@@ -17,10 +17,13 @@ export const CTX = 65536;   // server context window, in tokens
 // Keeping the CPU-side experts in RAM (not memory-mapped) is much faster, if RAM allows (~14 GB).
 const LOADMODE = os.totalmem() >= 14000 * 2 ** 20 ? "none" : "mmap";
 
-/** Start the server in the background, or say why it can't be. It only launches it: the agent is on screen
- *  at once, and its loading screen waits for the model (loading.ts). */
-export function startServer(): string | null {
+/** Start the server in the background unless it's running already (for another 2B window, or still loading),
+ *  or say why it can't be. It only launches it: the agent is on screen at once, and its loading screen waits for
+ *  the model (loading.ts). Run as a script (node server.ts), this file does just this, for the launcher. */
+export async function startServer(): Promise<string | null> {
+  if ((await serverReady()) || (await running())) return null;
   if (!fs.existsSync(LLAMA)) return `llama.cpp is missing (${LLAMA})`;
+  if (!fs.existsSync(MODEL)) return "the model isn't downloaded yet: open 2B and click Download model";
   fs.mkdirSync(path.dirname(LOG), { recursive: true });
   // A hidden process of its own (no window), not tied to this one; if it fails, the loading screen says so.
   // --fit on: llama.cpp splits the model between GPU and CPU itself, measured against the VRAM free right now
@@ -65,4 +68,10 @@ export function serverReady(): Promise<boolean> {
 export function running(): Promise<boolean> {
   return new Promise(resolve => execFile("tasklist", ["/FI", `IMAGENAME eq ${PROCESS}`, "/NH"], { windowsHide: true },
                                          (err, out) => resolve(!err && out.includes(PROCESS))));
+}
+
+if (import.meta.main) {
+  const problem = await startServer();
+  if (problem) console.error(problem);
+  process.exit(problem ? 1 : 0);
 }
