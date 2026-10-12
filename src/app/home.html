@@ -39,6 +39,17 @@
   .bar.sweep i { width: 30%; animation: sweep 1.4s ease-in-out infinite alternate; }
   @keyframes sweep { from { margin-left: 0; } to { margin-left: 70%; } }
 
+  .side { display: flex; align-items: center; gap: 10px; justify-content: flex-end; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 7px; padding: 3px 11px; border-radius: 999px; white-space: nowrap;
+    font-size: 12px; font-weight: 600; color: var(--muted); border: 1px solid var(--line); background: var(--bg);
+  }
+  .pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .pill.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 25%, var(--bg)); background: color-mix(in srgb, var(--ok) 7%, var(--bg)); }
+  .pill.busy { color: var(--rose); border-color: color-mix(in srgb, var(--rose) 25%, var(--bg)); background: color-mix(in srgb, var(--rose) 7%, var(--bg)); }
+  .pill.busy::before { animation: pulse 0.9s ease-in-out infinite alternate; }
+  @keyframes pulse { from { opacity: 1; } to { opacity: 0.25; } }
+
   button { font: inherit; cursor: pointer; }
   .btn {
     padding: 7px 16px; border-radius: 9px; border: 1px solid var(--line); background: var(--bg); color: var(--strong);
@@ -106,14 +117,19 @@
       <div id="model-action"></div>
       <div class="bar" id="download-bar" hidden><i></i></div>
     </div>
+    <div class="row">
+      <div class="label">Server</div>
+      <div class="value" id="server"></div>
+      <div class="side" id="server-side"></div>
+      <div class="bar" id="server-bar" hidden><i></i></div>
+    </div>
   </section>
 
   <section class="ways">
     <button class="way" id="chat" disabled>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg>
       <strong>Chat</strong>
-      <span id="chat-text">Talk with the model, here in this window.</span>
-      <div class="bar sweep" id="chat-bar" hidden><i></i></div>
+      <span>Talk with the model, here in this window.</span>
     </button>
     <button class="way" id="terminal" disabled>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 9l3 3-3 3M12.5 15H17"/></svg>
@@ -196,21 +212,30 @@ function render(s) {
     action.append(button(resume ? "Resume download" : "Download model", "download", true));
   }
 
-  // The two ways in
-  $("chat").disabled = !s.model.ready || !!s.loading;
-  $("terminal").disabled = !s.model.ready;
-  const chatBar = $("chat-bar"), chatText = $("chat-text");
-  if (s.loading) {
-    const est = s.loading.estimate;
-    chatText.textContent = `Loading the model... ${s.loading.seconds} s` + (est ? ` of about ${est} s` : ", the first time can take a minute");
-    chatBar.hidden = false;
-    chatBar.classList.toggle("sweep", !est);
-    chatBar.firstChild.style.width = est ? Math.min(95, 100 * s.loading.seconds / est).toFixed(0) + "%" : "";
+  // Server: 2B.exe starts it when the window opens (or once the model is downloaded)
+  const sv = s.server, side = $("server-side"), serverBar = $("server-bar");
+  const pill = (cls, text) => `<span class="pill ${cls}">${text}</span>`;
+  side.replaceChildren();
+  serverBar.hidden = sv.state !== "loading";
+  let note = `${Math.round(sv.context / 1024)}k context`;
+  if (sv.state === "ready") {
+    side.innerHTML = pill("ok", "Ready");
+  } else if (sv.state === "loading") {
+    const est = sv.estimate;
+    note = est ? `loading the model into memory, about ${est} s` : "loading the model into memory; the first time can take a minute";
+    side.innerHTML = pill("busy", `Loading &middot; ${sv.seconds} s`);
+    serverBar.classList.toggle("sweep", !est);
+    serverBar.firstChild.style.width = est ? Math.min(95, 100 * sv.seconds / est).toFixed(0) + "%" : "";
+  } else if (s.model.ready) {
+    side.innerHTML = pill("", "Stopped");
+    side.append(button("Start", "start", true));
   } else {
-    chatText.textContent = s.server === "ready" ? "Talk with the model, here in this window. It's loaded."
-                                                : "Talk with the model, here in this window.";
-    chatBar.hidden = true;
+    side.innerHTML = pill("", "Waiting for the model");
   }
+  $("server").innerHTML = `<b>llama.cpp</b> <span class="sub">&middot; ${note}</span>`;
+
+  // The two ways in: only once the model is loaded, so they open without a wait
+  $("chat").disabled = $("terminal").disabled = sv.state !== "ready";
 
   // Errors
   $("error").hidden = !s.error;

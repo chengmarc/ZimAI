@@ -1,5 +1,6 @@
-// 2B.exe, the app. With no arguments it's the 2B window: home.html in WebView2, which shows the GPU and the model
-// and has Download model, Chat (llama-server's own chat page) and Terminal (Git Bash with the agent). With
+// 2B.exe, the app. With no arguments it's the 2B window: home.html in WebView2, which shows the GPU, the model and
+// the model server, and has Download model, Chat (llama-server's own chat page) and Terminal (Git Bash with the
+// agent). The window starts the server as soon as it opens, so Chat and Terminal open without a wait. With
 // --server it's the model server's keeper (Keeper): the window and each agent ask for the server that way.
 // It owns everything outside the agent: where things are (Paths), the model (Model), the server's settings and
 // lifetime, the terminal, and the environment the agent gets (AGENT_2B_*, the proxy).
@@ -391,7 +392,8 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
     readonly int pid = Process.GetCurrentProcess().Id;
     object gpu = false;   // false until checked, then null (none found) or { name, vram, cuda }
     string server = "stopped", error, shown;
-    DateTime? chatSince;   // when Chat was clicked, until the chat page is up
+    DateTime? asked;    // when this window asked for the server (Ask), until it's ready or has failed
+    bool modelReady;
     long lastDone;
     DateTime lastTick = DateTime.Now;
     double speed;
@@ -449,6 +451,8 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         core.NavigationCompleted += (s, e) => { shown = null; };   // a new page: send it the state again
         core.Navigate(Home);
         CheckGpu();
+        modelReady = File.Exists(Paths.Model);
+        if (modelReady) Ask();
         timer.Start();
     }
 
@@ -480,9 +484,10 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
                     if (!download.Active) { lastDone = download.Done; Task.Run(() => download.Run()); }
                     break;
                 case "cancel": download.Cancel(); break;
-                case "terminal": Terminal.Open(); break;
-                case "chat": Chat(); break;
-                case "home": chatSince = null; view.CoreWebView2.Navigate(Home); break;
+                case "start": Ask(); break;
+                case "terminal": if (server == "ready") Terminal.Open(); break;
+                case "chat": if (server == "ready") view.CoreWebView2.Navigate(Model.Server); break;
+                case "home": view.CoreWebView2.Navigate(Home); break;
                 case "folder": Directory.CreateDirectory(Paths.Data); Process.Start("explorer.exe", "\"" + Paths.Data + "\""); break;
                 case "log": if (File.Exists(Paths.Log)) Process.Start("notepad.exe", "\"" + Paths.Log + "\""); break;
             }
@@ -492,9 +497,11 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         Push();
     }
 
-    void Chat() {
-        if (server == "ready") { view.CoreWebView2.Navigate(Model.Server); return; }
-        chatSince = DateTime.Now;
+    /** Start the model server, unless it's running. The window asks as soon as it opens, and again once the model is
+     *  downloaded, so Chat and Terminal are ready by the time they're clicked; until then they're grayed out. */
+    void Ask() {
+        if (server != "stopped") return;
+        asked = DateTime.Now;
         Server.Start();
     }
 
@@ -505,14 +512,15 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
             string state = Server.State();   // off the UI thread: it may wait on /health
             if (IsDisposed) return;
             BeginInvoke((Action)(() => {
+                string was = server;
                 server = state;
                 ticking = false;
-                Changed();
+                Changed(was);
             }));
         });
     }
 
-    void Changed() {
+    void Changed(string was) {
         download.Watch();
         double secs = (DateTime.Now - lastTick).TotalSeconds;
         if (secs >= 1) {
@@ -521,17 +529,17 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
             lastDone = download.Done;
             lastTick = DateTime.Now;
         }
-        if (chatSince.HasValue) {
-            double waited = (DateTime.Now - chatSince.Value).TotalSeconds;
-            if (server == "ready") {
-                chatSince = null;
-                view.CoreWebView2.Navigate(Model.Server);
-            } else if (server == "stopped" && waited > 15) {
-                chatSince = null;
-                error = "The model server stopped before it was ready. Out of memory? Close programs that use the GPU " +
-                        "or a lot of RAM, and try again.";
-            }
+        bool ready = File.Exists(Paths.Model);
+        if (ready && !modelReady) Ask();   // just downloaded
+        modelReady = ready;
+        if (asked.HasValue && server == "ready") asked = null;
+        // The keeper takes a moment to start llama-server, so "stopped" right after asking isn't a failure yet.
+        if (asked.HasValue && server == "stopped" && (DateTime.Now - asked.Value).TotalSeconds > 15) {
+            asked = null;
+            error = "The model server stopped before it was ready. Out of memory? Close programs that use the GPU or a " +
+                    "lot of RAM, and click Start.";
         }
+        if (was == "ready" && server == "stopped") error = "The model server stopped. Click Start to start it again.";
         Push();
     }
 
@@ -551,17 +559,25 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
                 { "speed", download.Active ? Math.Round(speed) : 0 },
                 { "error", download.Error },
             } : null },
-            { "server", server },
-            { "loading", chatSince.HasValue ? new Dictionary<string, object> {
-                { "seconds", (int)(DateTime.Now - chatSince.Value).TotalSeconds },
-                { "estimate", ReadInt(Paths.LoadSeconds) },
-            } : null },
+            { "server", ServerState() },
             { "error", error },
         };
         string text = Json(state);
         if (text == shown) return;
         shown = text;
         view.CoreWebView2.PostWebMessageAsJson(text);
+    }
+
+    /** The server's state for the page; while it loads, for how long, and how long the last load took. */
+    Dictionary<string, object> ServerState() {
+        string state = server == "stopped" && asked.HasValue ? "loading" : server;   // asked, not started yet
+        var s = new Dictionary<string, object> { { "state", state }, { "context", Model.Context } };
+        if (state == "loading") {
+            DateTime since = File.Exists(Paths.ServerPid) ? File.GetLastWriteTime(Paths.ServerPid) : asked ?? DateTime.Now;
+            s["seconds"] = Math.Max(0, (int)(DateTime.Now - since).TotalSeconds);
+            s["estimate"] = ReadInt(Paths.LoadSeconds);
+        }
+        return s;
     }
 
     // ---------- helpers ----------
