@@ -69,7 +69,8 @@ static class Paths {
 
 // The model.
 static class Model {
-    public const string Name = "gpt-oss-20b";   // also its name in the API
+    public const string Name = "gpt-oss-20b";   // its name in the API
+    public const string Title = "GPT OSS 20B";  // its name on screen, as the file names itself (general.name)
     public const string Url = "https://huggingface.co/ggml-org/gpt-oss-20b-GGUF/resolve/ef9b12f2ff56c69cf32153a02784e7a3c88bf524/gpt-oss-20b-MXFP4.gguf";
     public const long Size = 12109566624;
     public const string Server = "http://127.0.0.1:8080";
@@ -812,7 +813,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
             { "version", Program.Version },
             { "system", system },
             { "model", new Dictionary<string, object> {
-                { "name", Model.Name }, { "size", Model.Size }, { "ready", File.Exists(Paths.Model) }, { "info", info },
+                { "name", Model.Title }, { "size", Model.Size }, { "ready", File.Exists(Paths.Model) }, { "info", info },
                 { "need", Need() }, { "free", Free() }, { "drive", Path.GetPathRoot(Paths.Data).TrimEnd('\\') } } },
             { "download", download.Active || download.Error != null || part > 0 ? new Dictionary<string, object> {
                 { "active", download.Active },

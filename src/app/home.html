@@ -230,14 +230,15 @@ function render(s) {
   } else if (d && d.active) {
     const pct = d.total ? (100 * d.done / d.total) : 0;
     const speed = d.speed > 0 ? ` &middot; ${(d.speed / 1e6).toFixed(0)} MB/s &middot; ${eta((d.total - d.done) / d.speed)}` : "";
-    model.innerHTML = `<b>${esc(s.model.name)}</b> <span class="sub">&middot; ${(d.done / 1e9).toFixed(1)} / ${gb(d.total)}${speed}</span>`;
+    model.innerHTML = `<b>${esc(s.model.name)}</b> <span class="sub">&middot; ${Math.floor(pct)}% &middot; ` +
+      `${(d.done / 1e9).toFixed(1)} / ${gb(d.total)}${speed}</span>`;
     bar.hidden = false;
     bar.firstChild.style.width = pct.toFixed(1) + "%";
-    modelSide.innerHTML = pill("busy", `Downloading &middot; ${Math.floor(pct)}%`);
     modelSide.append(button("Cancel", "cancel"));
   } else {
     const resume = d && d.done > 0;
-    model.innerHTML = m +
+    // No model, so nothing about it: only what happened to the download, if anything
+    model.innerHTML = '<b>No Model Detected</b> <span class="sub">' +
       (d && d.error ? ` &middot; <span class="bad">${esc(d.error)}</span>` : resume ? ` &middot; ${gb(d.done)} downloaded` : "") +
       "</span>";
     if (resume) {
@@ -246,7 +247,6 @@ function render(s) {
     }
     // Download only once the PC is known to run it, and the disk has room (2B.exe checks both too)
     const room = s.model.free >= s.model.need;
-    modelSide.innerHTML = room ? pill("off", "No Model Detected") : pill("off", "Not Enough Space");
     const get = button(resume ? "Resume" : "Download", "download", true);
     get.disabled = !supported || !room;
     modelSide.append(get);
