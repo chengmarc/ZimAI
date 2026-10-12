@@ -1,0 +1,119 @@
+# Releasing
+
+2B ships two ways, both built from `src/`:
+
+- **Portable, on GitHub:** `Agent-2B-portable.zip`, ready to run. The user unzips it anywhere, a flash drive
+  included, and double-clicks `2B.exe`.
+- **Microsoft Store:** an MSIX package with the same contents.
+
+Neither includes the model. The app downloads it on its first run.
+
+[`tools/build.ts`](../tools/build.ts) builds both. Nothing in `tools/` ships inside the app.
+
+## How-to guides
+
+### Cut a release
+
+1. Pick the version and set `VERSION` in [`tools/build.ts`](../tools/build.ts). The git tag is `v<VERSION>`.
+   The Store needs every new submission to have a higher version than the last.
+2. Run `tools\fetch.cmd` so `src/runtime/` is complete. It only downloads what's missing.
+3. Build both artifacts (see [Build prerequisites](#build-prerequisites)):
+
+   ```sh
+   src/runtime/node/node.exe tools/build.ts --clean --msix
+   ```
+
+   This takes about ten minutes: five to zip and five to pack.
+4. Smoke-test the portable zip: unzip it somewhere new and double-click `2B.exe`. Then smoke-test the Store package
+   (below).
+5. Tag the release, push the tag, and publish a GitHub release with `dist/release/Agent-2B-portable.zip` attached.
+   GitHub takes release files up to 2 GB; the zip is about 860 MB.
+6. Upload `dist/store/Agent 2B.msix` in a new Partner Center submission.
+
+### Set up the Store identity (once)
+
+Copy the three values from Partner Center > the app > Product identity into `IDENTITY_NAME`, `PUBLISHER` and
+`PUBLISHER_DISPLAY_NAME` in `tools/build.ts`. `DISPLAY_NAME` must match the name reserved there. Until those values
+are filled in, `--msix` stops before building anything.
+
+### Smoke-test a build
+
+Both tests skip the 12 GB download if you hard-link a model you already have into the app's data folder first:
+`mklink /H <data folder>\model\_model.gguf src\data\model\_model.gguf`.
+
+**The portable zip.** Unzip it somewhere new. Its data folder is `data\` beside `2B.exe`.
+
+**The Store package.** With Developer Mode on, register the staged app. That avoids installing the unsigned MSIX:
+
+```powershell
+Add-AppxPackage -Register "build\Agent 2B\AppxManifest.xml"
+```
+
+Start **Agent 2B** from the Start menu. Its data folder is `%LOCALAPPDATA%\Packages\<package family name>\LocalCache\`.
+
+In each case, check that:
+- without a model, the first run downloads it into the data folder, and starting again after an interruption resumes it.
+- the model loads, a request gets an answer, and Bash and Edit work after asking.
+- `/exit` leaves a Git Bash prompt where `2b` starts the agent again.
+- closing the window stops `llama-server.exe`.
+
+Remove the Store app afterwards with `Get-AppxPackage <identity name> | Remove-AppxPackage`. That also deletes its data
+folder.
+
+### Fill in the Partner Center submission
+
+- **Restricted capabilities.** The package declares two, and the submission asks why:
+  - `runFullTrust`: 2B is a desktop app (a terminal, Node.js, Git Bash and llama.cpp).
+  - `unvirtualizedResources`: suggested wording: "Agent 2B is a coding agent that runs commands in a terminal on the
+    user's behalf, such as git, npm and pip. With write virtualization, their changes to AppData and the registry
+    would be hidden from the rest of the system, so tools installed or configured in 2B wouldn't work outside it."
+- **System requirements.** An NVIDIA GPU (RTX 5060 or better) with a driver for CUDA 12.4 or later, and about 13 GB
+  of free disk space for the model download. Say both in the description too, along with the first-run download.
+- **Privacy policy URL:** [PRIVACY.md](../PRIVACY.md) on GitHub.
+
+## Explanation
+
+**One app, two places for its data.** `2B.exe` ([`src/launcher/launcher.cs`](../src/launcher/launcher.cs)) is the
+entry point of both. It runs `app.cmd`. The portable app keeps the model and logs in `data/` beside it. The Store
+package is installed read-only (under `C:\Program Files\WindowsApps\`), so there `2B.exe` first sets
+`AGENT_2B_DATA` to the package's `LocalCache` folder, which is deleted when the app is uninstalled.
+[`src/agent/paths.ts`](../src/agent/paths.ts) is the only code that reads it.
+
+**Why write virtualization is off.** A packaged app's processes, and every process they start, normally have their
+writes to AppData and the registry redirected into a private copy. For 2B that would include everything the user
+and the agent run in its terminal. The manifest turns that off (`desktop6:FileSystemWriteVirtualization` and
+`desktop6:RegistryWriteVirtualization`), which needs the `unvirtualizedResources` capability.
+
+**Why the build needs no new tools.** It runs on the Node.js in `src/runtime/`. It compiles `2B.exe` with the C#
+compiler that comes with Windows (.NET Framework 4), zips with Windows' `tar.exe`, and draws the logos from
+`media/app-icon.svg` with Edge. Only `makeappx.exe` comes from somewhere else.
+
+## Reference
+
+### Release artifacts
+
+| File | Where it goes |
+|---|---|
+| `dist/release/Agent-2B-portable.zip` | GitHub release |
+| `dist/store/Agent 2B.msix` | Partner Center (only with `--msix`) |
+
+`build/` holds intermediates: `build/Agent 2B/` is the staged app (`src/` without `data/`, plus `LICENSE`), and
+`build/downloads/` holds `tools\fetch.cmd`'s unfinished downloads. `--clean` deletes both, along with `dist/`.
+
+### Build prerequisites
+
+- `tools\fetch.cmd` has run, so `src/runtime/node`, `src/runtime/git` and `src/runtime/llama` exist.
+- For `--msix` only: `makeappx.exe`, from either the full
+  [Windows SDK](https://developer.microsoft.com/windows/downloads/windows-sdk/) or, much smaller (~22 MB), the
+  [Microsoft.Windows.SDK.BuildTools](https://www.nuget.org/packages/Microsoft.Windows.SDK.BuildTools) NuGet package:
+  download the `.nupkg`, rename it to `.zip`, and unzip it to `%LOCALAPPDATA%\Agent 2B Build\sdk-buildtools\`.
+  No install or admin rights needed.
+
+### Files
+
+| File | Role |
+|---|---|
+| [`tools/fetch.cmd`](../tools/fetch.cmd) | Downloads Node.js, Git Bash and llama.cpp into `src/runtime/` |
+| [`tools/build.ts`](../tools/build.ts) | Builds `src/2B.exe` and the portable zip, and with `--msix` the Store package |
+| [`tools/AppxManifest.xml`](../tools/AppxManifest.xml) | The package manifest; `build.ts` fills in the identity and version |
+| [`src/launcher/launcher.cs`](../src/launcher/launcher.cs) | `2B.exe`, the app's entry point |

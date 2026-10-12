@@ -1,12 +1,12 @@
 # agent/ — the 2B coding agent
 
-The source of the `2b` command: TypeScript run by `runtime/node/`, with no build step and no npm packages. Each file
+The source of the `2b` command: TypeScript run by `src/runtime/node/`, with no build step and no npm packages. Each file
 starts with a comment saying what it owns. This README covers what no single file says.
 
 ## How-to guides
 
 ### Run it and see your change
-- **Run it:** in the app window, type `2b`. From another Git Bash, run `runtime/node/node.exe agent/main.ts`.
+- **Run it:** in the app window, type `2b`. From another Git Bash, run `src/runtime/node/node.exe src/agent/main.ts`.
 - **When edits take effect:** `.ts` files at the next `2b`; the text files in `prompt/` at the next `/clear`.
 - **See what the model reads:** run `/prompt` in the agent.
 
@@ -15,8 +15,8 @@ There are no tests and no CI. Node strips types without checking them, so a wron
 module except the model call runs without llama-server (from the repo root):
 
 ```sh
-runtime/node/node.exe --input-type=module -e "
-const { Agent } = await import('./agent/agent.ts');
+src/runtime/node/node.exe --input-type=module -e "
+const { Agent } = await import('./src/agent/agent.ts');
 const ag = new Agent(true);   // true: approve everything, so tools don't stop to ask
 console.log(await ag.tools.get('Grep').run(ag, { pattern: 'MAX_LIST', output_mode: 'content' }));
 process.exit(0);
@@ -33,9 +33,10 @@ They're in `server/server.ts`. A server that's already running keeps its old set
 `taskkill /F /IM llama-server.exe`.
 
 ### Upgrade a component, or use a different model
-- **Any component:** change its URL in `install.cmd`, delete its folder under `runtime/`, then double-click `install`.
+- **Any component:** change its URL in `tools/fetch.cmd`, delete its folder under `src/runtime/`, then run `tools\fetch.cmd`.
   Node must stay at 22.18 or later so it can run `.ts` files as they are.
 - **A different model:** gpt-oss is also assumed in these places:
+  - `MODEL_URL` in `paths.ts`, which the first run downloads.
   - `ALIAS` in `server/server.ts`.
   - `chat_template_kwargs` in `agent.ts`: `reasoning_effort` and `model_identity` are variables of the gpt-oss chat
     template, so `/effort` and `prompt/identity.md` do nothing under another template.
@@ -55,16 +56,23 @@ llama-server runs as a hidden process of its own. The agent appears at once, and
 
 ## Reference
 
-The drive layout. `paths.ts` defines it for the agent; `install.cmd` and `app.cmd` spell out the same paths, so a rename
-touches all three.
+The layout of `src/`, the app as it ships. `paths.ts` defines it for the agent; `app.cmd` and
+`tools/fetch.cmd` spell out the same paths, so a rename touches all three.
 
 ```
-runtime/                downloaded by install.cmd (untracked; delete it to start over)
-  node/  git/  llama/   Node.js, portable Git Bash, llama.cpp (CUDA build)
-  model/_model.gguf     the model
-  downloads/            unfinished downloads, resumed by the next install
-logs/                   written at runtime (untracked)
-  server.log            llama-server's log, overwritten at each start
-  load-seconds          the last load time, for the loading bar's estimate
-  agents/<pid>          one empty file per running agent, for the stopper
+src/
+  agent/                this folder
+  app.cmd               starts the terminal with 2B (2B.exe runs it)
+  2B.exe                built from launcher/ by tools/build.ts (untracked)
+  runtime/              downloaded by tools/fetch.cmd (untracked)
+    node/  git/  llama/ Node.js, portable Git Bash, llama.cpp (CUDA build)
+  data/                 written at runtime (untracked; the Store app keeps it elsewhere, see below)
+    model/_model.gguf   the model, downloaded on the first run (download.ts)
+    logs/
+      server.log        llama-server's log, overwritten at each start
+      load-seconds      the last load time, for the loading bar's estimate
+      agents/<pid>      one empty file per running agent, for the stopper
 ```
+
+In the Microsoft Store app, the install folder is read-only, so `data/` is the package's own data folder instead
+(`AGENT_2B_DATA`, set by `2B.exe`). [`docs/RELEASING.md`](../../docs/RELEASING.md) covers building and publishing.

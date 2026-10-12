@@ -20,8 +20,7 @@ const LOADMODE = os.totalmem() >= 14000 * 2 ** 20 ? "none" : "mmap";
 /** Start the server in the background, or say why it can't be. It only launches it: the agent is on screen
  *  at once, and its loading screen waits for the model (loading.ts). */
 export function startServer(): string | null {
-  if (!fs.existsSync(LLAMA)) return "llama.cpp is missing. Double-click install";
-  if (!fs.existsSync(MODEL)) return "the model is missing. Double-click install";
+  if (!fs.existsSync(LLAMA)) return `llama.cpp is missing (${LLAMA})`;
   fs.mkdirSync(path.dirname(LOG), { recursive: true });
   // A hidden process of its own (no window), not tied to this one; if it fails, the loading screen says so.
   // --fit on: llama.cpp splits the model between GPU and CPU itself, measured against the VRAM free right now

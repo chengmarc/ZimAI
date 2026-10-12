@@ -1,8 +1,13 @@
-# Downloaded by install.cmd; runtime/downloads/ holds unfinished ones
-/runtime/
+# Downloaded by tools/fetch.cmd, built by tools/build.ts
+/src/runtime/
+/src/2B.exe
 
-# Made on each computer
-/logs/
+# Made by the app as it runs: the model and logs
+/src/data/
+
+# Made by tools/: unfinished downloads, the staged app, the release artifacts
+/build/
+/dist/
 
 # Local Claude Code settings
 /.claude/

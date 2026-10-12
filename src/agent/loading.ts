@@ -2,6 +2,7 @@
 // in the background (server/server.ts) and shows up right away. llama-server doesn't report its progress, so the
 // bar is an estimate from how long the last load took, and the stage below it comes from the server's log.
 import * as fs from "node:fs";
+import * as path from "node:path";
 import { LOAD_SECONDS, LOG, MODEL } from "./paths.ts";
 import { CTX, running, serverReady } from "./server/server.ts";
 import { SPINNER } from "./terminal/screen.ts";
@@ -88,8 +89,8 @@ export async function waitForServer(): Promise<number | null> {
       console.log(`${RED}✗${RST} The model server ${why}.`);
       if (tail.length) console.log(tail.map(l => `  ${DIM}${l}${RST}`).join("\n"));
       console.log(`  Out of memory? Close other programs that use the GPU or a lot of RAM, and start 2b again.\n` +
-                  `  A corrupted download? Delete runtime/llama/ or runtime/model/ and double-click install.\n` +
-                  `  ${DIM}The whole log: logs/server.log${RST}`);
+                  `  A corrupted download? Delete ${path.dirname(MODEL)} and start 2b again.\n` +
+                  `  ${DIM}The whole log: ${LOG}${RST}`);
       return null;
     }
     if (tty) {

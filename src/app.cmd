@@ -2,7 +2,7 @@
 rem Double-click: opens the portable Git Bash in the home folder and starts 2B in it; quitting
 rem 2B leaves a normal prompt, with `2b`, node and npm ready to use.
 if not exist "%~dp0runtime\git\usr\bin\mintty.exe" (
-  echo 2B isn't installed yet: double-click install first.
+  echo The runtime is missing: in a clone of the repo, run tools\fetch.cmd first.
   pause
   exit /b 1
 )
@@ -19,4 +19,4 @@ rem What git-bash.exe --cd-to-home does, plus -c for our look (agent\terminal\mi
 rem (-t works only here, not in the config; the config keeps programs from changing it).
 set MSYSTEM=MINGW64
 rem First the agent (a Ctrl+C in it is the agent's, not this shell's), then a normal prompt.
-start "" /D "%USERPROFILE%" "%~dp0runtime\git\usr\bin\mintty.exe" -c "%~dp0agent\terminal\mintty.conf" -i "%~dp0media\app-icon.ico" -t "Agent 2B" /usr/bin/bash --login -i -c "trap : INT; 2b; trap - INT; exec bash --login -i"
+start "" /D "%USERPROFILE%" "%~dp0runtime\git\usr\bin\mintty.exe" -c "%~dp0agent\terminal\mintty.conf" -i "%~dp0app-icon.ico" -t "Agent 2B" /usr/bin/bash --login -i -c "trap : INT; 2b; trap - INT; exec bash --login -i"

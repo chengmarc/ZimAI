@@ -18,11 +18,12 @@
 You need Windows 10/11 and an NVIDIA GPU (an RTX 5060 or better) whose driver supports CUDA 12.4 or later (`nvidia-smi` shows the version).
 CUDA itself doesn't need to be installed.
 
-1. **Double-click `install`.** It downloads about 13 GB into `runtime/`: portable Git Bash, Node.js, llama.cpp (CUDA
-   build) and the gpt-oss-20b model. Run it again any time: it fetches only what's missing, and an interrupted
-   download resumes. It uses the Windows proxy setting if one is on.
-2. **Double-click `app`.** A terminal opens in your home folder with 2B running. `/exit` leaves a normal Git Bash
-   prompt: `cd` into a project and type `2b` to work there.
+1. **Download `Agent-2B-portable.zip`** from the [latest release](https://github.com/chengmarc/agent-2b/releases/latest)
+   and unzip it anywhere, a flash drive included. It holds portable Git Bash, Node.js and llama.cpp (CUDA build).
+2. **Double-click `2B.exe`.** A terminal opens in your home folder with 2B running. The first time, it downloads the
+   gpt-oss-20b model (12 GB) into `data/` beside it. If the download is interrupted, start 2B again and it resumes.
+   It uses the Windows proxy setting if one is on. `/exit` leaves a normal Git Bash prompt: `cd` into a project and
+   type `2b` to work there.
 
 The first start loads the model (~30 s). llama.cpp splits it between GPU and CPU to fit whatever VRAM is free at that
 moment, so there is nothing to configure per computer. The server stops when the last 2B window closes.
@@ -47,8 +48,9 @@ or on the machine; give it tight tasks rather than open-ended ones.
 ## Change it
 
 The agent is plain TypeScript run directly by Node: no build step, no npm packages. Everything the model reads is a
-text file in [`agent/prompt/`](agent/prompt/), and each tool is one file in [`agent/tools/`](agent/tools/).
-[`agent/README.md`](agent/README.md) covers running a change, adding a tool, upgrading a component and swapping the
+text file in [`src/agent/prompt/`](src/agent/prompt/), and each tool is one file in [`src/agent/tools/`](src/agent/tools/).
+In a clone, run `tools\fetch.cmd` once to download the runtimes into `src/runtime/`, then `src\app.cmd` starts 2B.
+[`src/agent/README.md`](src/agent/README.md) covers running a change, adding a tool, upgrading a component and swapping the
 model.
 
 ## License

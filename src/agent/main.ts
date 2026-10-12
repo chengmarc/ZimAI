@@ -4,6 +4,7 @@
 // Node can strip: no enums, namespaces, or constructor parameter properties.
 import { Agent, EFFORTS } from "./agent.ts";
 import { ask, isAbort } from "./terminal/input.ts";
+import { downloadModel } from "./download.ts";
 import { waitForServer } from "./loading.ts";
 import { useProxy } from "./proxy.ts";
 import { CTX, serverReady, startServer } from "./server/server.ts";
@@ -24,7 +25,9 @@ async function main(): Promise<number> {
     console.error("2b takes no options (in the agent, /help lists its commands)");
     return 1;
   }
+  useProxy();   // for the model download, WebSearch / WebFetch, and the commands the agent runs
   if (!(await serverReady())) {   // or use the one already running, e.g. for another 2B window
+    if (!downloadModel()) return 1;
     const problem = startServer();
     if (problem) {
       console.error(`2b: ${problem}`);
@@ -32,7 +35,6 @@ async function main(): Promise<number> {
     }
   }
   watchServer();
-  useProxy();   // for WebSearch / WebFetch, and the commands the agent runs
   let agent = new Agent();
   console.log(banner(agent.root) + "\n");
   const loaded = await waitForServer();

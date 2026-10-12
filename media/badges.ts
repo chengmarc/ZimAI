@@ -1,5 +1,5 @@
 // Generates the README badges, media/badge-<name>.svg, in the stats strip's style.
-// Add a badge to BADGES and run from the repo root: runtime/node/node.exe media/badges.ts
+// Add a badge to BADGES and run from the repo root: src/runtime/node/node.exe media/badges.ts
 
 import { writeFileSync } from 'node:fs';
 
