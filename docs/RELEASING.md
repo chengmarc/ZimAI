@@ -79,8 +79,10 @@ folder.
   - `unvirtualizedResources`: suggested wording: "Agent 2B is a coding agent that runs commands in a terminal on the
     user's behalf, such as git, npm and pip. With write virtualization, their changes to AppData and the registry
     would be hidden from the rest of the system, so tools installed or configured in 2B wouldn't work outside it."
-- **System requirements.** An NVIDIA GPU (RTX 5060 or better) with a driver for CUDA 12.4 or later, and about 13 GB
-  of free disk space for the model download. Say both in the description too, along with the first-run download.
+- **System requirements.** The same as the README's and as `Requirements` in `src/app/app.cs`, which the window
+  checks: an NVIDIA GPU with 6 GB of VRAM or more (GTX 1060 6 GB, GTX 1660, any desktop RTX), a driver with CUDA 12.4
+  or later, 16 GB of RAM (8 GB with a 12 GB GPU), and 13 GB of free disk space for the model, which the app downloads
+  on its first run. Say all of it in the description too.
 - **Privacy policy URL:** [PRIVACY.md](../PRIVACY.md) on GitHub.
 
 ## Explanation

@@ -15,12 +15,17 @@
 
 ## Try it
 
-You need Windows 10/11 and an NVIDIA GPU (an RTX 5060 or better) whose driver supports CUDA 12.4 or later (`nvidia-smi` shows the version).
-CUDA itself doesn't need to be installed.
+You need Windows 10/11 and:
+- **An NVIDIA GPU with 6 GB of VRAM or more**: a GTX 1060 6 GB, a GTX 1660, or any desktop RTX. 8 GB or more is
+  better; with 16 GB the whole model fits on the GPU. GTX 10-series cards work but are slower.
+- **16 GB of RAM** (8 GB with a 12 GB GPU), for the part of the model the GPU can't hold.
+- **A driver with CUDA 12.4 or later**. CUDA itself doesn't need to be installed.
+- **13 GB of free disk space** for the model.
 
 1. **Download `Agent-2B-portable.zip`** from the [latest release](https://github.com/chengmarc/agent-2b/releases/latest)
    and unzip it anywhere, a flash drive included. It holds portable Git Bash, Node.js and llama.cpp (CUDA build).
-2. **Double-click `2B.exe`.** The 2B window shows your GPU and the model.
+2. **Double-click `2B.exe`.** The 2B window checks your PC first: Great, Good or Slow means 2B runs on it, and
+   otherwise it says why not, before anything is downloaded.
 3. **Click Download model** the first time. It downloads gpt-oss-20b (12 GB) into `data/` beside `2B.exe`. If it's
    interrupted, click Resume download, even after a restart. It uses the Windows proxy setting if one is on.
 4. **Click Chat or Terminal.**

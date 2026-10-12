@@ -48,7 +48,10 @@
   .pill.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 25%, var(--bg)); background: color-mix(in srgb, var(--ok) 7%, var(--bg)); }
   .pill.busy { color: var(--rose); border-color: color-mix(in srgb, var(--rose) 25%, var(--bg)); background: color-mix(in srgb, var(--rose) 7%, var(--bg)); }
   .pill.busy::before { animation: pulse 0.9s ease-in-out infinite alternate; }
+  .pill.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 25%, var(--bg)); background: color-mix(in srgb, var(--warn) 7%, var(--bg)); }
   .pill.off { color: var(--faint); background: transparent; }
+  .hint { grid-column: 2 / 4; color: var(--muted); font-size: 13px; }
+  .btn:disabled { opacity: 0.45; cursor: default; filter: none; }
   .pill.off::before { background: transparent; box-shadow: inset 0 0 0 1.5px currentColor; }
   @keyframes pulse { from { opacity: 1; } to { opacity: 0.25; } }
 
@@ -109,15 +112,17 @@
 
   <section class="card">
     <div class="row">
-      <div class="label">GPU</div>
-      <div class="value" id="gpu"></div>
-      <div class="side" id="gpu-side"></div>
+      <div class="label">System</div>
+      <div class="value" id="system"></div>
+      <div class="side" id="system-side"></div>
+      <div class="hint" id="system-hint" hidden></div>
     </div>
     <div class="row">
       <div class="label">Model</div>
       <div class="value" id="model"></div>
       <div class="side" id="model-side"></div>
       <div class="bar" id="download-bar" hidden><i></i></div>
+      <div class="hint" id="model-hint" hidden></div>
     </div>
     <div class="row">
       <div class="label">Server</div>
@@ -185,28 +190,34 @@ function about(info, fallback) {
   return `<b>${esc(info.name || fallback)}</b> <span class="sub">${parts.map(p => "&middot; " + p).join(" ")}</span>`;
 }
 
-// Each row's status: "ok" (ready), "busy" (loading) or "off" (not ready).
+// Each row's status: "ok" (ready), "busy" (loading), "warn" (works, with a catch) or "off" (not ready).
 const pill = (cls, text) => `<span class="pill ${cls}">${text}</span>`;
+const hint = (id, text) => { $(id).hidden = !text; $(id).textContent = text || ""; };
+
+// The System row's pill for each of 2B.exe's verdicts (Requirements in app.cs).
+const VERDICTS = {
+  great: ["ok", "Great"], good: ["ok", "Good"], slow: ["warn", "Slow"],
+  driver: ["off", "Update Driver"], unsupported: ["off", "Not Supported"], none: ["off", "No GPU Detected"],
+};
 
 function render(s) {
   $("version").textContent = "v" + s.version;
 
-  // GPU
-  const gpu = $("gpu"), gpuSide = $("gpu-side");
-  if (s.gpu === false) {
-    gpu.innerHTML = '<span class="sub">Looking for an NVIDIA GPU...</span>';
-    gpuSide.innerHTML = pill("busy", "Checking");
-  } else if (!s.gpu) {
-    gpu.innerHTML = '<span class="sub">2B needs an NVIDIA GPU, with its driver installed.</span>';
-    gpuSide.innerHTML = pill("off", "No GPU Detected");
+  // System: whether this PC can run 2B, known before the download
+  const sys = s.system;
+  if (!sys) {
+    $("system").innerHTML = '<span class="sub">Checking this PC...</span>';
+    $("system-side").innerHTML = pill("busy", "Checking");
   } else {
-    const cuda = s.gpu.cuda ? parseFloat(s.gpu.cuda) : 0;
-    const driver = !s.gpu.cuda ? " &middot; no CUDA in the driver: update it (12.4 or later)"
-      : cuda >= 12.4 ? ` &middot; CUDA ${esc(s.gpu.cuda)}`
-      : ` &middot; CUDA ${esc(s.gpu.cuda)}: update the NVIDIA driver (12.4 or later)`;
-    gpu.innerHTML = `<b>${esc(s.gpu.name)}</b> <span class="sub">&middot; ${s.gpu.vram} GB${driver}</span>`;
-    gpuSide.innerHTML = cuda >= 12.4 ? pill("ok", "Ready") : pill("off", "No GPU Detected");
+    const short = name => name.replace(/^NVIDIA\s+(GeForce\s+)?/i, "");   // the row is about an NVIDIA GPU already
+    $("system").innerHTML = (sys.name ? `<b>${esc(short(sys.name))}</b> <span class="sub">&middot; ${sys.vram} GB VRAM &middot; `
+                                      : '<b>No NVIDIA GPU</b> <span class="sub">&middot; ') + `${sys.ram} GB RAM` +
+                           (sys.cuda ? ` &middot; CUDA ${esc(sys.cuda)}` : "") + "</span>";
+    const [cls, text] = VERDICTS[sys.verdict];
+    $("system-side").innerHTML = pill(cls, text);
   }
+  hint("system-hint", sys && sys.reason);
+  const supported = !!sys && ["great", "good", "slow"].includes(sys.verdict);
 
   // Model
   const m = `<b>${esc(s.model.name)}</b> <span class="sub">&middot; ${gb(s.model.size)}`;
@@ -233,9 +244,15 @@ function render(s) {
       bar.hidden = false;
       bar.firstChild.style.width = (100 * d.done / d.total).toFixed(1) + "%";
     }
-    modelSide.innerHTML = pill("off", "No Model Detected");
-    modelSide.append(button(resume ? "Resume" : "Download", "download", true));
+    // Download only once the PC is known to run it, and the disk has room (2B.exe checks both too)
+    const room = s.model.free >= s.model.need;
+    modelSide.innerHTML = room ? pill("off", "No Model Detected") : pill("off", "Not Enough Space");
+    const get = button(resume ? "Resume" : "Download", "download", true);
+    get.disabled = !supported || !room;
+    modelSide.append(get);
   }
+  hint("model-hint", !s.model.ready && !(d && d.active) && s.model.free < s.model.need &&
+    `The model needs ${gb(s.model.need)} free on drive ${s.model.drive}, which has ${gb(s.model.free)}.`);
 
   // Server: 2B.exe starts it when the window opens (or once the model is downloaded)
   const sv = s.server, side = $("server-side"), serverBar = $("server-bar");
@@ -243,7 +260,7 @@ function render(s) {
   serverBar.hidden = sv.state !== "loading";
   // How 2B.exe fitted it to this computer: what's in VRAM, what's in RAM (loaded or memory-mapped), and the context
   const p = sv.plan, gib = mib => (mib / 1024).toFixed(1) + " GB";
-  let note = !p ? "starts with the window"
+  let note = !p ? (s.model.ready ? "starts with the window" : "starts once the model is downloaded")
     : `${gib(p.gpu)} in VRAM &middot; ${gib(p.ram)} in RAM &middot; ${Math.round(p.context / 1024)} k Context`;
   if (sv.state === "ready") {
     side.innerHTML = pill("ok", "Ready");

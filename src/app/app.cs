@@ -75,6 +75,115 @@ static class Model {
     public const string Server = "http://127.0.0.1:8080";
 }
 
+// The computer's RAM.
+static class Memory {
+    [StructLayout(LayoutKind.Sequential)]
+    class Status {
+        public uint Length = 64, Load;
+        public ulong Total, Available, TotalPage, FreePage, TotalVirtual, FreeVirtual, FreeExtended;
+    }
+    [DllImport("kernel32.dll")]
+    static extern bool GlobalMemoryStatusEx([In, Out] Status status);
+
+    static Status Now() {
+        var s = new Status();
+        GlobalMemoryStatusEx(s);
+        return s;
+    }
+
+    public static long Total { get { return (long)Now().Total; } }
+    public static long Available { get { return (long)Now().Available; } }
+}
+
+// Whether this computer can run 2B, and how well, before the 12 GB download. The one place the requirements are
+// decided; the README and the Store listing say the same: an NVIDIA GPU (10-series or newer) with 6 GB of VRAM or
+// more, a driver with CUDA 12.4 or later, and 16 GB of RAM (12 GB+ of VRAM needs less).
+// The 6 GB floor: the GPU must hold the dense weights, the 64k context and llama.cpp's working memory (~4.2 GB), plus
+// its 1 GB safety margin; the experts can go to RAM, which is why RAM matters below 12 GB of VRAM.
+static class Requirements {
+    const double MinVram = 5.8;   // GB: what a 6 GB card reports, give or take
+    const double FullRam = 15;    // GB: what a 16 GB computer reports, give or take
+    const double MinCuda = 12.4;  // the llama.cpp build's
+
+    /** { name, vram, ram, cuda, verdict, reason } for the best NVIDIA GPU. verdict: "great", "good" (supported),
+     *  "slow" (supported, slower), "driver" (update the driver first), "unsupported", or "none" (no NVIDIA GPU). */
+    public static Dictionary<string, object> Check() {
+        double ram = Math.Round(Memory.Total / (double)(1L << 30), 1);
+        string name = null, cuda = null;
+        double vram = 0, cc = 0;
+        try {
+            // compute_cap needs a 2021 driver or newer; without it the GPU's generation goes unchecked.
+            string list = Output("nvidia-smi", "--query-gpu=name,memory.total,compute_cap --format=csv,noheader,nounits");
+            if (!list.Contains(",")) list = Output("nvidia-smi", "--query-gpu=name,memory.total --format=csv,noheader,nounits");
+            foreach (string line in list.Split('\n')) {
+                string[] f = line.Split(',');
+                double v;
+                if (f.Length < 2 || !double.TryParse(f[1].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out v)) continue;
+                if (v / 1024 <= vram) continue;   // the one with the most VRAM
+                name = f[0].Trim();
+                vram = Math.Round(v / 1024, 1);
+                if (f.Length < 3 || !double.TryParse(f[2].Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out cc)) cc = 0;
+            }
+            Match m = Regex.Match(Output("nvidia-smi", ""), @"CUDA Version:\s*([\d.]+)");
+            if (m.Success) cuda = m.Groups[1].Value;
+        } catch {
+            name = null;   // no nvidia-smi: no NVIDIA driver
+        }
+        string verdict, reason = null;
+        double cudaVersion;
+        if (name == null) {
+            verdict = "none";
+            reason = "2B needs an NVIDIA GPU with 6 GB of VRAM or more, such as a GTX 1060 6 GB, a GTX 1660 or any desktop RTX.";
+        } else if (cc > 0 && cc < 6) {
+            verdict = "unsupported";
+            reason = "This GPU is older than the GTX 10-series, which 2B's llama.cpp doesn't support.";
+        } else if (vram < MinVram) {
+            verdict = "unsupported";
+            reason = string.Format(CultureInfo.InvariantCulture, "2B needs 6 GB of VRAM or more; this GPU has {0} GB.", vram);
+        } else if (cuda == null || !double.TryParse(cuda, NumberStyles.Float, CultureInfo.InvariantCulture, out cudaVersion) || cudaVersion < MinCuda) {
+            verdict = "driver";
+            reason = "Update the NVIDIA driver: 2B needs CUDA 12.4 or later" + (cuda != null ? " (this one has " + cuda + ")." : ".");
+        } else if (vram >= 15) {
+            verdict = "great";   // the whole model fits on the GPU
+        } else if (vram >= 11) {
+            verdict = ram >= 7.5 ? "good" : "unsupported";
+        } else if (ram >= FullRam) {
+            verdict = vram >= 7.5 ? "good" : "slow";
+        } else {
+            verdict = "unsupported";
+        }
+        if (verdict == "unsupported" && reason == null) {
+            reason = string.Format(CultureInfo.InvariantCulture,
+                "With {0} GB of VRAM, 2B needs {1} GB of RAM for the rest of the model; this PC has {2} GB.",
+                vram, vram >= 11 ? 8 : 16, ram);
+        }
+        bool pascal = cc >= 6 && cc < 7;   // the 10-series: no tensor cores
+        if (pascal && verdict == "great") verdict = "good";
+        else if (pascal && verdict == "good") verdict = "slow";
+        if (verdict == "slow") {
+            reason = pascal ? "A GTX 10-series GPU has no tensor cores, so replies come slower than on an RTX."
+                            : "With 6 GB of VRAM, most of the model runs from RAM, so replies come slower.";
+        }
+        return new Dictionary<string, object> {
+            { "name", name }, { "vram", vram }, { "ram", ram }, { "cuda", cuda }, { "verdict", verdict }, { "reason", reason },
+        };
+    }
+
+    /** Whether the verdict lets 2B download and run the model. */
+    public static bool Supported(string verdict) {
+        return verdict == "great" || verdict == "good" || verdict == "slow";
+    }
+
+    static string Output(string exe, string args) {
+        var start = new ProcessStartInfo(exe, args) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true };
+        using (var p = Process.Start(start)) {
+            string text = p.StandardOutput.ReadToEnd();
+            p.WaitForExit(10000);
+            return text;
+        }
+    }
+}
+
 // How llama-server runs the model on this computer, worked out before each start (by the keeper), because free
 // VRAM and RAM change from one start to the next. llama.cpp's own fitter (llama-fit-params: a dry run that loads no
 // weights) splits the model between the GPU and RAM; this decides the rest, for the same experience everywhere:
@@ -91,14 +200,6 @@ class Plan {
     public bool AllOnGpu, Mapped;
     string fitted;                // the fitter's arguments: -c, -ngl and which tensors stay in RAM (-ot)
 
-    [StructLayout(LayoutKind.Sequential)]
-    class MemoryStatus {
-        public uint Length = 64, Load;
-        public ulong Total, Available, TotalPage, FreePage, TotalVirtual, FreeVirtual, FreeExtended;
-    }
-    [DllImport("kernel32.dll")]
-    static extern bool GlobalMemoryStatusEx([In, Out] MemoryStatus status);
-
     /** The plan for this start; null if the fitter couldn't make one (Arguments then lets llama-server fit). */
     public static Plan Make() {
         Dictionary<string, object> info = null;
@@ -108,9 +209,7 @@ class Plan {
         Plan plan = trained > Guaranteed ? Fit(trained, layers) : null;
         if (plan == null || !plan.AllOnGpu) plan = Fit(Guaranteed, layers);
         if (plan == null) return null;
-        var memory = new MemoryStatus();
-        GlobalMemoryStatusEx(memory);
-        plan.Mapped = (plan.RamMiB << 20) + SpareRam > (long)memory.Available;
+        plan.Mapped = (plan.RamMiB << 20) + SpareRam > Memory.Available;
         return plan;
     }
 
@@ -537,7 +636,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
     readonly System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
     readonly Download download = new Download();
     readonly int pid = Process.GetCurrentProcess().Id;
-    object gpu = false;   // false until checked, then null (none found) or { name, vram, cuda }
+    Dictionary<string, object> system;   // Requirements.Check(), null until it's done
     object info;          // what the model file says about itself (Gguf), once read
     string server = "stopped", error, shown;
     DateTime? asked;    // when this window asked for the server (Ask), until it's ready or has failed
@@ -598,29 +697,30 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         };
         core.NavigationCompleted += (s, e) => { shown = null; };   // a new page: send it the state again
         core.Navigate(Home);
-        CheckGpu();
+        CheckSystem();
         modelReady = File.Exists(Paths.Model);
         if (modelReady) { Ask(); ReadInfo(); }
         timer.Start();
     }
 
-    /** The GPU, from nvidia-smi (it comes with the NVIDIA driver), in the background. */
-    void CheckGpu() {
-        Task.Run(() => {
-            try {
-                string first = Output("nvidia-smi", "--query-gpu=name,memory.total --format=csv,noheader,nounits").Split('\n')[0].Trim();
-                if (first == "") { gpu = null; return; }
-                string[] parts = first.Split(',');
-                Match cuda = Regex.Match(Output("nvidia-smi", ""), @"CUDA Version:\s*([\d.]+)");
-                gpu = new Dictionary<string, object> {
-                    { "name", parts[0].Trim() },
-                    { "vram", parts.Length > 1 ? Math.Round(double.Parse(parts[1].Trim(), CultureInfo.InvariantCulture) / 1024, 1) : 0 },
-                    { "cuda", cuda.Success ? cuda.Groups[1].Value : null },
-                };
-            } catch {
-                gpu = null;
-            }
-        });
+    /** Whether this PC can run 2B (Requirements), in the background: nvidia-smi takes a moment. */
+    void CheckSystem() {
+        Task.Run(() => { system = Requirements.Check(); });
+    }
+
+    /** Whether the model can be downloaded: the computer can run it (Requirements), and the disk has room. */
+    bool CanDownload() {
+        return system != null && Requirements.Supported((string)system["verdict"]) && Need() <= Free();
+    }
+
+    /** Bytes the download still needs on the data folder's drive, with 1 GB to spare. */
+    long Need() {
+        long part = File.Exists(download.Part) ? new FileInfo(download.Part).Length : 0;
+        return Model.Size - part + (1L << 30);
+    }
+
+    long Free() {
+        try { return new DriveInfo(Path.GetPathRoot(Paths.Data)).AvailableFreeSpace; } catch { return long.MaxValue; }
     }
 
     /** The model's name, parameters, context length and license, from its file, in the background. */
@@ -642,7 +742,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
             switch (what) {
                 case "hello": shown = null; break;
                 case "download":
-                    if (!download.Active) { lastDone = download.Done; Task.Run(() => download.Run()); }
+                    if (!download.Active && CanDownload()) { lastDone = download.Done; Task.Run(() => download.Run()); }
                     break;
                 case "cancel": download.Cancel(); break;
                 case "start": Ask(); break;
@@ -710,9 +810,10 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         long part = File.Exists(download.Part) ? new FileInfo(download.Part).Length : 0;
         var state = new Dictionary<string, object> {
             { "version", Program.Version },
-            { "gpu", gpu },
+            { "system", system },
             { "model", new Dictionary<string, object> {
-                { "name", Model.Name }, { "size", Model.Size }, { "ready", File.Exists(Paths.Model) }, { "info", info } } },
+                { "name", Model.Name }, { "size", Model.Size }, { "ready", File.Exists(Paths.Model) }, { "info", info },
+                { "need", Need() }, { "free", Free() }, { "drive", Path.GetPathRoot(Paths.Data).TrimEnd('\\') } } },
             { "download", download.Active || download.Error != null || part > 0 ? new Dictionary<string, object> {
                 { "active", download.Active },
                 { "done", download.Active ? download.Done : part },
@@ -772,15 +873,6 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         var map = value as IDictionary<string, object>;
         if (map != null) return "{" + string.Join(",", map.Select(p => Json(p.Key) + ":" + Json(p.Value))) + "}";
         return Convert.ToString(value, CultureInfo.InvariantCulture);
-    }
-
-    static string Output(string exe, string args) {
-        var start = new ProcessStartInfo(exe, args) { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true };
-        using (var p = Process.Start(start)) {
-            string text = p.StandardOutput.ReadToEnd();
-            p.WaitForExit(10000);
-            return text;
-        }
     }
 
     static int ReadInt(string file) {
