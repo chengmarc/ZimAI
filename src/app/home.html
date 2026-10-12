@@ -173,13 +173,13 @@ function button(label, what, primary) {
   return b;
 }
 
-/** The model as its file describes itself: name, parameters, the longest context it was trained for, license. */
+/** The model as its file describes itself: name, size on disk, parameters, license. */
 function about(info, fallback) {
-  const count = n => n >= 1e9 ? (n / 1e9).toFixed(1) + "B" : (n / 1e6).toFixed(0) + "M";
+  const count = n => n >= 1e9 ? (n / 1e9).toFixed(1) + " B" : (n / 1e6).toFixed(0) + " M";
   const licenses = { "apache-2.0": "Apache-2.0", mit: "MIT" };
   const parts = [
-    info.parameters ? `${count(info.parameters)} parameters` : "",
-    info.context ? `${Math.round(info.context / 1024)}k context` : "",
+    info.size ? gb(info.size) : "",
+    info.parameters ? `${count(info.parameters)} Parameters` : "",
     info.license ? esc(licenses[info.license] || info.license) : "",
   ].filter(Boolean);
   return `<b>${esc(info.name || fallback)}</b> <span class="sub">${parts.map(p => "&middot; " + p).join(" ")}</span>`;
@@ -241,7 +241,10 @@ function render(s) {
   const sv = s.server, side = $("server-side"), serverBar = $("server-bar");
   side.replaceChildren();
   serverBar.hidden = sv.state !== "loading";
-  let note = `${Math.round(sv.context / 1024)}k context`;
+  // How 2B.exe fitted it to this computer: what's in VRAM, what's in RAM (loaded or memory-mapped), and the context
+  const p = sv.plan, gib = mib => (mib / 1024).toFixed(1) + " GB";
+  let note = !p ? "starts with the window"
+    : `${gib(p.gpu)} in VRAM &middot; ${gib(p.ram)} in RAM &middot; ${Math.round(p.context / 1024)} k Context`;
   if (sv.state === "ready") {
     side.innerHTML = pill("ok", "Ready");
   } else if (sv.state === "loading") {

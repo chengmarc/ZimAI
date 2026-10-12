@@ -13,8 +13,11 @@ One language per layer, and each layer owns what it does:
 | the agent ([`agent/`](agent/)) | TypeScript, run as is by Node.js | the conversation with the model and the tools it uses. It gets everything else from `2B.exe` |
 | the tools ([`../tools/`](../tools/)) | PowerShell (comes with Windows) | fetching `runtime/`, building `2B.exe` and the release artifacts; nothing in `src/` depends on them |
 
-**The model server.** `2B.exe --server` is the server's keeper. It starts llama-server with the settings in
-`app.cs` (`Model`), writes its pid to `data/logs/server.pid`, and stops it, by that pid, a few seconds after the last
+**The model server.** `2B.exe --server` is the server's keeper. Before each start it fits the model to this
+computer (`Plan` in `app.cs`): llama.cpp's dry run (`llama-fit-params`) splits it between GPU and RAM; every computer
+gets a 64k context, the model's full 128k only when it all fits on the GPU; and the RAM part is loaded into RAM only
+if that leaves 2 GB free, otherwise it's memory-mapped. The plan goes to `data/logs/server-plan` for the window's Server
+row. Then it starts llama-server with that plan, writes its pid to `data/logs/server.pid`, and stops it, by that pid, a few seconds after the last
 2B window or agent is gone. Each of those leaves a file named by its pid in `data/logs/clients/` while it runs. The
 window's Chat and each `2b` ask for the server by running `2B.exe --server`; if a keeper is already running, the new
 one quits. A server counts as this install's only if its pid is the one in `server.pid`, so two 2B installs on one
@@ -54,6 +57,7 @@ src/
     logs/
       server.log        llama-server's log, overwritten at each start
       server.pid        the running server's pid
+      server-plan       how it was fitted to this computer: context, GPU and RAM use
       load-seconds      how long the last load took, for the loading estimates
       clients/<pid>     one empty file per open 2B window and agent
 ```

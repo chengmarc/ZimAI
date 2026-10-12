@@ -48,6 +48,7 @@ static class Paths {
     public static string Logs { get { return Path.Combine(Data, "logs"); } }
     public static string Log { get { return Path.Combine(Logs, "server.log"); } }            // llama-server's own log
     public static string ServerPid { get { return Path.Combine(Logs, "server.pid"); } }      // while the keeper's server runs
+    public static string ServerPlan { get { return Path.Combine(Logs, "server-plan"); } }    // how it runs (Plan.Describe)
     public static string LoadSeconds { get { return Path.Combine(Logs, "load-seconds"); } }  // the last load time, for estimates
     public static string Clients { get { return Path.Combine(Logs, "clients"); } }           // <pid>: each open 2B window and agent
 
@@ -66,44 +67,117 @@ static class Paths {
     }
 }
 
-// The model and how llama-server runs it.
+// The model.
 static class Model {
     public const string Name = "gpt-oss-20b";   // also its name in the API
     public const string Url = "https://huggingface.co/ggml-org/gpt-oss-20b-GGUF/resolve/ef9b12f2ff56c69cf32153a02784e7a3c88bf524/gpt-oss-20b-MXFP4.gguf";
     public const long Size = 12109566624;
-    public const int Context = 65536;   // tokens; the agent asks the server (/props)
     public const string Server = "http://127.0.0.1:8080";
+}
+
+// How llama-server runs the model on this computer, worked out before each start (by the keeper), because free
+// VRAM and RAM change from one start to the next. llama.cpp's own fitter (llama-fit-params: a dry run that loads no
+// weights) splits the model between the GPU and RAM; this decides the rest, for the same experience everywhere:
+//  - context: every supported computer (6 GB of VRAM or more) gets the same 64k, so a task that works on one works
+//    on all; the model's full trained context only where it costs nothing, i.e. all of it still fits on the GPU.
+//  - RAM: the part that doesn't fit on the GPU is loaded into RAM only if that leaves room for the rest of the
+//    computer; otherwise it's memory-mapped, read from disk as needed: slower, but nothing else gets pushed out.
+class Plan {
+    public const int Guaranteed = 65536;   // tokens
+    const long SpareRam = 2L << 30;        // left for the rest of the computer
+
+    public int Context;
+    public long GpuMiB, RamMiB;   // what the fitter projects
+    public bool AllOnGpu, Mapped;
+    string fitted;                // the fitter's arguments: -c, -ngl and which tensors stay in RAM (-ot)
 
     [StructLayout(LayoutKind.Sequential)]
     class MemoryStatus {
         public uint Length = 64, Load;
-        public ulong Total, Free, TotalPage, FreePage, TotalVirtual, FreeVirtual, FreeExtended;
+        public ulong Total, Available, TotalPage, FreePage, TotalVirtual, FreeVirtual, FreeExtended;
     }
     [DllImport("kernel32.dll")]
     static extern bool GlobalMemoryStatusEx([In, Out] MemoryStatus status);
 
-    public static string Arguments() {
+    /** The plan for this start; null if the fitter couldn't make one (Arguments then lets llama-server fit). */
+    public static Plan Make() {
+        Dictionary<string, object> info = null;
+        try { info = Gguf.Read(Paths.Model); } catch { }
+        int trained = info != null && info["context"] != null ? Convert.ToInt32(info["context"]) : 0;
+        int layers = info != null && info["layers"] != null ? Convert.ToInt32(info["layers"]) + 1 : 0;   // + the output layer
+        Plan plan = trained > Guaranteed ? Fit(trained, layers) : null;
+        if (plan == null || !plan.AllOnGpu) plan = Fit(Guaranteed, layers);
+        if (plan == null) return null;
         var memory = new MemoryStatus();
         GlobalMemoryStatusEx(memory);
-        // Keeping the CPU-side experts in RAM (not memory-mapped) is much faster, if RAM allows (~14 GB).
-        string load = memory.Total >= 14000UL << 20 ? "none" : "mmap";
-        // --fit on: llama.cpp splits the model between GPU and CPU itself, measured against the VRAM free right now
-        // (keeping 1 GB spare); the context is set, so it isn't shrunk to fit.
-        // --jinja: format every message with the chat template inside the model file.
-        var uri = new Uri(Server);
-        return string.Join(" ", new[] {
-            "-m", Q(Paths.Model), "--log-file", Q(Paths.Log), "--alias", Name, "-c", Context.ToString(), "--parallel", "1",
-            "--fit", "on", "--load-mode", load, "--jinja", "--host", uri.Host, "--port", uri.Port.ToString(),
-        });
+        plan.Mapped = (plan.RamMiB << 20) + SpareRam > (long)memory.Available;
+        return plan;
     }
 
-    static string Q(string s) { return "\"" + s + "\""; }
+    /** llama-fit-params' plan for this context: its arguments (on stdout), and from its log the memory each device
+     *  and the host would use (the last breakdown table it prints is the plan's). */
+    static Plan Fit(int context, int layers) {
+        string exe = Path.Combine(Path.GetDirectoryName(Paths.Llama), "llama-fit-params.exe");
+        var start = new ProcessStartInfo(exe, "-m \"" + Paths.Model + "\" -c " + context + " -np 1 -lv 4") {
+            UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true,
+        };
+        string output, log;
+        try {
+            using (var p = Process.Start(start)) {
+                var err = p.StandardError.ReadToEndAsync();
+                output = p.StandardOutput.ReadToEnd();
+                log = err.Result;
+                p.WaitForExit();
+                if (p.ExitCode != 0) return null;
+            }
+        } catch {
+            return null;
+        }
+        string fitted = output.Split('\n').Select(l => l.Trim()).LastOrDefault(l => l.StartsWith("-c "));
+        if (fitted == null) return null;
+        log = Regex.Replace(log, @"\x1b\[[0-9;]*m", "");
+        long gpu = 0, ram = 0, block = 0;
+        bool hostSeen = false;
+        foreach (string line in log.Split('\n')) {
+            Match device = Regex.Match(line, @"\|\s+-\s+(?!Host\b)[^|]+\|\s*\d+\s*=\s*\d+\s*\+\s*\(\s*(\d+)\s*=");
+            Match host = Regex.Match(line, @"\|\s+-\s+Host\s+\|\s*(\d+)\s*=");
+            if (device.Success) {
+                if (hostSeen) { block = 0; hostSeen = false; }   // a new table
+                block += long.Parse(device.Groups[1].Value);
+            } else if (host.Success) {
+                gpu = block;
+                ram = long.Parse(host.Groups[1].Value);
+                hostSeen = true;
+            }
+        }
+        Match ngl = Regex.Match(fitted, @"-ngl (\d+)");
+        return new Plan {
+            Context = int.Parse(Regex.Match(fitted, @"-c (\d+)").Groups[1].Value), GpuMiB = gpu, RamMiB = ram,
+            AllOnGpu = !fitted.Contains("-ot ") && ngl.Success && layers > 0 && int.Parse(ngl.Groups[1].Value) >= layers,
+            fitted = fitted,
+        };
+    }
+
+    /** llama-server's arguments: this plan's, or with no plan, llama.cpp's own fitting at the guaranteed context. */
+    public static string Arguments(Plan plan) {
+        var uri = new Uri(Model.Server);
+        // --jinja: format every message with the chat template inside the model file.
+        string common = "-m \"" + Paths.Model + "\" --log-file \"" + Paths.Log + "\" --alias " + Model.Name +
+                        " --parallel 1 --jinja --host " + uri.Host + " --port " + uri.Port;
+        if (plan == null) return common + " -c " + Guaranteed + " --fit on --load-mode mmap";
+        return common + " " + plan.fitted + " --fit off --load-mode " + (plan.Mapped ? "mmap" : "none");
+    }
+
+    /** For the window's Server row: what was chosen (Paths.ServerPlan). */
+    public string Describe() {
+        return "context=" + Context + "\ngpu=" + GpuMiB + "\nram=" + RamMiB + "\nmapped=" + (Mapped ? 1 : 0) + "\n";
+    }
 }
 
 // What the model file says about itself, from its GGUF header: the metadata (key-value pairs), then one entry per
 // tensor, whose sizes add up to the parameter count.
 static class Gguf {
-    /** { name, parameters, context, license }, or null if the file isn't GGUF. Reads a few MB (the tokenizer's
+    /** { name, parameters, context, license, layers }, or null if the file isn't GGUF. Reads a few MB (the tokenizer's
      *  tables come before the tensors), so call it off the UI thread. */
     public static Dictionary<string, object> Read(string file) {
         using (var r = new BinaryReader(new BufferedStream(File.OpenRead(file), 1 << 20))) {
@@ -132,6 +206,7 @@ static class Gguf {
                 { "parameters", parameters },
                 { "context", Get(meta, arch + ".context_length") },   // the most the model was trained for
                 { "license", Get(meta, "general.license") },
+                { "layers", Get(meta, arch + ".block_count") },
             };
         }
     }
@@ -209,11 +284,14 @@ static class Keeper {
             if (!mutex.WaitOne(0)) return 0;
             if (!File.Exists(Paths.Model) || !File.Exists(Paths.Llama)) return 1;
             Directory.CreateDirectory(Paths.Logs);
-            var server = Process.Start(new ProcessStartInfo(Paths.Llama, Model.Arguments()) {
+            var started = DateTime.Now;
+            Plan plan = Plan.Make();
+            if (plan != null) File.WriteAllText(Paths.ServerPlan, plan.Describe());
+            else try { File.Delete(Paths.ServerPlan); } catch { }
+            var server = Process.Start(new ProcessStartInfo(Paths.Llama, Plan.Arguments(plan)) {
                 UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Paths.Root,
             });
             File.WriteAllText(Paths.ServerPid, server.Id.ToString());
-            var started = DateTime.Now;
             bool loaded = false;
             int idle = 0;
             while (!server.WaitForExit(1000)) {
@@ -227,7 +305,7 @@ static class Keeper {
                     break;
                 }
             }
-            try { File.Delete(Paths.ServerPid); } catch { }
+            try { File.Delete(Paths.ServerPid); File.Delete(Paths.ServerPlan); } catch { }
             return 0;
         }
     }
@@ -548,7 +626,13 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
     /** The model's name, parameters, context length and license, from its file, in the background. */
     void ReadInfo() {
         Task.Run(() => {
-            try { info = Gguf.Read(Paths.Model); } catch { info = null; }
+            try {
+                var read = Gguf.Read(Paths.Model);
+                if (read != null) read["size"] = new FileInfo(Paths.Model).Length;   // on disk, not the download's
+                info = read;
+            } catch {
+                info = null;
+            }
         });
     }
 
@@ -611,7 +695,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         modelReady = ready;
         if (asked.HasValue && server == "ready") asked = null;
         // The keeper takes a moment to start llama-server, so "stopped" right after asking isn't a failure yet.
-        if (asked.HasValue && server == "stopped" && (DateTime.Now - asked.Value).TotalSeconds > 15) {
+        if (asked.HasValue && server == "stopped" && (DateTime.Now - asked.Value).TotalSeconds > 30) {
             asked = null;
             error = "The model server stopped before it was ready. Out of memory? Close programs that use the GPU or a " +
                     "lot of RAM, and click Start.";
@@ -648,13 +732,27 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
     /** The server's state for the page; while it loads, for how long, and how long the last load took. */
     Dictionary<string, object> ServerState() {
         string state = server == "stopped" && asked.HasValue ? "loading" : server;   // asked, not started yet
-        var s = new Dictionary<string, object> { { "state", state }, { "context", Model.Context } };
+        var s = new Dictionary<string, object> { { "state", state }, { "plan", ReadPlan() } };
         if (state == "loading") {
             DateTime since = File.Exists(Paths.ServerPid) ? File.GetLastWriteTime(Paths.ServerPid) : asked ?? DateTime.Now;
             s["seconds"] = Math.Max(0, (int)(DateTime.Now - since).TotalSeconds);
             s["estimate"] = ReadInt(Paths.LoadSeconds);
         }
         return s;
+    }
+
+    /** The running server's plan (Plan.Describe), as { context, gpu, ram, mapped }; null before it has one. */
+    static Dictionary<string, object> ReadPlan() {
+        try {
+            var plan = new Dictionary<string, object>();
+            foreach (string line in File.ReadAllLines(Paths.ServerPlan)) {
+                string[] kv = line.Split('=');
+                if (kv.Length == 2) plan[kv[0]] = long.Parse(kv[1]);
+            }
+            return plan;
+        } catch {
+            return null;
+        }
     }
 
     // ---------- helpers ----------
