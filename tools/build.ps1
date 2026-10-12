@@ -6,9 +6,9 @@ param([switch]$Clean, [switch]$Msix, [switch]$Exe)
 $ErrorActionPreference = "Stop"
 
 # From Partner Center > the app > Product identity.
-$IdentityName = ""
-$Publisher = ""                # CN=...
-$PublisherDisplayName = ""
+$IdentityName = "chengmarc.Agent2B"
+$Publisher = "CN=58F02A86-A694-404A-8E09-F891292262CA"
+$PublisherDisplayName = "chengmarc"
 $DisplayName = "Agent 2B"      # must match the app name reserved in Partner Center
 
 $Root = Split-Path $PSScriptRoot
