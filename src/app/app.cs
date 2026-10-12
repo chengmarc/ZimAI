@@ -100,6 +100,75 @@ static class Model {
     static string Q(string s) { return "\"" + s + "\""; }
 }
 
+// What the model file says about itself, from its GGUF header: the metadata (key-value pairs), then one entry per
+// tensor, whose sizes add up to the parameter count.
+static class Gguf {
+    /** { name, parameters, context, license }, or null if the file isn't GGUF. Reads a few MB (the tokenizer's
+     *  tables come before the tensors), so call it off the UI thread. */
+    public static Dictionary<string, object> Read(string file) {
+        using (var r = new BinaryReader(new BufferedStream(File.OpenRead(file), 1 << 20))) {
+            if (Encoding.ASCII.GetString(r.ReadBytes(4)) != "GGUF") return null;
+            r.ReadUInt32();   // the format's version
+            long tensors = r.ReadInt64(), count = r.ReadInt64();
+            var meta = new Dictionary<string, object>();
+            for (long i = 0; i < count; i++) {
+                string key = Text(r);
+                meta[key] = Value(r, r.ReadUInt32());
+            }
+            long parameters = 0;
+            for (long i = 0; i < tensors; i++) {
+                Text(r);   // name
+                uint dims = r.ReadUInt32();
+                long n = 1;
+                for (uint d = 0; d < dims; d++) n *= r.ReadInt64();
+                r.ReadUInt32();   // type
+                r.ReadUInt64();   // offset
+                parameters += n;
+            }
+            object arch;
+            meta.TryGetValue("general.architecture", out arch);
+            return new Dictionary<string, object> {
+                { "name", Get(meta, "general.name") },
+                { "parameters", parameters },
+                { "context", Get(meta, arch + ".context_length") },   // the most the model was trained for
+                { "license", Get(meta, "general.license") },
+            };
+        }
+    }
+
+    static object Get(Dictionary<string, object> meta, string key) {
+        object v;
+        return meta.TryGetValue(key, out v) ? v : null;
+    }
+
+    static string Text(BinaryReader r) {
+        return Encoding.UTF8.GetString(r.ReadBytes((int)r.ReadInt64()));
+    }
+
+    static object Value(BinaryReader r, uint type) {
+        switch (type) {
+            case 0: return r.ReadByte();
+            case 1: return r.ReadSByte();
+            case 2: return r.ReadUInt16();
+            case 3: return r.ReadInt16();
+            case 4: return r.ReadUInt32();
+            case 5: return r.ReadInt32();
+            case 6: return r.ReadSingle();
+            case 7: return r.ReadByte() != 0;
+            case 8: return Text(r);
+            case 9:   // an array: read past it; none is shown
+                uint item = r.ReadUInt32();
+                long n = r.ReadInt64();
+                for (long i = 0; i < n; i++) Value(r, item);
+                return null;
+            case 10: return r.ReadUInt64();
+            case 11: return r.ReadInt64();
+            case 12: return r.ReadDouble();
+            default: throw new InvalidDataException("unknown GGUF value type " + type);
+        }
+    }
+}
+
 // Who needs the model server: each open 2B window and agent leaves a file named by its pid in Paths.Clients.
 static class Clients {
     public static void Add(int pid) {
@@ -391,6 +460,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
     readonly Download download = new Download();
     readonly int pid = Process.GetCurrentProcess().Id;
     object gpu = false;   // false until checked, then null (none found) or { name, vram, cuda }
+    object info;          // what the model file says about itself (Gguf), once read
     string server = "stopped", error, shown;
     DateTime? asked;    // when this window asked for the server (Ask), until it's ready or has failed
     bool modelReady;
@@ -452,7 +522,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         core.Navigate(Home);
         CheckGpu();
         modelReady = File.Exists(Paths.Model);
-        if (modelReady) Ask();
+        if (modelReady) { Ask(); ReadInfo(); }
         timer.Start();
     }
 
@@ -472,6 +542,13 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
             } catch {
                 gpu = null;
             }
+        });
+    }
+
+    /** The model's name, parameters, context length and license, from its file, in the background. */
+    void ReadInfo() {
+        Task.Run(() => {
+            try { info = Gguf.Read(Paths.Model); } catch { info = null; }
         });
     }
 
@@ -530,7 +607,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
             lastTick = DateTime.Now;
         }
         bool ready = File.Exists(Paths.Model);
-        if (ready && !modelReady) Ask();   // just downloaded
+        if (ready && !modelReady) { Ask(); ReadInfo(); }   // just downloaded
         modelReady = ready;
         if (asked.HasValue && server == "ready") asked = null;
         // The keeper takes a moment to start llama-server, so "stopped" right after asking isn't a failure yet.
@@ -551,7 +628,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
             { "version", Program.Version },
             { "gpu", gpu },
             { "model", new Dictionary<string, object> {
-                { "name", Model.Name }, { "size", Model.Size }, { "ready", File.Exists(Paths.Model) } } },
+                { "name", Model.Name }, { "size", Model.Size }, { "ready", File.Exists(Paths.Model) }, { "info", info } } },
             { "download", download.Active || download.Error != null || part > 0 ? new Dictionary<string, object> {
                 { "active", download.Active },
                 { "done", download.Active ? download.Done : part },
