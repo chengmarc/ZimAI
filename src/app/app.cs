@@ -67,12 +67,16 @@ static class Paths {
     }
 }
 
-// The model.
+// The model: the one file 2B uses, pinned by its URL, so its facts are fixed here with it.
 static class Model {
     public const string Name = "gpt-oss-20b";   // its name in the API
-    public const string Title = "GPT OSS 20B";  // its name on screen, whatever the file calls itself
+    public const string Title = "GPT OSS 20B";  // its name on screen
     public const string Url = "https://huggingface.co/ggml-org/gpt-oss-20b-GGUF/resolve/ef9b12f2ff56c69cf32153a02784e7a3c88bf524/gpt-oss-20b-MXFP4.gguf";
     public const long Size = 12109566624;
+    public const string Parameters = "20.9";   // billions; this and License are for the Model row
+    public const string License = "Apache-2.0";
+    public const int TrainedContext = 131072;   // tokens: the most it was trained for
+    public const int Layers = 25;               // 24 blocks and the output layer, as llama.cpp counts them for -ngl
     public const string Server = "http://127.0.0.1:8080";
 }
 
@@ -203,12 +207,8 @@ class Plan {
 
     /** The plan for this start; null if the fitter couldn't make one (Arguments then lets llama-server fit). */
     public static Plan Make() {
-        Dictionary<string, object> info = null;
-        try { info = Gguf.Read(Paths.Model); } catch { }
-        int trained = info != null && info["context"] != null ? Convert.ToInt32(info["context"]) : 0;
-        int layers = info != null && info["layers"] != null ? Convert.ToInt32(info["layers"]) + 1 : 0;   // + the output layer
-        Plan plan = trained > Guaranteed ? Fit(trained, layers) : null;
-        if (plan == null || !plan.AllOnGpu) plan = Fit(Guaranteed, layers);
+        Plan plan = Fit(Model.TrainedContext, Model.Layers);
+        if (plan == null || !plan.AllOnGpu) plan = Fit(Guaranteed, Model.Layers);
         if (plan == null) return null;
         plan.Mapped = (plan.RamMiB << 20) + SpareRam > Memory.Available;
         return plan;
@@ -271,76 +271,6 @@ class Plan {
     /** For the window's Server row: what was chosen (Paths.ServerPlan). */
     public string Describe() {
         return "context=" + Context + "\ngpu=" + GpuMiB + "\nram=" + RamMiB + "\nmapped=" + (Mapped ? 1 : 0) + "\n";
-    }
-}
-
-// What the model file says about itself, from its GGUF header: the metadata (key-value pairs), then one entry per
-// tensor, whose sizes add up to the parameter count.
-static class Gguf {
-    /** { name, parameters, context, license, layers }, or null if the file isn't GGUF. Reads a few MB (the tokenizer's
-     *  tables come before the tensors), so call it off the UI thread. */
-    public static Dictionary<string, object> Read(string file) {
-        using (var r = new BinaryReader(new BufferedStream(File.OpenRead(file), 1 << 20))) {
-            if (Encoding.ASCII.GetString(r.ReadBytes(4)) != "GGUF") return null;
-            r.ReadUInt32();   // the format's version
-            long tensors = r.ReadInt64(), count = r.ReadInt64();
-            var meta = new Dictionary<string, object>();
-            for (long i = 0; i < count; i++) {
-                string key = Text(r);
-                meta[key] = Value(r, r.ReadUInt32());
-            }
-            long parameters = 0;
-            for (long i = 0; i < tensors; i++) {
-                Text(r);   // name
-                uint dims = r.ReadUInt32();
-                long n = 1;
-                for (uint d = 0; d < dims; d++) n *= r.ReadInt64();
-                r.ReadUInt32();   // type
-                r.ReadUInt64();   // offset
-                parameters += n;
-            }
-            object arch;
-            meta.TryGetValue("general.architecture", out arch);
-            return new Dictionary<string, object> {
-                { "name", Get(meta, "general.name") },
-                { "parameters", parameters },
-                { "context", Get(meta, arch + ".context_length") },   // the most the model was trained for
-                { "license", Get(meta, "general.license") },
-                { "layers", Get(meta, arch + ".block_count") },
-            };
-        }
-    }
-
-    static object Get(Dictionary<string, object> meta, string key) {
-        object v;
-        return meta.TryGetValue(key, out v) ? v : null;
-    }
-
-    static string Text(BinaryReader r) {
-        return Encoding.UTF8.GetString(r.ReadBytes((int)r.ReadInt64()));
-    }
-
-    static object Value(BinaryReader r, uint type) {
-        switch (type) {
-            case 0: return r.ReadByte();
-            case 1: return r.ReadSByte();
-            case 2: return r.ReadUInt16();
-            case 3: return r.ReadInt16();
-            case 4: return r.ReadUInt32();
-            case 5: return r.ReadInt32();
-            case 6: return r.ReadSingle();
-            case 7: return r.ReadByte() != 0;
-            case 8: return Text(r);
-            case 9:   // an array: read past it; none is shown
-                uint item = r.ReadUInt32();
-                long n = r.ReadInt64();
-                for (long i = 0; i < n; i++) Value(r, item);
-                return null;
-            case 10: return r.ReadUInt64();
-            case 11: return r.ReadInt64();
-            case 12: return r.ReadDouble();
-            default: throw new InvalidDataException("unknown GGUF value type " + type);
-        }
     }
 }
 
@@ -692,7 +622,6 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
     readonly Download download = new Download();
     readonly int pid = Process.GetCurrentProcess().Id;
     Dictionary<string, object> system;   // Requirements.Check(), null until it's done
-    object info;          // what the model file says about itself (Gguf), once read
     string server = "stopped", error, shown;
     DateTime? asked;    // when this window asked for the server (Ask), until it's ready or has failed
     bool modelReady;
@@ -755,7 +684,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         core.Navigate(Home);
         CheckSystem();
         modelReady = File.Exists(Paths.Model);
-        if (modelReady) { Ask(); ReadInfo(); }
+        if (modelReady) Ask();
         timer.Start();
     }
 
@@ -777,23 +706,6 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
 
     long Free() {
         try { return new DriveInfo(Path.GetPathRoot(Paths.Data)).AvailableFreeSpace; } catch { return long.MaxValue; }
-    }
-
-    /** The model's name, parameters, context length and license, from its file, in the background. */
-    void ReadInfo() {
-        Task.Run(() => {
-            try {
-                var read = Gguf.Read(Paths.Model);
-                if (read != null) {
-                    read["size"] = new FileInfo(Paths.Model).Length;   // on disk, not the download's
-                    // Files name themselves as they please (the shipped one says "gpt-oss-20b"); on screen it's 2B's.
-                    read["name"] = Model.Title;
-                }
-                info = read;
-            } catch {
-                info = null;
-            }
-        });
     }
 
     void OnMessage(string what) {
@@ -851,7 +763,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
             lastTick = DateTime.Now;
         }
         bool ready = File.Exists(Paths.Model);
-        if (ready && !modelReady) { Ask(); ReadInfo(); }   // just downloaded
+        if (ready && !modelReady) Ask();   // just downloaded
         modelReady = ready;
         if (asked.HasValue && server == "ready") asked = null;
         // The keeper takes a moment to start llama-server, so "stopped" right after asking isn't a failure yet.
@@ -872,7 +784,8 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
             { "version", Program.Version },
             { "system", system },
             { "model", new Dictionary<string, object> {
-                { "name", Model.Title }, { "size", Model.Size }, { "ready", File.Exists(Paths.Model) }, { "info", info },
+                { "name", Model.Title }, { "size", Model.Size }, { "parameters", Model.Parameters }, { "license", Model.License },
+                { "ready", File.Exists(Paths.Model) },
                 { "need", Need() }, { "free", Free() }, { "drive", Path.GetPathRoot(Paths.Data).TrimEnd('\\') } } },
             { "download", download.Active || download.Error != null || part > 0 ? new Dictionary<string, object> {
                 { "active", download.Active },

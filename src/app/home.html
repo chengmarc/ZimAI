@@ -162,7 +162,11 @@ for (const [id, what] of [["chat", "chat"], ["terminal", "terminal"], ["folder",
   $(id).addEventListener("click", () => send(what));
 }
 
-const gb = n => (n / 1e9).toFixed(1) + " GB";
+// Sizes as Windows shows them: a GB is 1024³ bytes, cut (not rounded) to the digits shown, and a narrow no-break
+// space before the unit.
+const GIB = 2 ** 30, THIN = "&#8239;";
+const cut = (n, digits) => (Math.floor(n * 10 ** digits) / 10 ** digits).toFixed(digits);
+const gb = (n, digits = 1) => cut(n / GIB, digits) + THIN + "GB";
 function eta(seconds) {
   if (!isFinite(seconds) || seconds <= 0) return "";
   if (seconds < 90) return Math.round(seconds) + " s left";
@@ -178,16 +182,10 @@ function button(label, what, primary) {
   return b;
 }
 
-/** The model as its file describes itself: name, size on disk, parameters, license. */
-function about(info, fallback) {
-  const count = n => n >= 1e9 ? (n / 1e9).toFixed(1) + " B" : (n / 1e6).toFixed(0) + " M";
-  const licenses = { "apache-2.0": "Apache-2.0", mit: "MIT" };
-  const parts = [
-    info.size ? gb(info.size) : "",
-    info.parameters ? `${count(info.parameters)} Parameters` : "",
-    info.license ? esc(licenses[info.license] || info.license) : "",
-  ].filter(Boolean);
-  return `<b>${esc(info.name || fallback)}</b> <span class="sub">${parts.map(p => "&middot; " + p).join(" ")}</span>`;
+/** The model, as 2B.exe describes it (Model in app.cs): "GPT OSS 20B · 11.27 GB · 20.9 B Parameters · Apache-2.0". */
+function about(model) {
+  return `<b>${esc(model.name)}</b> <span class="sub">&middot; ${gb(model.size, 2)} &middot; ` +
+    `${esc(model.parameters)}${THIN}B Parameters &middot; ${esc(model.license)}</span>`;
 }
 
 // Each row's status: "ok" (ready), "busy" (loading), "warn" (works, with a catch) or "off" (not ready).
@@ -210,8 +208,8 @@ function render(s) {
     $("system-side").innerHTML = pill("busy", "Checking");
   } else {
     const short = name => name.replace(/^NVIDIA\s+(GeForce\s+)?/i, "");   // the row is about an NVIDIA GPU already
-    $("system").innerHTML = (sys.name ? `<b>${esc(short(sys.name))}</b> <span class="sub">&middot; ${sys.vram} GB VRAM &middot; `
-                                      : '<b>No NVIDIA GPU</b> <span class="sub">&middot; ') + `${sys.ram} GB RAM` +
+    $("system").innerHTML = (sys.name ? `<b>${esc(short(sys.name))}</b> <span class="sub">&middot; ${sys.vram}${THIN}GB VRAM &middot; `
+                                      : '<b>No NVIDIA GPU</b> <span class="sub">&middot; ') + `${sys.ram}${THIN}GB RAM` +
                            (sys.cuda ? ` &middot; CUDA ${esc(sys.cuda)}` : "") + "</span>";
     const [cls, text] = VERDICTS[sys.verdict];
     $("system-side").innerHTML = pill(cls, text);
@@ -220,18 +218,17 @@ function render(s) {
   const supported = !!sys && ["great", "good", "slow"].includes(sys.verdict);
 
   // Model
-  const m = `<b>${esc(s.model.name)}</b> <span class="sub">&middot; ${gb(s.model.size)}`;
   const d = s.download, modelSide = $("model-side"), bar = $("download-bar"), model = $("model");
   modelSide.replaceChildren();
   bar.hidden = true;
   if (s.model.ready) {
-    model.innerHTML = s.model.info ? about(s.model.info, s.model.name) : m + "</span>";
+    model.innerHTML = about(s.model);
     modelSide.innerHTML = pill("ok", "Ready");
   } else if (d && d.active) {
     const pct = d.total ? (100 * d.done / d.total) : 0;
     const speed = d.speed > 0 ? ` &middot; ${(d.speed / 1e6).toFixed(0)} MB/s &middot; ${eta((d.total - d.done) / d.speed)}` : "";
     model.innerHTML = `<b>${esc(s.model.name)}</b> <span class="sub">&middot; ${Math.floor(pct)}% &middot; ` +
-      `${(d.done / 1e9).toFixed(1)} / ${gb(d.total)}${speed}</span>`;
+      `${cut(d.done / GIB, 1)} / ${gb(d.total)}${speed}</span>`;
     bar.hidden = false;
     bar.firstChild.style.width = pct.toFixed(1) + "%";
     modelSide.append(button("Cancel", "cancel"));
@@ -259,7 +256,7 @@ function render(s) {
   side.replaceChildren();
   serverBar.hidden = sv.state !== "loading";
   // How 2B.exe fitted it to this computer: what's in VRAM, what's in RAM (loaded or memory-mapped), and the context
-  const p = sv.plan, gib = mib => (mib / 1024).toFixed(1) + " GB";
+  const p = sv.plan, gib = mib => gb(mib * 2 ** 20);
   let note = !p ? (s.model.ready ? "starts with the window" : "starts once the model is downloaded")
     : `${gib(p.gpu)} in VRAM &middot; ${gib(p.ram)} in RAM &middot; ${Math.round(p.context / 1024)} k Context`;
   if (sv.state === "ready") {
