@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="src/launcher/app-icon.svg" width="180"><br>
+  <img src="src/app/icon.svg" width="180"><br>
 
   <a href="#try-it"><img src="media/badge-windows.svg"></a>
   <a href="#try-it"><img src="media/badge-nvidia.svg"></a>
@@ -52,12 +52,19 @@ or on the machine; give it tight tasks rather than open-ended ones.
 
 ## Change it
 
-The agent is plain TypeScript run directly by Node: no build step, no npm packages. Everything the model reads is a
-text file in [`src/agent/prompt/`](src/agent/prompt/), and each tool is one file in [`src/agent/tools/`](src/agent/tools/).
-In a clone, run `tools\fetch.cmd` once to download the runtimes into `src/runtime/`, and
-`src/runtime/node/node.exe tools/build.ts --exe` to build `src/2B.exe`.
-[`src/agent/README.md`](src/agent/README.md) covers running a change, adding a tool, upgrading a component and swapping the
-model.
+2B is three layers, each in one language: the app, `2B.exe`, in C#; the agent in TypeScript, run as is by Node with
+no npm packages; and the tools that build it in PowerShell. Everything the model reads is a text file in
+[`src/agent/prompt/`](src/agent/prompt/), and each tool is one file in [`src/agent/tools/`](src/agent/tools/).
+
+In a clone, download the runtimes into `src/runtime/` once and build `src/2B.exe`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\fetch.ps1
+powershell -ExecutionPolicy Bypass -File tools\build.ps1 -Exe
+```
+
+[`src/README.md`](src/README.md) explains the layers, [`src/agent/README.md`](src/agent/README.md) covers changing the
+agent, and [`docs/RELEASING.md`](docs/RELEASING.md) covers building and publishing.
 
 ## License
 

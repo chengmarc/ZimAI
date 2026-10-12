@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- MSIX manifest for the Microsoft Store build. build.ts fills the braced placeholders; the Identity values
+<!-- MSIX manifest for the Microsoft Store build. tools/build.ps1 fills the braced placeholders; the Identity values
      must match Partner Center > Product identity. -->
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"

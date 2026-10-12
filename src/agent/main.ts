@@ -6,8 +6,7 @@ import { Agent, EFFORTS } from "./agent.ts";
 import { ask, isAbort } from "./terminal/input.ts";
 import { waitForServer } from "./loading.ts";
 import { useProxy } from "./proxy.ts";
-import { CTX, startServer } from "./server/server.ts";
-import { watchServer } from "./server/stopper.ts";
+import { CTX, props, startServer } from "./server/server.ts";
 import { banner } from "./terminal/banner.ts";
 import { BOLD, DIM, GOLD, GRN, RED, RST } from "./terminal/theme.ts";
 import { fill } from "./text.ts";
@@ -24,17 +23,17 @@ async function main(): Promise<number> {
     console.error("2b takes no options (in the agent, /help lists its commands)");
     return 1;
   }
-  const problem = await startServer();   // or use the one already running, e.g. for another 2B window
+  const problem = await startServer();   // or use the one already running, e.g. for the 2B window's Chat
   if (problem) {
     console.error(`2b: ${problem}`);
     return 1;
   }
-  watchServer();
   useProxy();   // for WebSearch / WebFetch, and the commands the agent runs
   let agent = new Agent();
   console.log(banner(agent.root) + "\n");
   const loaded = await waitForServer();
   if (loaded === null) return 1;
+  await props();
   let facts = `${Math.round(CTX / 1024)}k context`;
   try {
     facts += ` · system prompt ${(await agent.renderedTokens()).toLocaleString("en")} tokens`;

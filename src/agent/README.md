@@ -1,18 +1,21 @@
 # agent/ — the 2B coding agent
 
-The source of the `2b` command: TypeScript run by `src/runtime/node/`, with no build step and no npm packages. Each file
-starts with a comment saying what it owns. This README covers what no single file says.
+The source of the `2b` command: TypeScript run as is by `src/runtime/node/`, with no build step and no npm packages.
+It owns the conversation and the tools; everything else (where things are, the model server) comes from `2B.exe`
+through the environment ([`src/README.md`](../README.md)). Each file starts with a comment saying what it owns. This
+README covers what no single file says.
 
 ## How-to guides
 
 ### Run it and see your change
-- **Run it:** in the app window, type `2b`. From another Git Bash, run `src/runtime/node/node.exe src/agent/main.ts`.
+- **Run it:** click Terminal in the 2B window, or type `2b` in that terminal. `2b` needs the environment `2B.exe` gives
+  its terminal, so it doesn't run from another Git Bash.
 - **When edits take effect:** `.ts` files at the next `2b`; the text files in `prompt/` at the next `/clear`.
 - **See what the model reads:** run `/prompt` in the agent.
 
 ### Check a change without the model server
 There are no tests and no CI. Node strips types without checking them, so a wrong annotation passes silently. Every
-module except the model call runs without llama-server (from the repo root):
+module except the model call runs without the server (from the repo root):
 
 ```sh
 src/runtime/node/node.exe --input-type=module -e "
@@ -28,19 +31,12 @@ Write its module in `tools/`, following the contract at the top of `tools/index.
 schema, tip line and argument checks follow from that. Anything that changes, runs or fetches something must call
 `ag.confirm()` first.
 
-### Change the server's settings (context, port)
-They're in `server/server.ts`. A server that's already running keeps its old settings, so stop it first:
-`taskkill /F /IM llama-server.exe`.
-
-### Upgrade a component, or use a different model
-- **Any component:** change its URL in `tools/fetch.cmd`, delete its folder under `src/runtime/`, then run `tools\fetch.cmd`.
-  Node must stay at 22.18 or later so it can run `.ts` files as they are.
-- **A different model:** gpt-oss is also assumed in these places:
-  - `MODEL_URL` in `paths.ts`, which the first run downloads.
-  - `ALIAS` in `server/server.ts`.
-  - `chat_template_kwargs` in `agent.ts`: `reasoning_effort` and `model_identity` are variables of the gpt-oss chat
-    template, so `/effort` and `prompt/identity.md` do nothing under another template.
-  - `prompt/identity.md`, which describes gpt-oss-20b.
+### Use a different model
+The model, its download and the server's settings are `2B.exe`'s (`Model` in `app/app.cs`). gpt-oss is also assumed
+here:
+- `chat_template_kwargs` in `agent.ts`: `reasoning_effort` and `model_identity` are variables of the gpt-oss chat
+  template, so `/effort` and `prompt/identity.md` do nothing under another template.
+- `prompt/identity.md`, which describes gpt-oss-20b.
 
 ## Explanation
 
@@ -51,34 +47,6 @@ Imports point down:
 
 An import that points back up means the code belongs somewhere else.
 
-llama-server runs as a hidden process of its own. The agent appears at once, and several 2B windows share one server.
-`server/stopper.ts` stops the server after the last window closes.
-
-## Reference
-
-The layout of `src/`, the app as it ships. `paths.ts` defines it for the agent; `launcher/launcher.cs`, `app.cmd`
-and `tools/fetch.cmd` spell out the same paths, so a rename touches all four.
-
-```
-src/
-  2B.exe                the app's window, built from launcher/ by tools/build.ts (untracked)
-  launcher/             launcher.cs (2B.exe) and home.html, the page it shows
-  app.cmd               opens the terminal with the agent (the window's Terminal button runs it)
-  agent/                this folder
-  runtime/              downloaded by tools/fetch.cmd (untracked)
-    node/  git/  llama/ Node.js, portable Git Bash, llama.cpp (CUDA build)
-    webview2/           the WebView2 SDK's DLLs, for 2B.exe's window
-  data/                 written at runtime (untracked; the Store app keeps it elsewhere, see below)
-    model/_model.gguf   the model, downloaded by the window's Download button
-    webview2/           the window's browser data, including the chat history of llama.cpp's chat page
-    logs/
-      server.log        llama-server's log, overwritten at each start
-      load-seconds      the last load time, for the loading estimates
-      agents/<pid>      one empty file per open 2B window (agent or launcher), for the stopper
-```
-
-The launcher starts the model server by running `server/server.ts` as a script, so the server's settings stay in
-one place, and it registers with `server/stopper.ts` like an agent does.
-
-In the Microsoft Store app, the install folder is read-only, so `data/` is the package's own data folder instead
-(`AGENT_2B_DATA`, set by `2B.exe`). [`docs/RELEASING.md`](../../docs/RELEASING.md) covers building and publishing.
+The agent asks `2B.exe --server` for the model server and shows up at once; its loading screen waits for the model.
+It counts as one of the server's clients while it runs, so the server stays up for it even after the 2B window
+closes. It reads the context size from the server (`/props`) rather than keeping its own copy.

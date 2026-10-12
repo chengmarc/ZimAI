@@ -1,9 +1,9 @@
-// The loading screen, from typing `2b` until the model server takes requests: the agent starts llama-server
-// in the background (server/server.ts) and shows up right away. llama-server doesn't report its progress, so the
+// The loading screen, from typing `2b` until the model server takes requests: the agent asks 2B.exe for it
+// (server/server.ts) and shows up right away. llama-server doesn't report its progress, so the
 // bar is an estimate from how long the last load took, and the stage below it comes from the server's log.
 import * as fs from "node:fs";
 import { LOAD_SECONDS, LOG, MODEL } from "./paths.ts";
-import { CTX, running, serverReady } from "./server/server.ts";
+import { running, serverReady } from "./server/server.ts";
 import { SPINNER } from "./terminal/screen.ts";
 import { DIM, RED, ROSE, RST, shade } from "./terminal/theme.ts";
 import { fill, splitLines } from "./text.ts";
@@ -14,7 +14,7 @@ const TRACK = "\x1b[38;2;228;220;208m";   // the bar's empty part: a shade darke
 // The last of these the log has reached is the stage shown.
 const STAGES: [RegExp, string][] = [
   [/load_model: loading model/, "reading {size} of weights"],
-  [/threadpool init|load_model: initializing/, "setting up the {ctx}-token context"],
+  [/threadpool init|load_model: initializing/, "setting up the context"],
   [/model loaded|listening on/, "almost ready"],
 ];
 
@@ -70,14 +70,13 @@ export async function waitForServer(): Promise<number | null> {
   for (let tick = 0; ; tick++) {
     const secs = (Date.now() - start) / 1000;
     if (tick % 5 === 0) serverReady().then(ok => { ready ||= ok; });
-    if (tick % 20 === 0) running().then(on => { alive = on; seen ||= on; });
+    if (tick % 10 === 0) { alive = running(); seen ||= alive; }
     if (tick % 10 === 0) {
       const log = freshLog(start);
-      for (const [re, text] of STAGES) if (re.test(log)) stage = fill(text, { size, ctx: CTX.toLocaleString("en") });
+      for (const [re, text] of STAGES) if (re.test(log)) stage = fill(text, { size });
     }
     if (ready) {
       done();
-      if (secs > 1) fs.writeFileSync(LOAD_SECONDS, secs.toFixed(0));
       return secs;
     }
     const gone = seen ? alive === false : secs > 20;   // the launch takes a few seconds to show up

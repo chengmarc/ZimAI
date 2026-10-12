@@ -6,21 +6,24 @@
   included, and double-clicks `2B.exe`.
 - **Microsoft Store:** an MSIX package with the same contents.
 
-Neither includes the model. The app downloads it on its first run.
+Neither includes the model: the app downloads it (Download model).
 
-[`tools/build.ts`](../tools/build.ts) builds both. Nothing in `tools/` ships inside the app.
+The tools that build them are PowerShell scripts in [`tools/`](../tools/). They need only what comes with Windows,
+plus `makeappx.exe` for the Store package. Nothing in `tools/` ships inside the app. Run them from the repo root with
+`powershell -ExecutionPolicy Bypass -File tools\<script>.ps1`, since Windows doesn't run unsigned scripts by default.
 
 ## How-to guides
 
 ### Cut a release
 
-1. Pick the version and set `VERSION` in [`tools/build.ts`](../tools/build.ts). The git tag is `v<VERSION>`.
-   The Store needs every new submission to have a higher version than the last.
-2. Run `tools\fetch.cmd` so `src/runtime/` is complete. It only downloads what's missing.
+1. Pick the version and set it in `AssemblyInformationalVersion` at the top of
+   [`src/app/app.cs`](../src/app/app.cs). The window shows it, the Store package gets it, and the git tag is
+   `v<version>`. The Store needs every new submission to have a higher version than the last.
+2. Run `tools\fetch.ps1` so `src/runtime/` is complete. It only downloads what's missing.
 3. Build both artifacts (see [Build prerequisites](#build-prerequisites)):
 
-   ```sh
-   src/runtime/node/node.exe tools/build.ts --clean --msix
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File tools\build.ps1 -Clean -Msix
    ```
 
    This takes about ten minutes: five to zip and five to pack.
@@ -30,11 +33,17 @@ Neither includes the model. The app downloads it on its first run.
    GitHub takes release files up to 2 GB; the zip is about 860 MB.
 6. Upload `dist/store/Agent 2B.msix` in a new Partner Center submission.
 
+### Try a change to the app
+
+`tools\build.ps1 -Exe` builds only `src/2B.exe`, in a few seconds. Then double-click it. Changes to `home.html` or
+`palette.css` need no build: reopen the window. To look inside the window, start `2B.exe` with `AGENT_2B_DEVTOOLS=1`
+set, which turns on DevTools (F12).
+
 ### Set up the Store identity (once)
 
-Copy the three values from Partner Center > the app > Product identity into `IDENTITY_NAME`, `PUBLISHER` and
-`PUBLISHER_DISPLAY_NAME` in `tools/build.ts`. `DISPLAY_NAME` must match the name reserved there. Until those values
-are filled in, `--msix` stops before building anything.
+Copy the three values from Partner Center > the app > Product identity into `$IdentityName`, `$Publisher` and
+`$PublisherDisplayName` at the top of `tools\build.ps1`. `$DisplayName` must match the name reserved there. Until
+those are filled in, `-Msix` stops before building anything.
 
 ### Smoke-test a build
 
@@ -52,15 +61,13 @@ Add-AppxPackage -Register "build\Agent 2B\AppxManifest.xml"
 Start **Agent 2B** from the Start menu. Its data folder is `%LOCALAPPDATA%\Packages\<package family name>\LocalCache\`.
 
 In each case, check that:
-- the window shows the GPU. Without a model, Download model fills the progress bar, Cancel keeps what was downloaded,
-  and Resume download continues from there.
+- the window shows the GPU and the version. Without a model, Download model fills the progress bar, Cancel keeps
+  what was downloaded, and Resume download continues from there.
 - Chat loads the model and opens the chat page. A message gets an answer, and **← 2B** goes back.
 - Terminal opens Git Bash with the agent. A request gets an answer, and Bash and Edit work after asking. `/exit`
   leaves a prompt where `2b` starts the agent again.
 - with the window and a terminal open, closing either one leaves `llama-server.exe` running, and closing the other
-  stops it.
-
-To look inside the window, start `2B.exe` with `AGENT_2B_DEVTOOLS=1` set, which turns on DevTools (F12).
+  stops it within a few seconds.
 
 Remove the Store app afterwards with `Get-AppxPackage <identity name> | Remove-AppxPackage`. That also deletes its data
 folder.
@@ -78,21 +85,19 @@ folder.
 
 ## Explanation
 
-**One app, two places for its data.** `2B.exe` ([`src/launcher/launcher.cs`](../src/launcher/launcher.cs)) is the
-entry point of both: the window with Download model, Chat and Terminal. The portable app keeps the model, logs and
-chat history in `data/` beside it. The Store package is installed read-only (under `C:\Program Files\WindowsApps\`),
-so there `2B.exe` uses the package's `LocalCache` folder instead, which is deleted when the app is uninstalled. It
-passes the folder on in `AGENT_2B_DATA`, which [`src/agent/paths.ts`](../src/agent/paths.ts) reads.
+**One app, two places for its data.** The portable app keeps its data (the model, chat history, logs) in `data/`
+beside `2B.exe`. The Store package is installed read-only, so there `2B.exe` uses the package's `LocalCache` folder,
+which is deleted when the app is uninstalled. [`src/README.md`](../src/README.md) has the layout.
 
 **Why write virtualization is off.** A packaged app's processes, and every process they start, normally have their
 writes to AppData and the registry redirected into a private copy. For 2B that would include everything the user
 and the agent run in its terminal. The manifest turns that off (`desktop6:FileSystemWriteVirtualization` and
 `desktop6:RegistryWriteVirtualization`), which needs the `unvirtualizedResources` capability.
 
-**Why the build needs no new tools.** It runs on the Node.js in `src/runtime/`. It compiles `2B.exe` with the C#
-compiler that comes with Windows (.NET Framework 4), against the WebView2 SDK DLLs that `tools\fetch.cmd` downloads.
-It zips with Windows' `tar.exe` and draws the logos from `src/launcher/app-icon.svg` with Edge. Only `makeappx.exe`
-comes from somewhere else. For a change to the window alone, `tools/build.ts --exe` builds just `src/2B.exe`.
+**Why PowerShell.** The tools have to run before anything is downloaded, so they use only what Windows has:
+PowerShell 5.1, `curl.exe` and `tar.exe`, the C# compiler of .NET Framework 4 (for `2B.exe`), and System.Drawing
+(for the Store logos, scaled from `src/app/icon.ico`). They don't use the Node.js in `src/runtime/`, which belongs to
+the app.
 
 ## Reference
 
@@ -101,15 +106,15 @@ comes from somewhere else. For a change to the window alone, `tools/build.ts --e
 | File | Where it goes |
 |---|---|
 | `dist/release/Agent-2B-portable.zip` | GitHub release |
-| `dist/store/Agent 2B.msix` | Partner Center (only with `--msix`) |
+| `dist/store/Agent 2B.msix` | Partner Center (only with `-Msix`) |
 
 `build/` holds intermediates: `build/Agent 2B/` is the staged app (`src/` without `data/`, plus `LICENSE`), and
-`build/downloads/` holds `tools\fetch.cmd`'s unfinished downloads. `--clean` deletes both, along with `dist/`.
+`build/downloads/` holds `tools\fetch.ps1`'s unfinished downloads. `-Clean` deletes both, along with `dist/`.
 
 ### Build prerequisites
 
-- `tools\fetch.cmd` has run, so `src/runtime/` has `node`, `git`, `llama` and `webview2`.
-- For `--msix` only: `makeappx.exe`, from either the full
+- `tools\fetch.ps1` has run, so `src/runtime/` has `node`, `git`, `llama` and `webview2`.
+- For `-Msix` only: `makeappx.exe`, from either the full
   [Windows SDK](https://developer.microsoft.com/windows/downloads/windows-sdk/) or, much smaller (~22 MB), the
   [Microsoft.Windows.SDK.BuildTools](https://www.nuget.org/packages/Microsoft.Windows.SDK.BuildTools) NuGet package:
   download the `.nupkg`, rename it to `.zip`, and unzip it to `%LOCALAPPDATA%\Agent 2B Build\sdk-buildtools\`.
@@ -119,8 +124,7 @@ comes from somewhere else. For a change to the window alone, `tools/build.ts --e
 
 | File | Role |
 |---|---|
-| [`tools/fetch.cmd`](../tools/fetch.cmd) | Downloads Node.js, Git Bash, llama.cpp and the WebView2 SDK into `src/runtime/` |
-| [`tools/build.ts`](../tools/build.ts) | Builds `src/2B.exe` and the portable zip, with `--msix` the Store package too, with `--exe` only `2B.exe` |
-| [`tools/AppxManifest.xml`](../tools/AppxManifest.xml) | The package manifest; `build.ts` fills in the identity and version |
-| [`src/launcher/launcher.cs`](../src/launcher/launcher.cs) | `2B.exe`, the app's window and entry point |
-| [`src/launcher/home.html`](../src/launcher/home.html) | The page the window shows |
+| [`tools/fetch.ps1`](../tools/fetch.ps1) | Downloads Node.js, Git Bash, llama.cpp and the WebView2 SDK into `src/runtime/` |
+| [`tools/build.ps1`](../tools/build.ps1) | Builds `src/2B.exe` and the portable zip; `-Msix` adds the Store package, `-Exe` builds only `2B.exe` |
+| [`tools/AppxManifest.xml`](../tools/AppxManifest.xml) | The package manifest; `build.ps1` fills in the identity and version |
+| [`media/badges.ps1`](../media/badges.ps1) | Draws the README's badges |

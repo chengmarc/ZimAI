@@ -17,7 +17,7 @@ conversations are never sent to the developer or to any AI service.
 - **The model runs locally.** Your requests, the files the agent reads, and the model's answers are processed on
   your computer by llama.cpp. Conversations in the terminal aren't saved: they're gone when you close the window or
   type `/clear`. Conversations in Chat are kept on your computer, in 2B's data folder (below), so you can return to
-  them. Delete them from the chat page, or delete the data folder's `webview2` folder.
+  them. Delete them from the chat page, or delete the data folder's `browser` folder.
 - **Network access happens only in these cases:**
   - **Downloading the model.** When you click Download model, 2B downloads it from Hugging Face (huggingface.co).
   - **Web search.** When the agent uses WebSearch, the search query is sent to DuckDuckGo (duckduckgo.com).

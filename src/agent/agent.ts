@@ -6,7 +6,7 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { ask, beginRequest, endRequest, isAbort } from "./terminal/input.ts";
 import * as prompt from "./prompt/index.ts";
-import { ALIAS, CTX, post, readAll, SERVER } from "./server/server.ts";
+import { CTX, post, readAll, SERVER } from "./server/server.ts";
 import { SCREEN } from "./terminal/screen.ts";
 import { DIM, RED, RST, YEL } from "./terminal/theme.ts";
 import { TOOLS, type Schema, type Session, type Tool } from "./tools/index.ts";
@@ -52,7 +52,7 @@ export class Agent implements Session {
 
   // ---------- model ----------
   body() {
-    return { model: ALIAS, messages: this.messages,
+    return { messages: this.messages,
              tools: TOOLS.map(t => ({ type: "function", function: t.SCHEMA })),
              chat_template_kwargs: { reasoning_effort: this.effort, model_identity: this.identity } };
   }

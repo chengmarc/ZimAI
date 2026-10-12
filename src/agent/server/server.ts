@@ -1,39 +1,37 @@
-// The model server, llama-server (llama.cpp, the process that runs the model): its settings,
-// starting it for the agent, and talking to it over HTTP. stopper.ts stops it once the last 2B window is done.
-import { execFile, spawn } from "node:child_process";
+// The model server (llama-server, run by 2B.exe): asking 2B.exe for it, and talking to it over HTTP. Its settings
+// and its lifetime are 2B.exe's (app/app.cs): it stays up while any 2B window or agent is running (CLIENTS).
+import { spawn } from "node:child_process";
 import * as fs from "node:fs";
 import * as http from "node:http";
-import * as os from "node:os";
 import * as path from "node:path";
-import { LLAMA, LOG, MODEL, ROOT } from "../paths.ts";
+import { APP, CLIENTS, MODEL, SERVER, SERVER_PID } from "../paths.ts";
 
-const PORT = 8080;
-export const SERVER = `http://127.0.0.1:${PORT}`;
-export const PROCESS = path.basename(LLAMA);   // its name in the task list
+export { SERVER };
 const LOCAL = new http.Agent();   // talks to llama-server directly, never through HTTPS_PROXY
+export let CTX = 0;               // the server's context window, in tokens (props())
 
-export const ALIAS = "gpt-oss-20b";   // the model's name in the API
-export const CTX = 65536;   // server context window, in tokens
-// Keeping the CPU-side experts in RAM (not memory-mapped) is much faster, if RAM allows (~14 GB).
-const LOADMODE = os.totalmem() >= 14000 * 2 ** 20 ? "none" : "mmap";
-
-/** Start the server in the background unless it's running already (for another 2B window, or still loading),
- *  or say why it can't be. It only launches it: the agent is on screen at once, and its loading screen waits for
- *  the model (loading.ts). Run as a script (node server.ts), this file does just this, for the launcher. */
+/** Ask 2B.exe for the server, unless it's running (for another 2B window, or still loading), and count this agent as
+ *  one that needs it; or say why it can't be. It only asks: the agent is on screen at once, and its loading screen
+ *  waits for the model (loading.ts). */
 export async function startServer(): Promise<string | null> {
-  if ((await serverReady()) || (await running())) return null;
-  if (!fs.existsSync(LLAMA)) return `llama.cpp is missing (${LLAMA})`;
-  if (!fs.existsSync(MODEL)) return "the model isn't downloaded yet: open 2B and click Download model";
-  fs.mkdirSync(path.dirname(LOG), { recursive: true });
-  // A hidden process of its own (no window), not tied to this one; if it fails, the loading screen says so.
-  // --fit on: llama.cpp splits the model between GPU and CPU itself, measured against the VRAM free right now
-  // (keeping 1 GB spare); the context is set, so it isn't shrunk to fit.
-  // --jinja: format every message with the chat template inside the model file.
-  spawn(LLAMA, ["-m", MODEL, "--log-file", LOG, "--alias", ALIAS, "-c", String(CTX), "--parallel", "1",
-                "--fit", "on", "--load-mode", LOADMODE, "--jinja",
-                "--host", "127.0.0.1", "--port", String(PORT)],
-        { cwd: ROOT, detached: true, stdio: "ignore", windowsHide: true }).on("error", () => {}).unref();
+  if (!APP || !SERVER) return "start 2b from the 2B window's terminal (its Terminal button)";
+  fs.mkdirSync(CLIENTS, { recursive: true });
+  const me = path.join(CLIENTS, String(process.pid));
+  fs.writeFileSync(me, "");
+  process.on("exit", () => fs.rmSync(me, { force: true }));
+  if (!fs.existsSync(MODEL)) return "the model isn't downloaded yet: click Download model in the 2B window";
+  if (!running()) {
+    // If another keeper got there first, this one sees it and quits.
+    spawn(APP, ["--server"], { detached: true, stdio: "ignore", windowsHide: true }).on("error", () => {}).unref();
+  }
   return null;
+}
+
+/** The server's context size, from the server itself; call once it's ready. */
+export async function props(): Promise<void> {
+  const res = await new Promise<http.IncomingMessage>((resolve, reject) =>
+    http.get(SERVER + "/props", { agent: LOCAL, timeout: 5000 }, resolve).on("error", reject));
+  CTX = JSON.parse(await readAll(res)).default_generation_settings?.n_ctx ?? 0;
 }
 
 // ---------- talking to it ----------
@@ -54,8 +52,9 @@ export async function readAll(res: http.IncomingMessage): Promise<string> {
   return text;
 }
 
-/** Whether the server has loaded the model and takes requests. */
+/** Whether this install's server has loaded the model and takes requests (another install's may answer the port). */
 export function serverReady(): Promise<boolean> {
+  if (!running()) return Promise.resolve(false);
   return new Promise(resolve => {
     const req = http.get(SERVER + "/health", { agent: LOCAL, timeout: 2000 }, res =>
       readAll(res).then(body => resolve(res.statusCode === 200 && body.includes('"ok"')), () => resolve(false)));
@@ -64,14 +63,14 @@ export function serverReady(): Promise<boolean> {
   });
 }
 
-/** Whether a llama-server process is running. */
-export function running(): Promise<boolean> {
-  return new Promise(resolve => execFile("tasklist", ["/FI", `IMAGENAME eq ${PROCESS}`, "/NH"], { windowsHide: true },
-                                         (err, out) => resolve(!err && out.includes(PROCESS))));
-}
-
-if (import.meta.main) {
-  const problem = await startServer();
-  if (problem) console.error(problem);
-  process.exit(problem ? 1 : 0);
+/** Whether this install's llama-server is running: 2B.exe leaves its pid in SERVER_PID while it runs. */
+export function running(): boolean {
+  try {
+    const pid = Number(fs.readFileSync(SERVER_PID, "utf8"));
+    if (!pid) return false;
+    process.kill(pid, 0);
+    return true;
+  } catch (e) {
+    return (e as NodeJS.ErrnoException).code === "EPERM";
+  }
 }
