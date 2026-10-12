@@ -1,6 +1,7 @@
-// What the model reads besides the tools, from the text files beside this one: identity.md,
-// instructions.md (filled with the tool tips and a line about the machine), messages.toml (the loop's own texts).
-// The server wraps it all in the model's format with the chat template inside the model file.
+// What the model reads besides the tools, from the text files beside this one: instructions.md (filled with the
+// tool tips and a line about the machine) and messages.toml (the loop's own texts). Who the model is
+// (app/identity.md) is the server's, so Chat and the agent share it. The server wraps it all in the model's format
+// with the chat template inside the model file.
 // Read at every new conversation, so /clear picks up edits to the text files.
 import * as fs from "node:fs";
 import * as os from "node:os";
@@ -26,11 +27,6 @@ export function messages(): Record<string, string> {
   return out;
 }
 
-/** Replaces the chat template's built-in "You are ChatGPT..." line in the system message, which outranks the
- *  developer message. The trailing \n leaves a blank line before the template's own "Knowledge cutoff" line. */
-export function identity(): string {
-  return read("identity.md").trim() + "\n";
-}
 
 function which(cmd: string): string | null {
   const exts = (process.env.PATHEXT || ".COM;.EXE;.BAT;.CMD").split(";");

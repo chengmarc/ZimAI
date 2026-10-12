@@ -70,7 +70,7 @@ static class Paths {
 // The model.
 static class Model {
     public const string Name = "gpt-oss-20b";   // its name in the API
-    public const string Title = "GPT OSS 20B";  // its name on screen, as the file names itself (general.name)
+    public const string Title = "GPT OSS 20B";  // its name on screen, whatever the file calls itself
     public const string Url = "https://huggingface.co/ggml-org/gpt-oss-20b-GGUF/resolve/ef9b12f2ff56c69cf32153a02784e7a3c88bf524/gpt-oss-20b-MXFP4.gguf";
     public const long Size = 12109566624;
     public const string Server = "http://127.0.0.1:8080";
@@ -372,6 +372,47 @@ static class Clients {
     }
 }
 
+// JSON for what 2B.exe sends: dictionaries, strings, numbers, booleans and null.
+static class Json {
+    public static string Of(object value) {
+        if (value == null) return "null";
+        if (value is bool) return (bool)value ? "true" : "false";
+        if (value is string) {
+            var s = new StringBuilder("\"");
+            foreach (char c in (string)value) {
+                if (c == '"' || c == '\\') s.Append('\\').Append(c);
+                else if (c < ' ') s.AppendFormat("\\u{0:x4}", (int)c);
+                else s.Append(c);
+            }
+            return s.Append('"').ToString();
+        }
+        var map = value as IDictionary<string, object>;
+        if (map != null) return "{" + string.Join(",", map.Select(p => Of(p.Key) + ":" + Of(p.Value))) + "}";
+        return Convert.ToString(value, CultureInfo.InvariantCulture);
+    }
+}
+
+// What every client of the model server gets, as llama-server's defaults: who the model is (identity.md), so Chat
+// and the agent are the same 2B, and for llama-server's own chat page, 2B's look and settings (chat.css). Passed in
+// the environment (LLAMA_ARG_*), which keeps the JSON off the command line.
+static class Defaults {
+    public static void Apply(System.Collections.Specialized.StringDictionary env) {
+        // model_identity and reasoning_effort are variables of gpt-oss's chat template. model_identity replaces its
+        // built-in "You are ChatGPT..." line, which outranks the developer message; the trailing \n leaves a blank
+        // line before the template's own "Knowledge cutoff" line. The agent sends its own reasoning_effort (/effort).
+        env["LLAMA_ARG_CHAT_TEMPLATE_KWARGS"] = Json.Of(new Dictionary<string, object> {
+            { "model_identity", File.ReadAllText(Path.Combine(Paths.App, "identity.md")).Trim() + "\n" },
+            { "reasoning_effort", "medium" },
+        });
+        // The chat page's settings (its own names). The page takes them on a user's first visit only; its look
+        // (chat.css) the window adds every time instead (Window.ChatScript).
+        env["LLAMA_ARG_UI_CONFIG"] = Json.Of(new Dictionary<string, object> {
+            { "theme", "light" },   // 2B's look is light only
+            { "showBuildVersion", false },
+        });
+    }
+}
+
 // The model server's keeper (2B.exe --server): starts llama-server, and stops it, by its pid, once no client has
 // been running for a few seconds. One per install (the mutex); asking again while it runs does nothing.
 static class Keeper {
@@ -388,9 +429,11 @@ static class Keeper {
             Plan plan = Plan.Make();
             if (plan != null) File.WriteAllText(Paths.ServerPlan, plan.Describe());
             else try { File.Delete(Paths.ServerPlan); } catch { }
-            var server = Process.Start(new ProcessStartInfo(Paths.Llama, Plan.Arguments(plan)) {
+            var start = new ProcessStartInfo(Paths.Llama, Plan.Arguments(plan)) {
                 UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Paths.Root,
-            });
+            };
+            Defaults.Apply(start.EnvironmentVariables);
+            var server = Process.Start(start);
             File.WriteAllText(Paths.ServerPid, server.Id.ToString());
             bool loaded = false;
             int idle = 0;
@@ -619,10 +662,14 @@ class Download {
 // the page sends back the name of what was clicked ("download", "chat", ...).
 class Window : Form {
     const string Home = "https://2b.local/home.html";
-    // On llama-server's chat page: a way back to the home page, top right, where the page has nothing. Its look
-    // is palette.css's.
-    const string BackButton = @"
+    // On llama-server's chat page: its look (chat.css, which takes the place of CSS below); a way back to the home
+    // page, top right, where the page has nothing; and the start screen's "Hello there" heading renamed to Agent 2B,
+    // whenever the page draws it. Colors are palette.css's.
+    const string ChatScript = @"
 if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoaded', () => {
+  const style = document.createElement('style');
+  style.textContent = CSS;
+  document.head.appendChild(style);
   const b = document.createElement('button');
   b.innerHTML = '&larr; 2B';
   b.title = 'Back to the 2B home page';
@@ -631,6 +678,13 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
     'box-shadow:0 1px 3px rgba(61,52,43,.12)';
   b.onclick = () => chrome.webview.postMessage('home');
   document.body.appendChild(b);
+  const rename = () => {
+    for (const h of document.querySelectorAll('h1')) {
+      if (h.textContent.trim() === 'Hello there') h.innerHTML = 'Agent <span class=""two-b"">2B</span>';
+    }
+  };
+  new MutationObserver(rename).observe(document.body, { childList: true, subtree: true });
+  rename();
 });";
 
     readonly WebView2 view = new WebView2();
@@ -686,7 +740,8 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         core.Settings.IsStatusBarEnabled = false;
         core.Settings.AreDevToolsEnabled = Environment.GetEnvironmentVariable("AGENT_2B_DEVTOOLS") != null;
         core.SetVirtualHostNameToFolderMapping("2b.local", Paths.App, CoreWebView2HostResourceAccessKind.Allow);
-        await core.AddScriptToExecuteOnDocumentCreatedAsync(BackButton);
+        string css = File.ReadAllText(Path.Combine(Paths.App, "chat.css"));
+        await core.AddScriptToExecuteOnDocumentCreatedAsync(ChatScript.Replace("CSS;", Json.Of(css) + ";"));
         core.WebMessageReceived += (s, e) => {
             string what;
             try { what = e.TryGetWebMessageAsString(); } catch { return; }
@@ -729,7 +784,11 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         Task.Run(() => {
             try {
                 var read = Gguf.Read(Paths.Model);
-                if (read != null) read["size"] = new FileInfo(Paths.Model).Length;   // on disk, not the download's
+                if (read != null) {
+                    read["size"] = new FileInfo(Paths.Model).Length;   // on disk, not the download's
+                    // Files name themselves as they please (the shipped one says "gpt-oss-20b"); on screen it's 2B's.
+                    read["name"] = Model.Title;
+                }
                 info = read;
             } catch {
                 info = null;
@@ -825,7 +884,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
             { "server", ServerState() },
             { "error", error },
         };
-        string text = Json(state);
+        string text = Json.Of(state);
         if (text == shown) return;
         shown = text;
         view.CoreWebView2.PostWebMessageAsJson(text);
@@ -858,24 +917,6 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
     }
 
     // ---------- helpers ----------
-    /** JSON for what Push sends: dictionaries, strings, numbers, booleans and null. */
-    static string Json(object value) {
-        if (value == null) return "null";
-        if (value is bool) return (bool)value ? "true" : "false";
-        if (value is string) {
-            var s = new StringBuilder("\"");
-            foreach (char c in (string)value) {
-                if (c == '"' || c == '\\') s.Append('\\').Append(c);
-                else if (c < ' ') s.AppendFormat("\\u{0:x4}", (int)c);
-                else s.Append(c);
-            }
-            return s.Append('"').ToString();
-        }
-        var map = value as IDictionary<string, object>;
-        if (map != null) return "{" + string.Join(",", map.Select(p => Json(p.Key) + ":" + Json(p.Value))) + "}";
-        return Convert.ToString(value, CultureInfo.InvariantCulture);
-    }
-
     static int ReadInt(string file) {
         int n;
         try { return int.TryParse(File.ReadAllText(file).Trim(), out n) ? n : 0; } catch { return 0; }

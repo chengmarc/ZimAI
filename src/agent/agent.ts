@@ -40,21 +40,19 @@ export class Agent implements Session {
   auto: boolean;
   effort: string;
   messages: Message[];
-  identity: string;
 
   constructor(auto = false, effort = "medium") {
     M = prompt.messages();
     this.auto = auto;
     this.effort = effort;
     this.messages = [{ role: "system", content: prompt.instructions(this.root, M.project_instructions) }];
-    this.identity = prompt.identity();
   }
 
   // ---------- model ----------
   body() {
     return { messages: this.messages,
              tools: TOOLS.map(t => ({ type: "function", function: t.SCHEMA })),
-             chat_template_kwargs: { reasoning_effort: this.effort, model_identity: this.identity } };
+             chat_template_kwargs: { reasoning_effort: this.effort } };   // with the server's model_identity
   }
 
   /** The exact text the model reads for the conversation so far (the server applies the chat template). */

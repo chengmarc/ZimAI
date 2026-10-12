@@ -1,0 +1,71 @@
+/* The look of llama-server's chat page in the 2B window. app.cs adds it to the page every time it opens (ChatScript):
+   the page's own customCss setting would take it only on a user's first visit, so a newer chat.css would never
+   reach them. The page is built on shadcn/ui, so its colors are these variables; the values are palette.css's.
+   Elements are picked by their labels (aria-label) or icons, which are less likely to change in a llama.cpp update
+   than its classes. */
+:root {
+  --background: #fbf8f3;
+  --foreground: #3d342b;
+  --card: #fffdf9;
+  --card-foreground: #3d342b;
+  --popover: #fffdf9;
+  --popover-foreground: #3d342b;
+  --primary: #3d342b;
+  --primary-foreground: #fbf8f3;
+  --secondary: #f3ece1;
+  --secondary-foreground: #3d342b;
+  --muted: #f3ece1;
+  --muted-foreground: #6b5f52;
+  --accent: #f3ece1;
+  --accent-foreground: #3d342b;
+  --border: #e2d8c8;
+  --input: #e2d8c8;
+  --ring: #dc4b78;
+  --sidebar: #f7f2ea;
+  --sidebar-foreground: #3d342b;
+  --sidebar-primary: #3d342b;
+  --sidebar-primary-foreground: #fbf8f3;
+  --sidebar-accent: #efe7da;
+  --sidebar-accent-foreground: #3d342b;
+  --sidebar-border: #e2d8c8;
+  --sidebar-ring: #dc4b78;
+  --code-background: #f3ece1;
+  --code-foreground: #2e261e;
+}
+
+body {
+  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+}
+
+/* Send: the brand gradient (palette.css --gold, --rose, --violet). The button has no label of its own, so it's
+   picked by its icon (lucide's arrow-up). */
+button:has(> svg.lucide-arrow-up) {
+  background: linear-gradient(135deg, #c88214, #dc4b78 55%, #9664d7) !important;
+  color: #fff !important;
+  border: 0 !important;
+}
+
+/* 2B's icon in place of llama.cpp's, top left (icon.svg, from the window's own files): on the button that expands the
+   sidebar while it's collapsed, and on the link to the start screen once it's expanded */
+button[aria-label="Expand navigation"] svg,
+a[aria-label="Go to start"] svg {
+  visibility: hidden;
+}
+button[aria-label="Expand navigation"],
+a[aria-label="Go to start"] {
+  background: url("https://2b.local/icon.svg") center / 26px no-repeat !important;
+}
+
+/* What 2B's chat doesn't use: MCP Servers, a button in the collapsed sidebar and a link in the expanded one */
+button[aria-label="MCP Servers"],
+a[href$="#/mcp-servers"] {
+  display: none !important;
+}
+
+/* The start screen's heading, which the window's script renames to Agent 2B: the 2B in the gradient */
+h1 .two-b {
+  background: linear-gradient(90deg, #c88214, #dc4b78 55%, #9664d7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}

@@ -32,11 +32,11 @@ schema, tip line and argument checks follow from that. Anything that changes, ru
 `ag.confirm()` first.
 
 ### Use a different model
-The model, its download and the server's settings are `2B.exe`'s (`Model` in `app/app.cs`). gpt-oss is also assumed
-here:
-- `chat_template_kwargs` in `agent.ts`: `reasoning_effort` and `model_identity` are variables of the gpt-oss chat
-  template, so `/effort` and `prompt/identity.md` do nothing under another template.
-- `prompt/identity.md`, which describes gpt-oss-20b.
+The model, its download and the server's settings are `2B.exe`'s (`Model` and `Defaults` in `app/app.cs`), and so
+is who the model is (`app/identity.md`), which Chat shares. gpt-oss is also assumed here:
+- `chat_template_kwargs` in `agent.ts`: `reasoning_effort` is a variable of the gpt-oss chat template, like the
+  server's `model_identity`, so `/effort` and `app/identity.md` do nothing under another template.
+- `app/identity.md`, which describes gpt-oss-20b.
 
 ## Explanation
 
