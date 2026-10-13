@@ -9,7 +9,7 @@ submission asks for. Images are in [listing/](listing/), rendered by
 ```
 AI in Your Flash Drive.
 
-Agent 2B is an AI coding agent that runs entirely on your own computer. The model, gpt-oss-20b, runs on your NVIDIA GPU through llama.cpp, so what you ask and the files it reads never leave your PC. No account, no API key, no subscription.
+Agent 2B is an AI coding agent that runs entirely on the gaming PC you already have. The model, gpt-oss-20b, runs on your NVIDIA GPU through llama.cpp, so what you ask and the files it reads never leave your PC. No account, no API key, no subscription.
 
 Two ways in
 • Terminal: the coding agent in Git Bash. Point it at a project and it reads the code, edits files, runs commands, and searches the web when it needs to.
@@ -18,8 +18,8 @@ Two ways in
 It asks first
 Anything that changes a file, runs a command or opens a web page waits for your yes. Edits are shown as a diff before they're made, and after a no you can tell it why. Reading files and searching your code don't need asking.
 
-Fitted to your PC
-2B checks your GPU before anything is downloaded, and tells you plainly if your PC can't run it. Then it splits the model between your GPU's memory and your RAM to fit whatever is free, so there's nothing to configure. Loading takes about 30 seconds.
+Runs on your gaming PC
+No workstation or data-center card needed: the GeForce you game on is enough, from a GTX 1060 6 GB to an RTX 5090. 2B checks your GPU before anything is downloaded, and tells you plainly if your PC can't run it. Then it splits the model between your GPU's memory and your RAM to fit whatever is free, so there's nothing to configure. Loading takes about 30 seconds.
 
 One download
 The model is a 12 GB download from Hugging Face on first run. If it's interrupted, it resumes, even after a restart. After that the model works without an internet connection.
@@ -48,7 +48,8 @@ Leave blank: this is the first submission.
 One per line in Partner Center ("Add more" for each):
 
 ```
-An AI coding agent that runs on your own NVIDIA GPU
+An AI coding agent that runs on your gaming PC
+No workstation card needed: the GeForce you game on is enough
 Nothing you ask or open is sent to an AI service
 No account, no API key, no subscription
 Terminal: reads, edits and runs things in your projects
@@ -89,7 +90,7 @@ Leave empty.
 - **Short description** (270 characters or fewer):
 
   ```
-  AI in Your Flash Drive: a coding agent that runs on your own NVIDIA GPU. It reads, edits and runs things in your projects, asking before every change, and nothing you ask leaves your PC. No account, no API key, no subscription. Needs an NVIDIA GPU with 6 GB+ of VRAM.
+  AI in Your Flash Drive: a coding agent that runs on your gaming PC. It reads, edits and runs things in your projects, asking before every change, and nothing you ask leaves your PC. No account, no API key, no subscription. Needs an NVIDIA GPU with 6 GB+ of VRAM.
   ```
 
 ## Additional information
