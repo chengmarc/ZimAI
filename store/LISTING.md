@@ -7,7 +7,7 @@ submission asks for. Images are in [listing/](listing/), rendered by
 ## Description
 
 ```
-AI in your flash drive.
+AI in Your Flash Drive.
 
 Agent 2B is an AI coding agent that runs entirely on your own computer. The model, gpt-oss-20b, runs on your NVIDIA GPU through llama.cpp, so what you ask and the files it reads never leave your PC. No account, no API key, no subscription.
 
@@ -65,10 +65,9 @@ Open source (Apache 2.0)
 
 Upload in this order (the first is shown first):
 
-1. `listing/screenshot-1-promo.png`
-2. `listing/screenshot-2-home.png`
-3. `listing/screenshot-3-download.png`
-4. `listing/screenshot-4-permission.png`
+1. `listing/screenshot-1-promo.png`: the coding agent
+2. `listing/screenshot-2-chat.png`: the chatbot
+3. `listing/screenshot-3-home.png`: the GPUs it runs on
 
 ## Store logos
 
@@ -90,7 +89,7 @@ Leave empty.
 - **Short description** (270 characters or fewer):
 
   ```
-  AI in your flash drive: a coding agent that runs on your own NVIDIA GPU. It reads, edits and runs things in your projects, asking before every change, and nothing you ask leaves your PC. No account, no API key, no subscription. Needs an NVIDIA GPU with 6 GB+ of VRAM.
+  AI in Your Flash Drive: a coding agent that runs on your own NVIDIA GPU. It reads, edits and runs things in your projects, asking before every change, and nothing you ask leaves your PC. No account, no API key, no subscription. Needs an NVIDIA GPU with 6 GB+ of VRAM.
   ```
 
 ## Additional information

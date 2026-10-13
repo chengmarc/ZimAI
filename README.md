@@ -5,17 +5,17 @@
   <a href="#try-it"><img src="docs/badges/badge-microsoft-store.svg" height="50"></a>
   <a href="https://github.com/chengmarc/agent-2b/releases/latest"><img src="docs/badges/badge-download.svg" height="50"></a>
 
-  <h1>Agent 2B - AI in your flash drive</h1>
+  <h1>Agent 2B - AI in Your Flash Drive</h1>
   
   <img src="store/listing/screenshot-1-promo.png">
+  <img src="store/listing/screenshot-2-chat.png">
+  <img src="store/listing/screenshot-3-home.png">
 
 </div>
 
-## Specification & Demonstration
+## Demonstration
 
-  <img src="docs/stats.svg">
   <img src="docs/demo.svg">
-
 
 ## Try it
 
