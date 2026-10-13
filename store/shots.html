@@ -108,7 +108,7 @@ const NUMBERS = `
 // VRAM or more, Good is an RTX with 8 to 12 GB, Slow is 6 GB or a GTX 10-series (no tensor cores).
 const GPUS = [
   ["great", "Great", "the whole model on the GPU", ["RTX 5090", "RTX 5080", "RTX 5070 Ti", "RTX 5060 Ti 16 GB", "RTX 4090", "RTX 4080", "RTX 4070 Ti Super", "RTX 4060 Ti 16 GB", "RTX 3090"]],
-  ["good", "Good", "desktop and laptop", ["RTX 5070", "RTX 5060", "RTX 4070", "RTX 4060", "RTX 3080", "RTX 3070", "RTX 3060", "RTX 2080", "RTX 2070", "RTX 2060 Super"]],
+  ["good", "Good", "desktop and laptop", ["RTX 5070", "RTX 5060", "RTX 4070", "RTX 4060", "RTX 3080", "RTX 3070", "RTX 3060 12 GB", "RTX 2080", "RTX 2070", "RTX 2060 Super"]],
   ["slow", "Slow", "works, replies come slower", ["RTX 2060", "GTX 1660", "GTX 1080 Ti", "GTX 1080", "GTX 1070", "GTX 1060 6 GB"]],
 ].map(([tier, verdict, note, names]) => `
   <div class="tier ${tier}"><div class="verdict ${tier}"><b>${verdict}</b><span>${note}</span></div>
