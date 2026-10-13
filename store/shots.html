@@ -1,7 +1,7 @@
 <!doctype html>
 <!-- The Store's screenshots: render.ps1 loads this page at 1366 x 768 (rendered at 2x) once per shot, named by the
      hash (#promo, #home, ...). Each is a caption on the left and the real app on the right: the home page
-     (src/app/home.html) drawing the state 2B.exe would send it, or the terminal demo (media/demo.svg) stopped at a
+     (src/app/home.html) drawing the state 2B.exe would send it, or the terminal demo (docs/demo.svg) stopped at a
      moment. Needs Edge's --allow-file-access-from-files, to read those files from file://. -->
 <html lang="en">
 <head>
@@ -15,6 +15,7 @@
   .caption { position: absolute; left: 60px; top: 0; bottom: 0; width: 330px; display: flex; flex-direction: column; justify-content: center; }
   .caption .app { display: flex; align-items: center; gap: 12px; margin-bottom: 34px; font-size: 19px; font-weight: 600; }
   .caption .app img { width: 44px; height: 44px; }
+  .caption .app small { display: block; margin-top: 1px; font-size: 14px; font-weight: 400; color: rgba(255, 255, 255, 0.7); }
   h1 { margin: 0; font-size: 40px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; }
   .caption p { margin: 20px 0 0; font: 400 17px/1.5 "Segoe UI Variable Text", "Segoe UI", sans-serif; color: rgba(255, 255, 255, 0.78); }
   .facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
@@ -41,7 +42,7 @@
 </head>
 <body>
   <div class="caption">
-    <div class="app"><img src="../src/app/icon.svg" alt=""><span>Agent 2B</span></div>
+    <div class="app"><img src="../src/app/icon.svg" alt=""><span>Agent 2B<small>AI in your flash drive</small></span></div>
     <h1 id="title"></h1>
     <p id="text"></p>
     <div class="facts" id="facts"></div>
@@ -105,7 +106,7 @@ if (shot.home) {
   win.append(frame);
 } else {
   // The demo, stopped at its time, without its own (macOS-style) title bar: the window has one.
-  fetch("../media/demo.svg").then(r => r.text()).then(text => {
+  fetch("../docs/demo.svg").then(r => r.text()).then(text => {
     win.insertAdjacentHTML("beforeend", text);
     const svg = win.querySelector("svg");
     svg.classList.add("client");
