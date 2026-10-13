@@ -82,7 +82,7 @@ features, keywords, system requirements, the wording for the two restricted capa
 ### Re-render the listing images
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File storeender.ps1
+powershell -ExecutionPolicy Bypass -File store\render.ps1
 ```
 
 It redraws `store/listing/` with Microsoft Edge in headless mode, from `store/logo.html` (box art, poster art, tile
