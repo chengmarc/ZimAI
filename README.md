@@ -2,16 +2,20 @@
 
   <img src="src/app/icon.svg" width="180"><br>
 
-  <a href="#try-it"><img src="media/badge-windows.svg"></a>
-  <a href="#try-it"><img src="media/badge-nvidia.svg"></a>
+  <a href="#try-it"><img src="docs/badges/badge-microsoft-store.svg" height="50"></a>
+  <a href="https://github.com/chengmarc/agent-2b/releases/latest"><img src="docs/badges/badge-download.svg" height="50"></a>
 
-  <h1>Agent 2B - AI in your Flash Drive</h1>
+  <h1>Agent 2B - AI in your flash drive</h1>
   
-  <img src="media/stats.svg">
-
-  <img src="media/demo.svg" width="820">
+  <img src="store/listing/screenshot-1-promo.png">
 
 </div>
+
+## Specification & Demonstration
+
+  <img src="docs/stats.svg">
+  <img src="docs/demo.svg">
+
 
 ## Try it
 

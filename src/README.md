@@ -35,7 +35,7 @@ never stop each other's server. They do share its port, so only one of them can 
 
 **The look.** [`app/palette.css`](app/palette.css) is where 2B's colors are chosen. The page uses it as it is. The
 terminal (`app/mintty.conf`), the agent (`agent/terminal/theme.ts`), the window's background and the chat page's back
-button (`app.cs`) and llama.cpp's chat page (`app/chat.css`) repeat its values. `media/badges.ps1` reads it.
+button (`app.cs`) and llama.cpp's chat page (`app/chat.css`) repeat its values.
 
 **Chat.** It's llama-server's own chat page, made 2B's: the window adds `app/chat.css` (the palette, the icon, the
 brand gradient on Send, no MCP Servers) and renames its "Hello there" to Agent 2B, every time the page opens. Who the

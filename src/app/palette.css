@@ -1,7 +1,7 @@
 /* 2B's palette, the one place its colors are chosen: warm near-black on warm near-white, and the brand gradient
    (amber -> rose -> violet). home.html uses it as is. These repeat its values, so a change here goes there too:
    mintty.conf (the terminal), app.cs (the window's background, the chat page's back button), chat.css (the chat page),
-   agent/terminal/theme.ts (the agent's gradient). media/badges.ps1 reads it from here. */
+   agent/terminal/theme.ts (the agent's gradient). */
 :root {
   --bg: #fbf8f3;       /* backgrounds: page, window, terminal */
   --card: #fffdf9;

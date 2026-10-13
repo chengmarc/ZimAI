@@ -87,7 +87,7 @@ powershell -ExecutionPolicy Bypass -File store\render.ps1
 
 It redraws `store/listing/` with Microsoft Edge in headless mode, from `store/logo.html` (box art, poster art, tile
 icon) and `store/shots.html` (the screenshots). The screenshots show the real home page, `src/app/home.html`, drawing
-the state written in `shots.html`, and the README's terminal demo, `media/demo.svg`, stopped at a moment. Change the
+the state written in `shots.html`, and the README's terminal demo, `docs/demo.svg`, stopped at a moment. Change the
 captions or the state there, and the system requirements in `LISTING.md` when `Requirements` in `src/app/app.cs`
 changes.
 
@@ -135,6 +135,5 @@ the app.
 | [`tools/fetch.ps1`](../tools/fetch.ps1) | Downloads Node.js, Git Bash, llama.cpp and the WebView2 SDK into `src/runtime/` |
 | [`tools/build.ps1`](../tools/build.ps1) | Builds `src/2B.exe` and the portable zip; `-Msix` adds the Store package, `-Exe` builds only `2B.exe` |
 | [`tools/AppxManifest.xml`](../tools/AppxManifest.xml) | The package manifest; `build.ps1` fills in the identity and version |
-| [`media/badges.ps1`](../media/badges.ps1) | Draws the README's badges |
 | [`store/LISTING.md`](../store/LISTING.md) | The Store listing's text, field by field |
 | [`store/render.ps1`](../store/render.ps1) | Renders the listing's images into `store/listing/` |
