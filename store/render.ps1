@@ -17,9 +17,8 @@ if (-not $Edge) { throw "Microsoft Edge wasn't found." }
 # Partner Center's sizes: screenshots 1366 x 768 or larger, box art 2160 x 2160, poster art 1440 x 2160, tile 300 x 300.
 $Images = @(
     @{ File = "screenshot-1-promo.png"; Page = "shots.html#promo"; Width = 1366; Height = 768 },
-    @{ File = "screenshot-2-home.png"; Page = "shots.html#home"; Width = 1366; Height = 768 },
-    @{ File = "screenshot-3-download.png"; Page = "shots.html#download"; Width = 1366; Height = 768 },
-    @{ File = "screenshot-4-permission.png"; Page = "shots.html#permission"; Width = 1366; Height = 768 },
+    @{ File = "screenshot-2-chat.png"; Page = "shots.html#chat"; Width = 1366; Height = 768 },
+    @{ File = "screenshot-3-home.png"; Page = "shots.html#home"; Width = 1366; Height = 768 },
     @{ File = "box-art-2160.png"; Page = "logo.html"; Width = 1080; Height = 1080 },
     @{ File = "poster-art-1440x2160.png"; Page = "logo.html"; Width = 720; Height = 1080 },
     @{ File = "store-logo-300.png"; Page = "logo.html#tile"; Width = 300; Height = 300; Scale = 1; Transparent = $true }
