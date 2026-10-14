@@ -8,9 +8,9 @@
 
 Neither includes the model: the app downloads it (Download model).
 
-The tools that build them are PowerShell scripts in [`tools/`](../tools/). They need only what comes with Windows,
-plus `makeappx.exe` for the Store package. Nothing in `tools/` ships inside the app. Run them from the repo root with
-`powershell -ExecutionPolicy Bypass -File tools\<script>.ps1`, since Windows doesn't run unsigned scripts by default.
+The tools that build them are PowerShell scripts in [`packaging/`](../packaging/). They need only what comes with Windows,
+plus `makeappx.exe` for the Store package. Nothing in `packaging/` ships inside the app. Run them from the repo root with
+`powershell -ExecutionPolicy Bypass -File packaging\<script>.ps1`, since Windows doesn't run unsigned scripts by default.
 
 ## How-to guides
 
@@ -19,11 +19,11 @@ plus `makeappx.exe` for the Store package. Nothing in `tools/` ships inside the 
 1. Pick the version and set it in `AssemblyInformationalVersion` at the top of
    [`src/app/app.cs`](../src/app/app.cs). The window shows it, the Store package gets it, and the git tag is
    `v<version>`. The Store needs every new submission to have a higher version than the last.
-2. Run `tools\fetch.ps1` so `src/runtime/` is complete. It only downloads what's missing.
+2. Run `packaging\fetch.ps1` so `src/runtime/` is complete. It only downloads what's missing.
 3. Build both artifacts (see [Build prerequisites](#build-prerequisites)):
 
    ```powershell
-   powershell -ExecutionPolicy Bypass -File tools\build.ps1 -Clean -Msix
+   powershell -ExecutionPolicy Bypass -File packaging\build.ps1 -Clean -Msix
    ```
 
    This takes about ten minutes: five to zip and five to pack.
@@ -36,14 +36,14 @@ plus `makeappx.exe` for the Store package. Nothing in `tools/` ships inside the 
 
 ### Try a change to the app
 
-`tools\build.ps1 -Exe` builds only `src/2B.exe`, in a few seconds. Then double-click it. Changes to `home.html` or
+`packaging\build.ps1 -Exe` builds only `src/2B.exe`, in a few seconds. Then double-click it. Changes to `home.html` or
 `palette.css` need no build: reopen the window. To look inside the window, start `2B.exe` with `AGENT_2B_DEVTOOLS=1`
 set, which turns on DevTools (F12).
 
 ### Set up the Store identity (once)
 
 Copy the three values from Partner Center > the app > Product identity into `$IdentityName`, `$Publisher` and
-`$PublisherDisplayName` at the top of `tools\build.ps1`. `$DisplayName` must match the name reserved there. Until
+`$PublisherDisplayName` at the top of `packaging\build.ps1`. `$DisplayName` must match the name reserved there. Until
 those are filled in, `-Msix` stops before building anything.
 
 ### Smoke-test a build
@@ -117,11 +117,11 @@ the app.
 | `dist/store/Agent 2B.msix` | Partner Center (only with `-Msix`) |
 
 `build/` holds intermediates: `build/Agent 2B/` is the staged app (`src/` without `data/`, plus `LICENSE`), and
-`build/downloads/` holds `tools\fetch.ps1`'s unfinished downloads. `-Clean` deletes both, along with `dist/`.
+`build/downloads/` holds `packaging\fetch.ps1`'s unfinished downloads. `-Clean` deletes both, along with `dist/`.
 
 ### Build prerequisites
 
-- `tools\fetch.ps1` has run, so `src/runtime/` has `node`, `git`, `llama` and `webview2`.
+- `packaging\fetch.ps1` has run, so `src/runtime/` has `node`, `git`, `llama` and `webview2`.
 - For `-Msix` only: `makeappx.exe`, from either the full
   [Windows SDK](https://developer.microsoft.com/windows/downloads/windows-sdk/) or, much smaller (~22 MB), the
   [Microsoft.Windows.SDK.BuildTools](https://www.nuget.org/packages/Microsoft.Windows.SDK.BuildTools) NuGet package:
@@ -132,8 +132,8 @@ the app.
 
 | File | Role |
 |---|---|
-| [`tools/fetch.ps1`](../tools/fetch.ps1) | Downloads Node.js, Git Bash, llama.cpp and the WebView2 SDK into `src/runtime/` |
-| [`tools/build.ps1`](../tools/build.ps1) | Builds `src/2B.exe` and the portable zip; `-Msix` adds the Store package, `-Exe` builds only `2B.exe` |
-| [`tools/AppxManifest.xml`](../tools/AppxManifest.xml) | The package manifest; `build.ps1` fills in the identity and version |
+| [`packaging/fetch.ps1`](../packaging/fetch.ps1) | Downloads Node.js, Git Bash, llama.cpp and the WebView2 SDK into `src/runtime/` |
+| [`packaging/build.ps1`](../packaging/build.ps1) | Builds `src/2B.exe` and the portable zip; `-Msix` adds the Store package, `-Exe` builds only `2B.exe` |
+| [`packaging/AppxManifest.xml`](../packaging/AppxManifest.xml) | The package manifest; `build.ps1` fills in the identity and version |
 | [`store/LISTING.md`](../store/LISTING.md) | The Store listing's text, field by field |
 | [`store/render.ps1`](../store/render.ps1) | Renders the listing's images into `store/listing/` |

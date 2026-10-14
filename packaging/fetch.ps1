@@ -1,7 +1,7 @@
 # For a clone of the repo: downloads what src\ ships but git doesn't hold into src\runtime\: Node.js, Git Bash,
 # llama.cpp and the WebView2 SDK's DLLs. Not the model: the app downloads that (its Download model button).
 # Run it again any time: it only downloads what's missing, and an interrupted download resumes.
-#   powershell -ExecutionPolicy Bypass -File tools\fetch.ps1
+#   powershell -ExecutionPolicy Bypass -File packaging\fetch.ps1
 # Each component the same way: download into build\downloads -> unpack into <dest>.new -> rename to <dest>.
 $ErrorActionPreference = "Stop"
 $Root = Split-Path $PSScriptRoot
@@ -81,7 +81,7 @@ try {
         Write-Host "Ready: src\runtime\$($c.Dest)"
     }
     if ((Test-Path $Staging) -and -not (Get-ChildItem $Staging)) { Remove-Item $Staging }
-    Write-Host "`nDone. Build 2B.exe next: powershell -ExecutionPolicy Bypass -File tools\build.ps1 -Exe"
+    Write-Host "`nDone. Build 2B.exe next: powershell -ExecutionPolicy Bypass -File packaging\build.ps1 -Exe"
 } catch {
     Write-Host "`n$($_.Exception.Message)`nFailed; run this again to retry (downloads resume)." -ForegroundColor Red
     exit 1

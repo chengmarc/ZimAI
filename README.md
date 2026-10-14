@@ -69,8 +69,8 @@ no npm packages; and the tools that build it in PowerShell. Everything the model
 In a clone, download the runtimes into `src/runtime/` once and build `src/2B.exe`:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File tools\fetch.ps1
-powershell -ExecutionPolicy Bypass -File tools\build.ps1 -Exe
+powershell -ExecutionPolicy Bypass -File packaging\fetch.ps1
+powershell -ExecutionPolicy Bypass -File packaging\build.ps1 -Exe
 ```
 
 [`src/README.md`](src/README.md) explains the layers, [`src/agent/README.md`](src/agent/README.md) covers changing the
