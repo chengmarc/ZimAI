@@ -2,8 +2,8 @@
 
   <img src="src/app/icon.svg" width="180"><br>
 
-  <a href="#try-it"><img src="docs/badges/badge-microsoft-store.svg" height="50"></a>
   <a href="https://github.com/chengmarc/agent-2b/releases/latest"><img src="docs/badges/badge-download.svg" height="50"></a>
+  <a href="#try-it"><img src="docs/badges/badge-microsoft-store.svg" height="50"></a>
   <a href="#try-it"><img src="docs/badges/badge-gpu.svg" height="50"></a>
 
   <h1>Agent 2B - AI in Your Flash Drive</h1>
