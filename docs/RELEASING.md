@@ -91,6 +91,17 @@ the state written in `shots.html`, and the README's terminal demo, `docs/demo.sv
 captions or the state there, and the system requirements in `LISTING.md` when `Requirements` in `src/app/app.cs`
 changes.
 
+The Chat screenshot is the exception: `store/chat.png` is a capture, since the Chat page is llama-server's own and
+only runs with the model loaded. Retake it when that page or `src/app/chat.css` changes, then re-render. In the app,
+click Chat, start a new chat and send:
+
+```text
+Three of us got dinner: I had a $22 pasta, Sam had a $38 steak, Lee had a $15 salad. We shared $30 of wine, and tip is 18%. What does each person owe?
+```
+
+Once the answer has finished, capture the window's contents without its title bar at 200% scaling, so the file is
+1880 × 1360 (940 × 680 at 2x), and save it over `store/chat.png`.
+
 ## Explanation
 
 **One app, two places for its data.** The portable app keeps its data (the model, chat history, logs) in `data/`
