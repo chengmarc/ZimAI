@@ -4,7 +4,7 @@
 // --server it's the model server's keeper (Keeper): the window and each agent ask for the server that way.
 // It owns everything outside the agent: where things are (Paths), the model (Model), the server's settings and
 // lifetime, the terminal, and the environment the agent gets (AGENT_2B_*, the proxy).
-// tools/build.ps1 compiles it with the C# compiler that comes with Windows (.NET Framework 4), which reads C# 5
+// packaging/build.ps1 compiles it with the C# compiler that comes with Windows (.NET Framework 4), which reads C# 5
 // (no $"", no ?., no => members) and reads files in the system code page (so ASCII only).
 using System;
 using System.Collections;
@@ -29,7 +29,7 @@ using Microsoft.Web.WebView2.WinForms;
 
 [assembly: AssemblyTitle("Agent 2B")]
 [assembly: AssemblyProduct("Agent 2B")]
-[assembly: AssemblyInformationalVersion("1.0.0")]   // the version: MAJOR.MINOR.PATCH; tools/build.ps1 reads it from here
+[assembly: AssemblyInformationalVersion("1.0.0")]   // the version: MAJOR.MINOR.PATCH; packaging/build.ps1 reads it from here
 
 // Where everything is. src/ is the app as it ships; data/ beside it is what the app makes as it runs, except in the
 // Store app, whose install folder is read-only. The agent gets these through the environment (Main).

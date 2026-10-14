@@ -1,11 +1,11 @@
-# Downloaded by tools/fetch.cmd, built by tools/build.ts
+# Downloaded by packaging/fetch.ps1, built by packaging/build.ps1
 /src/runtime/
 /src/2B.exe
 
 # Made by the app as it runs: the model and logs
 /src/data/
 
-# Made by tools/: unfinished downloads, the staged app, the release artifacts
+# Made by packaging/: unfinished downloads, the staged app, the release artifacts
 /build/
 /dist/
 

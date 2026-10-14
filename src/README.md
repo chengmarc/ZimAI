@@ -1,7 +1,7 @@
 # src/ — the app as it ships
 
 Everything in `src/` ships in the GitHub zip and in the Store package, except `data/`. The parts git doesn't hold
-(`runtime/` and `2B.exe`) come from `tools/` ([`docs/RELEASING.md`](../docs/RELEASING.md)).
+(`runtime/` and `2B.exe`) come from `packaging/` ([`docs/RELEASING.md`](../docs/RELEASING.md)).
 
 ## Explanation
 
@@ -11,7 +11,7 @@ One language per layer, and each layer owns what it does:
 |---|---|---|
 | `2B.exe` ([`app/`](app/)) | C# (.NET Framework 4, which comes with Windows) | where things are; the model, its download and the server's settings; starting and stopping the server; the window; opening the terminal; the proxy; the version |
 | the agent ([`agent/`](agent/)) | TypeScript, run as is by Node.js | the conversation with the model and the tools it uses. It gets everything else from `2B.exe` |
-| the tools ([`../tools/`](../tools/)) | PowerShell (comes with Windows) | fetching `runtime/`, building `2B.exe` and the release artifacts; nothing in `src/` depends on them |
+| the packaging scripts ([`../packaging/`](../packaging/)) | PowerShell (comes with Windows) | fetching `runtime/`, building `2B.exe` and the release artifacts; nothing in `src/` depends on them |
 
 **The model server.** `2B.exe --server` is the server's keeper. Before each start it fits the model to this
 computer (`Plan` in `app.cs`): llama.cpp's dry run (`llama-fit-params`) splits it between GPU and RAM; every computer
@@ -45,7 +45,7 @@ model is (`app/identity.md`) is a server default (`Defaults` in `app.cs`), so Ch
 
 ```
 src/
-  2B.exe                the app, built from app/ by tools/build.ps1 (untracked)
+  2B.exe                the app, built from app/ by packaging/build.ps1 (untracked)
   app/
     app.cs              2B.exe's source
     home.html           the page the window shows
@@ -55,7 +55,7 @@ src/
     icon.svg  icon.ico  the icon (the .ico is built into 2B.exe and shown by the terminal)
     mintty.conf         the terminal's look
   agent/                the coding agent: `2b` in the terminal
-  runtime/              downloaded by tools/fetch.ps1 (untracked)
+  runtime/              downloaded by packaging/fetch.ps1 (untracked)
     node/  git/  llama/ Node.js, portable Git Bash, llama.cpp (CUDA build)
     webview2/           the WebView2 SDK's DLLs, for the window
   data/                 made as the app runs (untracked); in the Store app, the package's LocalCache instead

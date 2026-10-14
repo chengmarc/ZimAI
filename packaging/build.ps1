@@ -1,6 +1,6 @@
 # Builds 2B from src\ (docs\RELEASING.md): src\2B.exe, then the ready-to-run zip for GitHub and, with -Msix, the
-# Microsoft Store package. Both hold src\ as it is after tools\fetch.ps1, minus data\ (the app downloads the model).
-#   powershell -ExecutionPolicy Bypass -File tools\build.ps1 [-Clean] [-Msix | -Exe]
+# Microsoft Store package. Both hold src\ as it is after packaging\fetch.ps1, minus data\ (the app downloads the model).
+#   powershell -ExecutionPolicy Bypass -File packaging\build.ps1 [-Clean] [-Msix | -Exe]
 # -Exe builds only src\2B.exe, for trying a change to the app; -Clean deletes build\ and dist\ first.
 param([switch]$Clean, [switch]$Msix, [switch]$Exe)
 $ErrorActionPreference = "Stop"
@@ -35,7 +35,7 @@ function Get-Version {
 
 function Get-Manifest {
     $missing = @("IdentityName", "Publisher", "PublisherDisplayName") | Where-Object { -not (Get-Variable $_ -ValueOnly) }
-    if ($missing) { throw "set $($missing -join ', ') in tools\build.ps1 from Partner Center > Product identity" }
+    if ($missing) { throw "set $($missing -join ', ') in packaging\build.ps1 from Partner Center > Product identity" }
     $values = @{
         identity_name = $IdentityName; publisher = $Publisher; publisher_display_name = $PublisherDisplayName
         display_name = $DisplayName
@@ -60,7 +60,7 @@ function Find-MakeAppx {
 # src\2B.exe, with the C# compiler that comes with Windows (.NET Framework 4).
 function Build-Exe {
     $webview2 = Join-Path $Src "runtime\webview2"
-    if (-not (Test-Path $webview2)) { throw "src\runtime\webview2 is missing: run tools\fetch.ps1 first" }
+    if (-not (Test-Path $webview2)) { throw "src\runtime\webview2 is missing: run packaging\fetch.ps1 first" }
     $refs = @("System.Net.Http.dll", "System.Windows.Forms.dll", "System.Drawing.dll",
               "$webview2\Microsoft.Web.WebView2.Core.dll", "$webview2\Microsoft.Web.WebView2.WinForms.dll")
     Invoke-Native $Csc (@("/nologo", "/target:winexe", "/optimize+", "/win32icon:$Src\app\icon.ico", "/out:$Src\2B.exe") +
@@ -70,7 +70,7 @@ function Build-Exe {
 # build\Agent 2B: src\ without data\, and the license.
 function Build-Stage {
     foreach ($dir in "node", "git", "llama", "webview2") {
-        if (-not (Test-Path "$Src\runtime\$dir")) { throw "src\runtime\$dir is missing: run tools\fetch.ps1 first" }
+        if (-not (Test-Path "$Src\runtime\$dir")) { throw "src\runtime\$dir is missing: run packaging\fetch.ps1 first" }
     }
     Write-Host "Staging the app..."
     if (Test-Path $App) { Remove-Item -Recurse -Force $App }
