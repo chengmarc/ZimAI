@@ -19,7 +19,8 @@
   .caption .app small { display: block; margin-top: 1px; font-size: 14px; font-weight: 400; color: rgba(255, 255, 255, 0.7); }
   h1 { margin: 0; font-size: 40px; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; }
   .caption p { margin: 20px 0 0; font: 400 17px/1.5 "Segoe UI Variable Text", "Segoe UI", sans-serif; color: rgba(255, 255, 255, 0.78); }
-  .facts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+  /* One row, though it may run a few pixels past the column. */
+  .facts { display: flex; gap: 8px; width: max-content; margin-top: 28px; }
   /* #promo: the size, big, over a 16 GB flash drive filled to it; then the other numbers. */
   .size { margin-top: 34px; width: 310px; }
   .size b { display: block; width: max-content; font-size: 58px; line-height: 1; font-weight: 700; letter-spacing: -0.03em; }
@@ -114,22 +115,27 @@ const GPUS = [
   <div class="tier ${tier}"><div class="verdict ${tier}"><b>${verdict}</b><span>${note}</span></div>
   <div class="gpus">${names.map(n => `<span>${n}</span>`).join("")}</div></div>`).join("");
 
-// Each shot: its caption, and what's in the window: a home page state, the demo at a time (s), or an image of the
-// window's contents at 940 x 680 (chat.png: a capture of the real Chat page, at 2x).
+// The same on every shot: what it needs, and what it doesn't.
+const FACTS = ["NVIDIA, 6 GB+", "Works offline", "No account"];
+
+// Each shot: its caption, the need it meets in the customer's words, and what's in the window: a home page state,
+// the demo at a time (s), or an image of the window's contents at 940 x 680 (chat.png: a capture of the real Chat
+// page, at 2x).
 const SHOTS = {
   promo: {
-    title: 'An AI coding agent fits into <span class="brand">your own flash drive.</span>',
+    title: 'An AI agent for your code, <span class="brand">kept on your PC.</span>',
+    text: "Ask about a project or your machine. It reads, runs and edits for you, asking first.",
     numbers: NUMBERS,
     demo: 10,
   },
   chat: {
-    title: 'An AI chatbot fits into <span class="brand">your own flash drive.</span>',
-    numbers: NUMBERS,
+    title: 'A private chatbot, <span class="brand">on your own PC.</span>',
+    text: "Chat with the model in the app's own window. Your chats stay on your computer, and nowhere else.",
     image: "chat.png",
   },
   home: {
-    title: 'Runs on <span class="brand">your gaming PC.</span>',
-    text: "No pricey workstation or data-center card. The GeForce you game on is enough, and 2B fits the model to it.",
+    title: 'Your gaming GPU <span class="brand">is all it needs.</span>',
+    text: "2B checks your GeForce before downloading, then fits the model to it.",
     numbers: GPUS,
     home: READY,
   },
@@ -141,7 +147,7 @@ document.getElementById("title").innerHTML = shot.title;
 document.getElementById("text").textContent = shot.text || "";
 if (!shot.text) document.getElementById("text").remove();
 document.getElementById("numbers").innerHTML = shot.numbers || "";
-document.getElementById("facts").innerHTML = (shot.facts || []).map(f => `<span>${f}</span>`).join("");
+document.getElementById("facts").innerHTML = FACTS.map(f => `<span>${f}</span>`).join("");
 const win = document.querySelector(".window");
 
 if (shot.image) {
