@@ -83,7 +83,8 @@ NVIDIA, GeForce, GTX and RTX are trademarks of NVIDIA Corporation. Agent 2B is a
 
 ### What's new in this version
 
-Leave blank: this is the first submission.
+Leave blank until a version is in the Store: 1.0.0 was never published (the Store denied `unvirtualizedResources`),
+so 1.0.1 is still the first version customers see.
 
 ### Product features
 
@@ -183,11 +184,11 @@ Leave empty: 2B has no trailer, and isn't an Xbox app.
 - **Restricted capabilities → runFullTrust:**
 
   ```
-  Agent 2B is a desktop app built with C# (Windows Forms and WebView2), packaged with the Desktop Bridge. runFullTrust is required for any packaged Win32 desktop app to launch its executable (EntryPoint="Windows.FullTrustApplication"). It is used only to run the app itself: 2B.exe, and the llama.cpp model server, Node.js and Git Bash it ships with. It reads and writes files only in the folders the user works in, asking before every change, and it has no telemetry.
+  Agent 2B is a desktop app built with C# (Windows Forms and WebView2), packaged with the Desktop Bridge. runFullTrust is required for any packaged Win32 desktop app to launch its executable (EntryPoint="Windows.FullTrustApplication"). It is used only to run the app itself: 2B.exe, and the llama.cpp model server, Node.js and Git Bash it ships with. It reads and writes files only in the folders the user works in, asking before every change, and it has no telemetry. The terminal (Git Bash) is started outside the package with the documented desktop app breakaway policy (PROC_THREAD_ATTRIBUTE_DESKTOP_APP_POLICY), so the commands the user approves there behave as in any terminal; the app requests no other restricted capability.
   ```
 
 - **Notes for certification:**
 
   ```
-  No account or sign-in is needed, and there's nothing to configure: 2B picks the model (gpt-oss-20b) and its settings itself. On a supported PC (an NVIDIA GPU with 6 GB of video memory or more and CUDA 12.4 or later): 1. Click Download in the Model row (12 GB from Hugging Face; if it's interrupted, click Resume). 2. Wait until the Server row says Ready (about 30 seconds). 3. Click Terminal and type "list the files in this folder"; it asks before running the command (answer y) and then lists them. Or click Chat and ask a question in the window. On a PC without a supported GPU, the System row says "No GPU Detected" or "Not Supported" with the reason, and nothing is downloaded.
+  No account or sign-in is needed, and there's nothing to configure: 2B picks the model (gpt-oss-20b) and its settings itself. On a supported PC (an NVIDIA GPU with 6 GB of video memory or more and CUDA 12.4 or later): 1. Click Download in the Model row (12 GB from Hugging Face; if it's interrupted, click Resume). 2. Wait until the Server row says Ready (about 30 seconds). 3. Click Terminal and type "list the files in this folder"; it asks before running the command (answer y) and then lists them. Or click Chat and ask a question in the window. On a PC without a supported GPU, the System row says "No GPU Detected" or "Not Supported" with the reason, and nothing is downloaded. Since the last submission: the unvirtualizedResources capability, which was denied, has been removed, and the package declares only runFullTrust.
   ```
