@@ -186,12 +186,6 @@ Leave empty: 2B has no trailer, and isn't an Xbox app.
   Agent 2B is a desktop app built with C# (Windows Forms and WebView2), packaged with the Desktop Bridge. runFullTrust is required for any packaged Win32 desktop app to launch its executable (EntryPoint="Windows.FullTrustApplication"). It is used only to run the app itself: 2B.exe, and the llama.cpp model server, Node.js and Git Bash it ships with. It reads and writes files only in the folders the user works in, asking before every change, and it has no telemetry.
   ```
 
-- **Restricted capabilities → unvirtualizedResources:**
-
-  ```
-  Agent 2B is a coding agent that runs commands in a terminal on the user's behalf, such as git, npm and pip. With write virtualization, their changes to AppData and the registry would be hidden from the rest of the system, so tools installed or configured in 2B wouldn't work outside it.
-  ```
-
 - **Notes for certification:**
 
   ```

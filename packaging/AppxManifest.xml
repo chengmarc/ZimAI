@@ -5,8 +5,7 @@
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
-  xmlns:desktop6="http://schemas.microsoft.com/appx/manifest/desktop/windows10/6"
-  IgnorableNamespaces="uap rescap desktop6">
+  IgnorableNamespaces="uap rescap">
 
   <Identity
     Name="{identity_name}"
@@ -18,10 +17,6 @@
     <DisplayName>{display_name}</DisplayName>
     <PublisherDisplayName>{publisher_display_name}</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
-    <!-- The agent's commands run inside the package, so without these, what they write under AppData or to the
-         registry (npm install -g, pip install, settings) would land in a private copy that only 2B sees. -->
-    <desktop6:FileSystemWriteVirtualization>disabled</desktop6:FileSystemWriteVirtualization>
-    <desktop6:RegistryWriteVirtualization>disabled</desktop6:RegistryWriteVirtualization>
   </Properties>
 
   <Dependencies>
@@ -44,7 +39,8 @@
   </Applications>
 
   <Capabilities>
+    <!-- No unvirtualizedResources: the terminal, where the agent's commands run, starts outside the package
+         (Terminal in src/app/app.cs). -->
     <rescap:Capability Name="runFullTrust" />
-    <rescap:Capability Name="unvirtualizedResources" />
   </Capabilities>
 </Package>
