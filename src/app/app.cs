@@ -31,7 +31,7 @@ using Microsoft.Web.WebView2.WinForms;
 
 [assembly: AssemblyTitle("Agent 2B")]
 [assembly: AssemblyProduct("Agent 2B")]
-[assembly: AssemblyInformationalVersion("1.0.0")]   // the version: MAJOR.MINOR.PATCH; packaging/build.ps1 reads it from here
+[assembly: AssemblyInformationalVersion("1.0.1")]   // the version: MAJOR.MINOR.PATCH; packaging/build.ps1 reads it from here
 
 // Where everything is. src/ is the app as it ships; data/ beside it is what the app makes as it runs, except in the
 // Store app, whose install folder is read-only. The agent gets these through the environment (Main).
