@@ -1,7 +1,8 @@
 // 2B.exe, the app. With no arguments it's the 2B window: home.html in WebView2, which shows the GPU, the model and
 // the model server, and has Download model, Chat (llama-server's own chat page) and Terminal (Git Bash with the
 // agent). The window starts the server as soon as it opens, so Chat and Terminal open without a wait. With
-// --server it's the model server's keeper (Keeper): the window and each agent ask for the server that way.
+// --server it's the model server's keeper (Keeper): the window and each agent ask for the server that way. With
+// --terminal it starts the terminal and exits (Terminal).
 // It owns everything outside the agent: where things are (Paths), the model (Model), the server's settings and
 // lifetime, the terminal, and the environment the agent gets (AGENT_2B_*, the proxy).
 // packaging/build.ps1 compiles it with the C# compiler that comes with Windows (.NET Framework 4), which reads C# 5
@@ -9,6 +10,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -55,11 +57,22 @@ static class Paths {
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
     static extern int GetCurrentPackageFamilyName(ref uint length, StringBuilder name);
 
-    /** data/ beside the app, or in the Store app the package's LocalCache, which is deleted when it's uninstalled. */
-    public static string FindData() {
+    /** Whether this is the Store app, running inside its package. */
+    public static bool Packaged() {
         uint length = 0;
         // ERROR_INSUFFICIENT_BUFFER (122) when packaged; APPMODEL_ERROR_NO_PACKAGE when not.
-        if (GetCurrentPackageFamilyName(ref length, null) != 122) return Path.Combine(Root, "data");
+        return GetCurrentPackageFamilyName(ref length, null) == 122;
+    }
+
+    /** data/ beside the app, or in the Store app the package's LocalCache, which is deleted when it's uninstalled.
+     *  A 2B.exe started by the terminal or the agent runs outside the package (Terminal), so it takes the one its
+     *  2B window passed down. */
+    public static string FindData() {
+        string passed = Environment.GetEnvironmentVariable("AGENT_2B_DATA");
+        if (!string.IsNullOrEmpty(passed)) return passed;
+        if (!Packaged()) return Path.Combine(Root, "data");
+        uint length = 0;
+        GetCurrentPackageFamilyName(ref length, null);
         var name = new StringBuilder((int)length);
         GetCurrentPackageFamilyName(ref length, name);
         return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -415,8 +428,20 @@ static class Server {
 
 // The terminal: mintty from the portable Git Bash, in the home folder, with the agent running; quitting it leaves a
 // normal prompt where `2b` starts it again.
+// In the Store app it runs outside the package, like a Git Bash the user started: inside it, what the user and the
+// agent run would have its writes to AppData and HKCU redirected into a copy only 2B sees (npm install -g, pip
+// install --user, setx), and deleted with 2B. So the window starts cmd outside the package (Breakaway), cmd starts
+// `2B.exe --terminal`, and that starts mintty. Not 2B.exe directly: Windows keeps the package's own executables
+// inside it when the package starts them, breakaway or not, but not when a process outside it does.
 static class Terminal {
     public static void Open() {
+        if (Paths.Packaged()) Breakaway.Start(Path.Combine(Environment.SystemDirectory, "cmd.exe"),
+                                              "/d /c \"\"" + Paths.Exe + "\" --terminal\"");
+        else Start();
+    }
+
+    /** 2B.exe --terminal, or the portable app's window. */
+    public static void Start() {
         string mintty = Path.Combine(Paths.Git, @"usr\bin\mintty.exe");
         // -c: our look (mintty.conf), -i and -t: our icon and title (the config keeps programs from changing it).
         // First the agent (a Ctrl+C in it is the agent's, not this shell's), then a normal prompt.
@@ -443,6 +468,69 @@ static class Terminal {
     }
 }
 
+// Starting a process outside the package, and so everything it starts: CreateProcess with
+// PROC_THREAD_ATTRIBUTE_DESKTOP_APP_POLICY set to PROCESS_CREATION_DESKTOP_APP_BREAKAWAY_ENABLE_PROCESS_TREE. It gets
+// this process's environment, and no console window.
+static class Breakaway {
+    const int ExtendedStartupInfoPresent = 0x80000, CreateNoWindow = 0x8000000;
+    static readonly IntPtr DesktopAppPolicy = (IntPtr)0x20012;   // PROC_THREAD_ATTRIBUTE_DESKTOP_APP_POLICY
+    const int EnableProcessTree = 1;                              // PROCESS_CREATION_DESKTOP_APP_BREAKAWAY_ENABLE_PROCESS_TREE
+
+    [StructLayout(LayoutKind.Sequential)]
+    struct StartupInfoEx {
+        public int Size;
+        public IntPtr Reserved, Desktop, Title;
+        public int X, Y, XSize, YSize, XCountChars, YCountChars, FillAttribute, Flags;
+        public short ShowWindow, Reserved2Size;
+        public IntPtr Reserved2, StdInput, StdOutput, StdError;
+        public IntPtr AttributeList;
+    }
+    [StructLayout(LayoutKind.Sequential)]
+    struct ProcessInformation {
+        public IntPtr Process, Thread;
+        public int ProcessId, ThreadId;
+    }
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool InitializeProcThreadAttributeList(IntPtr list, int count, int flags, ref IntPtr size);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool UpdateProcThreadAttribute(IntPtr list, int flags, IntPtr attribute, IntPtr value, IntPtr size,
+                                                 IntPtr previous, IntPtr returnSize);
+    [DllImport("kernel32.dll")]
+    static extern void DeleteProcThreadAttributeList(IntPtr list);
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    static extern bool CreateProcess(string application, StringBuilder commandLine, IntPtr processAttributes,
+                                     IntPtr threadAttributes, bool inheritHandles, int flags, IntPtr environment,
+                                     string directory, ref StartupInfoEx startup, out ProcessInformation info);
+    [DllImport("kernel32.dll")]
+    static extern bool CloseHandle(IntPtr handle);
+
+    public static void Start(string exe, string args) {
+        IntPtr size = IntPtr.Zero;
+        InitializeProcThreadAttributeList(IntPtr.Zero, 1, 0, ref size);
+        IntPtr list = Marshal.AllocHGlobal(size), policy = Marshal.AllocHGlobal(4);
+        try {
+            if (!InitializeProcThreadAttributeList(list, 1, 0, ref size)) throw new Win32Exception();
+            try {
+                Marshal.WriteInt32(policy, EnableProcessTree);
+                if (!UpdateProcThreadAttribute(list, 0, DesktopAppPolicy, policy, (IntPtr)4, IntPtr.Zero, IntPtr.Zero))
+                    throw new Win32Exception();
+                var startup = new StartupInfoEx { Size = Marshal.SizeOf(typeof(StartupInfoEx)), AttributeList = list };
+                ProcessInformation info;
+                if (!CreateProcess(exe, new StringBuilder("\"" + exe + "\" " + args), IntPtr.Zero, IntPtr.Zero, false,
+                                   ExtendedStartupInfoPresent | CreateNoWindow, IntPtr.Zero, null, ref startup, out info))
+                    throw new Win32Exception();
+                CloseHandle(info.Thread);
+                CloseHandle(info.Process);
+            } finally {
+                DeleteProcThreadAttributeList(list);
+            }
+        } finally {
+            Marshal.FreeHGlobal(policy);
+            Marshal.FreeHGlobal(list);
+        }
+    }
+}
+
 static class Program {
     [STAThread]
     static int Main(string[] args) {
@@ -453,6 +541,7 @@ static class Program {
         Environment.SetEnvironmentVariable("AGENT_2B_EXE", Paths.Exe);
         UseProxy();
         if (args.Length == 1 && args[0] == "--server") return Keeper.Run();
+        if (args.Length == 1 && args[0] == "--terminal") { Terminal.Start(); return 0; }
         // The WebView2 assemblies are in runtime\webview2, not beside this file.
         AppDomain.CurrentDomain.AssemblyResolve += (sender, e) => {
             string file = Path.Combine(Paths.WebView2, new AssemblyName(e.Name).Name + ".dll");

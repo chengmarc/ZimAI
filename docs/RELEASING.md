@@ -69,6 +69,8 @@ In each case, check that:
   leaves a prompt where `2b` starts the agent again.
 - with the window and a terminal open, closing either one leaves `llama-server.exe` running, and closing the other
   stops it within a few seconds.
+- in the Store app, the terminal runs outside the package: `mkdir "$APPDATA/2b-check"` there makes a folder that
+  Explorer shows in `%APPDATA%` (delete it afterwards).
 
 Remove the Store app afterwards with `Get-AppxPackage <identity name> | Remove-AppxPackage`. That also deletes its data
 folder.
@@ -76,8 +78,8 @@ folder.
 ### Fill in the Partner Center submission
 
 [`store/LISTING.md`](../store/LISTING.md) has every field to paste, in Partner Center's order: the description,
-features, keywords, system requirements, the wording for the two restricted capabilities (`runFullTrust`,
-`unvirtualizedResources`) and the notes for certification. Its images are in `store/listing/`.
+features, keywords, system requirements, the wording for the restricted capability (`runFullTrust`) and the notes
+for certification. Its images are in `store/listing/`.
 
 ### Re-render the listing images
 
@@ -108,10 +110,14 @@ Once the answer has finished, capture the window's contents without its title ba
 beside `2B.exe`. The Store package is installed read-only, so there `2B.exe` uses the package's `LocalCache` folder,
 which is deleted when the app is uninstalled. [`src/README.md`](../src/README.md) has the layout.
 
-**Why write virtualization is off.** A packaged app's processes, and every process they start, normally have their
-writes to AppData and the registry redirected into a private copy. For 2B that would include everything the user
-and the agent run in its terminal. The manifest turns that off (`desktop6:FileSystemWriteVirtualization` and
-`desktop6:RegistryWriteVirtualization`), which needs the `unvirtualizedResources` capability.
+**Why the terminal runs outside the package.** A packaged app's processes, and every process they start, have
+their new files in AppData and their writes to HKCU redirected into a private copy, which only the package sees and
+which is deleted with it. For 2B that would include everything the user and the agent run in its terminal
+(`npm install -g`, `pip install --user`, `setx`). So the window starts the terminal outside the package, with the
+desktop app breakaway policy (`Terminal` and `Breakaway` in `src/app/app.cs`). Turning virtualization off in the
+manifest instead needs the `unvirtualizedResources` capability, which the Store denied for 2B. Breakaway only works
+through a process from outside the package (cmd): one of the package's own executables started directly stays
+inside.
 
 **Why PowerShell.** The tools have to run before anything is downloaded, so they use only what Windows has:
 PowerShell 5.1, `curl.exe` and `tar.exe`, the C# compiler of .NET Framework 4 (for `2B.exe`), and System.Drawing
