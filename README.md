@@ -8,9 +8,9 @@
 
   <h1>Agent 2B - AI in Your Flash Drive</h1>
   
-  <img src="store/listing/screenshot-1-promo.png">
-  <img src="store/listing/screenshot-2-chat.png">
-  <img src="store/listing/screenshot-3-home.png">
+  <img src="store-listing/desktop/screenshot-1-promo.png">
+  <img src="store-listing/desktop/screenshot-2-chat.png">
+  <img src="store-listing/desktop/screenshot-3-home.png">
 
 </div>
 

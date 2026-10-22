@@ -15,8 +15,8 @@ $Root = Split-Path $PSScriptRoot
 $Src = Join-Path $Root "src"
 $Build = Join-Path $Root "build"
 $App = Join-Path $Build "Agent 2B"   # the app as it ships: the zip's one folder, then the package
-$Zip = Join-Path $Root "dist\release\Agent-2B-portable.zip"
-$Package = Join-Path $Root "dist\store\Agent 2B.msix"
+$Zip = Join-Path $Root "dist\Agent-2B-portable.zip"
+$Package = Join-Path $Root "dist\Agent 2B.msix"
 $Csc = Join-Path $env:SystemRoot "Microsoft.NET\Framework64\v4.0.30319\csc.exe"
 $Tar = Join-Path $env:SystemRoot "System32\tar.exe"
 
