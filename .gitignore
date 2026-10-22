@@ -2,8 +2,8 @@
 /src/runtime/
 /src/2B.exe
 
-# Made by the app as it runs: the model and logs
-/src/data/
+# Made by the app as it runs from a clone: the model, logs and chat history (data\ beside 2B.exe when it ships)
+/appdata/
 
 # Made by packaging/: unfinished downloads, the staged app, the release artifacts
 /build/

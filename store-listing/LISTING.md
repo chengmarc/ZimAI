@@ -2,7 +2,8 @@
 
 Everything to paste into Partner Center → Agent 2B, in the submission's order: Properties, Store listings (English
 (United States)), Submission options. Pricing and availability, Age ratings and Packages are filled in Partner Center
-by hand. Images are in [listing/](listing/), rendered by `powershell -ExecutionPolicy Bypass -File store\render.ps1`.
+by hand. Images are beside this file (the screenshots in [desktop/](desktop/)), rendered by
+`powershell -ExecutionPolicy Bypass -File store-listing\generator\render.ps1`.
 
 ## Properties
 
@@ -108,17 +109,17 @@ Read and change every line: it's open source under Apache 2.0
 
 Upload in this order (the first is shown first):
 
-1. `listing/screenshot-1-promo.png`: an AI agent for your code that stays on your PC (the terminal)
-2. `listing/screenshot-2-chat.png`: everyday questions answered on your PC (Chat)
-3. `listing/screenshot-3-home.png`: will my PC run it? (the GPUs it runs on, and the home page)
+1. `desktop/screenshot-1-promo.png`: an AI agent for your code that stays on your PC (the terminal)
+2. `desktop/screenshot-2-chat.png`: everyday questions answered on your PC (Chat)
+3. `desktop/screenshot-3-home.png`: will my PC run it? (the GPUs it runs on, and the home page)
 
 ### Store logos
 
 | Slot | File |
 |---|---|
-| 9:16 Poster art (1440 × 2160) | `listing/poster-art-1440x2160.png`: the main logo on Windows 10/11 |
-| 1:1 Box art (2160 × 2160) | `listing/box-art-2160.png` |
-| 1:1 App tile icon (300 × 300) | `listing/store-logo-300.png` |
+| 9:16 Poster art (1440 × 2160) | `poster-art-1440x2160.png`: the main logo on Windows 10/11 |
+| 1:1 Box art (2160 × 2160) | `box-art-2160.png` |
+| 1:1 App tile icon (300 × 300) | `store-logo-300.png` |
 | 150 × 150, 71 × 71 | Leave empty; the Store takes them from the package. |
 
 ### Trailers, Xbox images

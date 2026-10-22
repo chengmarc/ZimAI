@@ -1,7 +1,8 @@
 # src/ — the app as it ships
 
-Everything in `src/` ships in the GitHub zip and in the Store package, except `data/`. The parts git doesn't hold
-(`runtime/` and `2B.exe`) come from `packaging/` ([`docs/RELEASING.md`](../docs/RELEASING.md)).
+Everything in `src/` ships in the GitHub zip and in the Store package. The parts git doesn't hold (`runtime/` and
+`2B.exe`) come from `packaging/` ([`docs/RELEASING.md`](../docs/RELEASING.md)); they sit here, beside the code, because
+the app finds them beside itself.
 
 ## Explanation
 
@@ -58,7 +59,8 @@ src/
   runtime/              downloaded by packaging/fetch.ps1 (untracked)
     node/  git/  llama/ Node.js, portable Git Bash, llama.cpp (CUDA build)
     webview2/           the WebView2 SDK's DLLs, for the window
-  data/                 made as the app runs (untracked); in the Store app, the package's LocalCache instead
+  data/                 made as the app runs, beside 2B.exe as it ships; in the Store app, the package's LocalCache,
+                        and run from a clone, appdata/ at the repo's root (untracked)
     model/_model.gguf   the model, from the window's Download model
     browser/            the window's browser data, chat history included
     logs/

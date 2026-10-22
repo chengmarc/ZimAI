@@ -34,7 +34,8 @@ using Microsoft.Web.WebView2.WinForms;
 [assembly: AssemblyInformationalVersion("1.0.1")]   // the version: MAJOR.MINOR.PATCH; packaging/build.ps1 reads it from here
 
 // Where everything is. src/ is the app as it ships; data/ beside it is what the app makes as it runs, except in the
-// Store app, whose install folder is read-only. The agent gets these through the environment (Main).
+// Store app, whose install folder is read-only, and in a clone of the repo, which keeps it out of src/ in appdata/.
+// The agent gets these through the environment (Main).
 static class Paths {
     public static readonly string Root = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\');
     public static readonly string Exe = Assembly.GetExecutingAssembly().Location;
@@ -64,12 +65,16 @@ static class Paths {
         return GetCurrentPackageFamilyName(ref length, null) == 122;
     }
 
-    /** data/ beside the app, or in the Store app the package's LocalCache, which is deleted when it's uninstalled.
-     *  A 2B.exe started by the terminal or the agent runs outside the package (Terminal), so it takes the one its
-     *  2B window passed down. */
+    /** data/ beside the app, or in the Store app the package's LocalCache, which is deleted when it's uninstalled,
+     *  or in a clone of the repo (src\2B.exe, with .git beside src\) appdata\ at the repo's root, so the model and
+     *  the logs stay out of the source tree. A 2B.exe started by the terminal or the agent runs outside the package
+     *  (Terminal), so it takes the one its 2B window passed down. */
     public static string FindData() {
         string passed = Environment.GetEnvironmentVariable("AGENT_2B_DATA");
         if (!string.IsNullOrEmpty(passed)) return passed;
+        string repo = Path.GetDirectoryName(Root);
+        if (Path.GetFileName(Root) == "src" && repo != null && Directory.Exists(Path.Combine(repo, ".git")))
+            return Path.Combine(repo, "appdata");
         if (!Packaged()) return Path.Combine(Root, "data");
         uint length = 0;
         GetCurrentPackageFamilyName(ref length, null);

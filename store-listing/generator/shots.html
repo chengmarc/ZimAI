@@ -72,14 +72,14 @@
 </head>
 <body>
   <div class="caption">
-    <div class="app"><img src="../src/app/icon.svg" alt=""><span>Agent 2B<small>AI in Your Flash Drive</small></span></div>
+    <div class="app"><img src="../../src/app/icon.svg" alt=""><span>Agent 2B<small>AI in Your Flash Drive</small></span></div>
     <h1 id="title"></h1>
     <p id="text"></p>
     <div class="facts" id="facts"></div>
     <div id="numbers"></div>
   </div>
   <div class="window">
-    <div class="titlebar"><img src="../src/app/icon.svg" alt=""><span>Agent 2B</span><i>&#xE921;</i><i>&#xE922;</i><i>&#xE8BB;</i></div>
+    <div class="titlebar"><img src="../../src/app/icon.svg" alt=""><span>Agent 2B</span><i>&#xE921;</i><i>&#xE922;</i><i>&#xE8BB;</i></div>
   </div>
 
 <script>
@@ -155,12 +155,12 @@ if (shot.image) {
 } else if (shot.home) {
   const frame = document.createElement("iframe");
   frame.className = "client";
-  frame.src = "../src/app/home.html";
+  frame.src = "../../src/app/home.html";
   frame.onload = () => frame.contentWindow.render(shot.home);
   win.append(frame);
 } else {
   // The demo, stopped at its time, without its own (macOS-style) title bar: the window has one.
-  fetch("../docs/demo.svg").then(r => r.text()).then(text => {
+  fetch("../../docs/demo.svg").then(r => r.text()).then(text => {
     win.insertAdjacentHTML("beforeend", text);
     const svg = win.querySelector("svg");
     svg.classList.add("client");
