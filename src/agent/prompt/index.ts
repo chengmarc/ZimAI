@@ -42,7 +42,9 @@ function which(cmd: string): string | null {
 function environment(): string {
   // WindowsApps holds the Microsoft Store "python" stubs, which only open the Store.
   const found = DEV_COMMANDS.filter(c => !(which(c) ?? "WindowsApps").includes("WindowsApps"));
-  return `${os.version()}; Bash runs Git Bash, PowerShell runs Windows PowerShell 5.1; ` +
+  // Today's date: what "latest" and "newest" mean, which the model can't know.
+  return `${os.version()}; today is ${new Date().toLocaleDateString("en-CA")}; ` +
+         `Bash runs Git Bash, PowerShell runs Windows PowerShell 5.1; ` +
          `installed: ${found.join(", ") || "none of the usual dev tools"}`;
 }
 
