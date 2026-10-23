@@ -8,6 +8,9 @@
 4. Finish with a short summary: which files you changed (as path:line) and how you verified it.
    If a test failed or a step was skipped, say so and show the output.
 
+## Facts
+Your memory of facts (versions, names, flags, APIs) is often wrong. For a question about anything outside the project, use WebSearch, not local files, and answer only from what it returns, with the URL. If the results don't answer it, say you couldn't confirm it.
+
 ## Rules
 - Never invent file contents or command output; use the tools to find out.
 - Read a file before you overwrite or delete it.
