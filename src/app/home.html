@@ -7,7 +7,12 @@
 <title>Agent 2B</title>
 <link rel="stylesheet" href="palette.css">
 <style>
-  :root { --brand: linear-gradient(90deg, var(--gold), var(--rose) 55%, var(--violet)); }
+  :root {
+    --brand: linear-gradient(90deg, var(--gold), var(--rose) 55%, var(--violet));
+    /* The cards' shadows, in --strong's warm brown rather than grey: resting, and lifted under the pointer */
+    --shadow: 0 1px 2px rgba(61, 52, 43, 0.05), 0 4px 14px rgba(61, 52, 43, 0.06);
+    --shadow-lift: 0 2px 4px rgba(61, 52, 43, 0.06), 0 10px 24px rgba(61, 52, 43, 0.10);
+  }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { margin: 0; height: 100%; }
@@ -25,7 +30,7 @@
   h1 span { background: var(--brand); -webkit-background-clip: text; background-clip: text; color: transparent; }
   header p { margin: 4px 0 0; color: var(--muted); }
 
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
   .row { display: grid; grid-template-columns: 70px 1fr auto; align-items: center; gap: 4px 14px; padding: 14px 18px; }
   .row + .row { border-top: 1px solid var(--line); }
   .label { color: var(--faint); font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
@@ -68,10 +73,10 @@
   .way {
     text-align: left; padding: 20px 20px 18px; border-radius: 14px; border: 1px solid var(--line); background: var(--card);
     color: var(--strong); display: flex; flex-direction: column; gap: 6px; position: relative; overflow: hidden;
-    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+    box-shadow: var(--shadow); transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
   }
   .way::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--brand); opacity: 0; transition: opacity 0.15s; }
-  .way:hover:not(:disabled) { border-color: #d4c6b0; box-shadow: 0 4px 14px rgba(61, 52, 43, 0.08); transform: translateY(-1px); }
+  .way:hover:not(:disabled) { border-color: #d4c6b0; box-shadow: var(--shadow-lift); transform: translateY(-1px); }
   .way:hover:not(:disabled)::before { opacity: 1; }
   .way:disabled { cursor: default; opacity: 0.5; }
   .way svg { width: 26px; height: 26px; color: var(--rose); }
