@@ -1,6 +1,6 @@
-// PowerShell: run a Windows PowerShell 5.1 command, after asking.
+// PowerShell: run a Windows PowerShell 5.1 command, after asking; never one that deletes outside the project.
 import type { Session } from "./_types.ts";
-import { runCommand } from "./_commands.ts";
+import { runShell } from "./_commands.ts";
 
 export const SCHEMA = {
   name: "PowerShell",
@@ -13,6 +13,6 @@ export const TIP = "only for Windows-specific tasks (processes, services, regist
 
 export async function run(ag: Session, args: { command: string }): Promise<string> {
   // PowerShell 5.1 writes in the console code page (e.g. GBK); switch it to UTF-8 for this command.
-  return runCommand(ag, ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
-                         "[Console]::OutputEncoding = [Text.Encoding]::UTF8; " + args.command]);
+  return runShell(ag, ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command",
+                       "[Console]::OutputEncoding = [Text.Encoding]::UTF8; " + args.command], args.command);
 }

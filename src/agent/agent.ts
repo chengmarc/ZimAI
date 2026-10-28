@@ -128,12 +128,14 @@ export class Agent implements Session {
     return (r && !r.startsWith("..") && !path.isAbsolute(r) ? r : p).replaceAll("\\", "/");
   }
 
-  async confirm(what: string): Promise<string | null> {
-    if (this.auto) return null;
-    const answer = await ask(`    ${YEL}Allow ${what}? [y]es / [n]o / [a]lways: ${RST}`);
+  /** "Always" covers edits, writes and fetches for the rest of the session, never a command: a command can do
+   *  anything, and one approved by "always" once deleted most of a user's repos. */
+  async confirm(what: string, command = false): Promise<string | null> {
+    if (this.auto && !command) return null;
+    const answer = await ask(`    ${YEL}Allow ${what}? [y]es / [n]o${command ? "" : " / [a]lways"}: ${RST}`);
     const ans = (answer ?? "n").trim().toLowerCase();   // end of input denies
-    if (ans === "a" || ans === "always") {
-      this.auto = true;
+    if (ans === "a" || ans === "always") {   // for a command, yes to this one only
+      if (!command) this.auto = true;
       return null;
     }
     if (ans === "y" || ans === "yes" || ans === "") return null;
