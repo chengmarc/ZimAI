@@ -36,25 +36,30 @@ by hand. Images are beside this file (the screenshots in [desktop/](desktop/)), 
 ### Description
 
 ```
-Use an AI coding agent without sending your code to the cloud, and without a subscription.
+Unlimited AI for small jobs. Out of credits? Not here.
 
-Agent 2B gives you a coding agent that runs on the gaming PC you already have. Point it at a project and it reads the code, edits files and runs commands for you on your own NVIDIA GPU, or on the CPU if you don't have one, so what you ask and the files it reads never leave your PC. You don't need an account, an API key or a plan.
+Agent 2B is a free AI that runs on your own PC, for the jobs your cloud AI's limits shouldn't go to. Keep your subscription for the big work; hand 2B the small stuff, as often as you like. It runs on your NVIDIA GPU, or on the CPU if you don't have one, so there are no credits, no rate limits, and nothing you ask or open leaves your PC. You don't need an account, an API key or a plan.
 
-Hand it a task in your project
-• Ask it to find a bug, explain a codebase, write a script or tidy a folder. It reads your files, runs commands in Git Bash and searches the web when it needs to.
+Hand it the small jobs
+• Finished a big rework and out of quota? Ask it to draft the commit message from your changes.
+• "Where is this function used?", "rename these files", "what does this error mean?", "add this folder to .gitignore": the quick jobs that aren't worth your cloud AI's limits.
 • Ask about your PC, too: "my C: drive is 97% full, what's eating the space?" gets you the biggest folders, first to last.
-• It reads your project's AGENTS.md or CLAUDE.md, so it follows the rules you've already written down.
+• It reads your files, runs commands in Git Bash and searches the web when it needs to, and follows your project's AGENTS.md or CLAUDE.md.
+
+No meter running
+• No credits to buy and no daily cap: use it a hundred times a day, or let it work through a pile of small jobs.
+• It sits beside the AI you already use; it doesn't ask you to switch.
 
 Stay in control of every change
 • Anything that changes a file, runs a command or opens a web page waits for your yes.
 • You see each edit as a diff before it's made, and after a no you can tell it why.
 • Reading files and searching your code happen without asking, so simple questions stay quick.
 
-Talk it through in Chat
-• Ask everyday questions in the app's own window, as you would any chatbot.
+Quick questions in Chat
+• Ask everyday questions in the app's own window, as you would any chatbot, with no quota.
 • Your chats are saved on your PC and nowhere else.
 
-Use the GPU you game on, or just the CPU
+On the PC you already have: the GPU you game on, or just the CPU
 • You don't need a workstation or data-center card: a GeForce from a GTX 1060 6 GB to an RTX 5090 is enough.
 • No NVIDIA GPU? It runs on the CPU with 16 GB of RAM, much slower, but it works.
 • Want the GPU for a game? Turn off Use GPU and 2B moves to the CPU.
@@ -69,7 +74,7 @@ Free, with nothing to sign up for
 No account, no API key, no subscription, no ads and no telemetry.
 
 Know the limits
-The model is gpt-oss-20b: 20 billion parameters, about 3.6 billion active per token. You'll get the best results from small, scoped tasks in a codebase or on your machine; give it tight tasks rather than open-ended ones.
+The model is gpt-oss-20b: 20 billion parameters, about 3.6 billion active per token. It's made for small jobs, not to replace your cloud AI: give it tight, scoped tasks in a codebase or on your machine, and keep the big, open-ended ones for the cloud.
 
 Requirements
 • Windows 10 or 11, 64-bit
@@ -94,7 +99,9 @@ so 1.0.1 is still the first version customers see.
 One per line in Partner Center ("Add more" for each); each finishes "With this app, you can …":
 
 ```
-Hand an AI coding agent tasks in your projects: it reads, edits and runs commands
+Use AI for small jobs as often as you like: no credits, no rate limits
+Hand off the jobs not worth your cloud AI's quota, like a commit message after a big rework
+Have it read, edit and run commands in your projects and on your PC
 Keep your code on your PC: nothing you ask or open is sent to an AI service
 Approve every edit, command and web page first, with each edit shown as a diff
 Use the GeForce you game on, from a GTX 1060 6 GB to an RTX 5090, or just the CPU
@@ -111,9 +118,9 @@ Read and change every line: it's open source under Apache 2.0
 
 Upload in this order (the first is shown first):
 
-1. `desktop/screenshot-1-promo.png`: an AI agent for your code that stays on your PC (the terminal)
-2. `desktop/screenshot-2-chat.png`: everyday questions answered on your PC (Chat)
-3. `desktop/screenshot-3-home.png`: will my PC run it? (the GPUs it runs on, and the home page)
+1. `desktop/screenshot-1-promo.png`: out of credits? not here (the terminal, and what it costs: nothing)
+2. `desktop/screenshot-2-chat.png`: quick questions with no quota (Chat)
+3. `desktop/screenshot-3-home.png`: on the PC you already have (the GPUs it runs on, and the home page)
 
 ### Store logos
 
@@ -135,7 +142,7 @@ Leave empty: 2B has no trailer, and isn't an Xbox app.
 - **Short description** (270 characters or fewer):
 
   ```
-  Use an AI coding agent without sending your code to the cloud. It reads, edits and runs things in your projects on your own GeForce GPU, asking before every change. No account, no subscription. Fastest on an NVIDIA GPU with 6 GB+; runs on the CPU too.
+  Unlimited AI for small jobs. When your cloud AI is out of credits, or the job isn't worth it, 2B reads, edits and runs things in your projects on your own PC, asking before every change. No limits, no account. Fastest on an NVIDIA GPU; runs on the CPU too.
   ```
 
 ### Additional information
@@ -143,13 +150,13 @@ Leave empty: 2B has no trailer, and isn't an Xbox app.
 - **Keywords** (up to 7, 40 characters each, 21 words in all):
 
   ```
-  AI coding agent
+  unlimited AI
+  free AI
   local AI
   offline AI
+  AI coding assistant
   local LLM
-  private AI assistant
   gpt-oss
-  llama.cpp
   ```
 
 - **Additional system requirements** (each line one item, 200 characters each):

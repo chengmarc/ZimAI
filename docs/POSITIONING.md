@@ -8,6 +8,9 @@ adding a feature: if it doesn't serve this, it needs a reason.
 > **A free, unlimited AI on your own PC for the small jobs: when your cloud AI hits its limit, or the job isn't
 > worth it.**
 
+**Slogan: "Unlimited AI for small jobs."** Second line: "Out of credits? Not here." "Small jobs" was chosen over
+"odd jobs", "chores" and "loose ends" (each narrower or less plain), and without "the", as a headline.
+
 2B is **advertised as AI, not as an agent**. The agent is how it does the work, not what it's sold as.
 
 2B **sits beside** Claude, Cursor, Codex and the like; it doesn't compete with them. Nobody has to choose 2B over
@@ -38,27 +41,27 @@ what matters.
    before it commits. It must handle a diff larger than the context: `git diff --stat` first, then files in chunks.
 3. Test both on real diffs (this repo's history) before any copy claims them.
 
-**Marketing**, only after the demo works:
+**Marketing**: the framing may lead the product, but no copy names a feature before it's built and demoed (the
+one-shot mode, `2b commit`).
 
-- The README and the Store listing lead with "unlimited and free, for the small jobs".
-- The demo and the first screenshot show the commit scenario.
-- Taglines to try: "For the jobs too small for your AI subscription." · "Out of credits? Your PC isn't." ·
-  "Unlimited AI for the small stuff. On your PC, free, forever."
+- The README, the Store listing, the screenshots, the box art and the app lead with the slogan (done 2026-10-28).
+- The demo and the first screenshot should show the commit scenario, once it's been tested with gpt-oss-20b. Until
+  then the copy only says you can ask 2B for a commit message, which the agent does today through Git.
 - Supporting facts, never the headline: it runs on the gaming PC you have (or the CPU), it's private, it works
   offline, it fits on a flash drive.
 
 ## Framings considered and set aside
 
-| Framing | Why not the lead |
-|---|---|
-| A local coding agent to rival the cloud ones | A 20B model loses on capability, and cloud agents have free tiers. Nobody would pick it. |
-| For organizations whose code can't leave the building | They don't give every employee a GPU PC; they buy one server and serve a bigger model to everyone. A different product. |
-| AI for gamers and modders | Narrow, and it came from the context of the work at hand, not from the users. Gaming PCs stay a supporting fact. |
-| An engine for developers to ship local AI in their apps (game NPCs) | Those jobs need a ~4B model, not gpt-oss-20b. It would be a different product. |
-| A teaching kit: an agent you can read in an afternoon | Might work: it's small, free to run, and the 2026-10-23 deletion is a ready-made safety lesson. A possible second audience, not the lead. |
-| Offline and portable ("AI in your flash drive") | Clever, but it names no person and no problem. Kept as a feature. |
-| AI on a USB stick, sold as a device | Hardware and logistics for a niche. |
-| A helper for a non-technical family's PC | Trust is the whole product there, and a 20B model deleting files is the risk. |
+| Framing                                                             | Why not the lead                                                                                                                          |
+| ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| A local coding agent to rival the cloud ones                        | A 20B model loses on capability, and cloud agents have free tiers. Nobody would pick it.                                                  |
+| For organizations whose code can't leave the building               | They don't give every employee a GPU PC; they buy one server and serve a bigger model to everyone. A different product.                   |
+| AI for gamers and modders                                           | Narrow, and it came from the context of the work at hand, not from the users. Gaming PCs stay a supporting fact.                          |
+| An engine for developers to ship local AI in their apps (game NPCs) | Those jobs need a ~4B model, not gpt-oss-20b. It would be a different product.                                                            |
+| A teaching kit: an agent you can read in an afternoon               | Might work: it's small, free to run, and the 2026-10-23 deletion is a ready-made safety lesson. A possible second audience, not the lead. |
+| Offline and portable ("AI in your flash drive")                     | Clever, but it names no person and no problem. Kept as a feature.                                                                         |
+| AI on a USB stick, sold as a device                                 | Hardware and logistics for a niche.                                                                                                       |
+| A helper for a non-technical family's PC                            | Trust is the whole product there, and a 20B model deleting files is the risk.                                                             |
 
 ## Guardrails against drift
 
