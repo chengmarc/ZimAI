@@ -280,10 +280,15 @@ function render(s) {
   const sv = s.server, side = $("server-side"), serverBar = $("server-bar");
   side.replaceChildren();
   serverBar.hidden = sv.state !== "loading";
-  // How 2B.exe fitted it to this computer: what's in VRAM, what's in RAM (loaded or memory-mapped), and the context
+  // How 2B.exe fitted it to this computer: what's in RAM (loaded or memory-mapped), what's in VRAM (none on the CPU),
+  // and the context, as the System row orders them. The plan is there only while the server runs; without one, what will happen, or that llama.cpp
+  // fitted it itself (the dry run failed)
   const p = sv.plan, gib = mib => gb(mib * 2 ** 20);
-  let note = !p ? (s.model.ready ? "starts with the window" : "starts once the model is downloaded")
-    : `${gib(p.gpu)} in VRAM &middot; ${gib(p.ram)} in RAM &middot; ${Math.round(p.context / 1024)} k Context`;
+  let note = p ? `${gib(p.ram)} in RAM &middot; ` + (p.gpu > 0 ? `${gib(p.gpu)} in VRAM &middot; ` : "") +
+                 `${Math.round(p.context / 1024)} k Context`
+    : !s.model.ready ? "starts once the model is downloaded"
+    : sv.state === "ready" ? "fitted to this PC by llama.cpp"
+    : "fitted to this PC's free memory when it starts";
   if (sv.state === "ready") {
     side.innerHTML = pill("ok", "Ready");
   } else if (sv.state === "loading") {
