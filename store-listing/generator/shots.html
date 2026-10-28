@@ -21,12 +21,9 @@
   .caption p { margin: 20px 0 0; font: 400 17px/1.5 "Segoe UI Variable Text", "Segoe UI", sans-serif; color: rgba(255, 255, 255, 0.78); }
   /* One row, though it may run a few pixels past the column. */
   .facts { display: flex; gap: 8px; width: max-content; margin-top: 28px; }
-  /* #promo: the size, big, over a 16 GB flash drive filled to it; then the other numbers. */
+  /* #promo: the price, big, and what it means; then the model's numbers. */
   .size { margin-top: 34px; width: 310px; }
   .size b { display: block; width: max-content; font-size: 58px; line-height: 1; font-weight: 700; letter-spacing: -0.03em; }
-  /* The size as a bar: a 16 GB drive, filled to it. */
-  .drive { position: relative; height: 30px; margin: 16px 0 0; border-radius: 6px; background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.25); }
-  .drive i { position: absolute; left: 3px; top: 3px; bottom: 3px; border-radius: 3px; background: var(--brand); }
   .scale { display: flex; justify-content: space-between; margin: 8px 0 0; font: 400 14px "Segoe UI Variable Text", "Segoe UI", sans-serif; color: rgba(255, 255, 255, 0.78); }
   .stats { display: flex; gap: 30px; margin-top: 30px; }
   .stats b { display: block; font-size: 28px; line-height: 1.1; font-weight: 700; }
@@ -72,7 +69,7 @@
 </head>
 <body>
   <div class="caption">
-    <div class="app"><img src="../../src/app/icon.svg" alt=""><span>Agent 2B<small>AI in Your Flash Drive</small></span></div>
+    <div class="app"><img src="../../src/app/icon.svg" alt=""><span>Agent 2B<small>Unlimited AI for small jobs</small></span></div>
     <h1 id="title"></h1>
     <p id="text"></p>
     <div class="facts" id="facts"></div>
@@ -93,17 +90,15 @@ const READY = {
   server: { state: "ready", plan: { context: 65536, gpu: 5896, ram: 7673 } }, error: null,
 };
 
-// The promo shots' numbers. build\Agent 2B plus the model: 13.8 GB (12.8 GiB), so it fits a 16 GB stick.
+// The promo shot's numbers: what it costs (nothing, however much it's used), then the model.
 const NUMBERS = `
       <div class="size">
-        <b class="brand">14 GB</b>
-        <div class="drive"><i style="width: calc(13.8 / 16 * (100% - 6px))"></i></div>
-        <div class="scale"><span>The model and all its tools</span><span>16 GB</span></div>
+        <b class="brand">$0</b>
+        <div class="scale"><span>No credits, no rate limits, no account, no API key</span></div>
       </div>
       <div class="stats">
         <div><b>20.9&nbsp;B</b><span>total<br>parameters</span></div>
-        <div><b>64&nbsp;k</b><span>tokens of<br>context</span></div>
-        <div><b>$0</b><span>no cloud, no<br>account, no API key</span></div>
+        <div><b>128&nbsp;k</b><span>tokens of context<br>on a GPU</span></div>
       </div>`;
 
 // Popular GPUs by the verdict 2B's check gives them (Requirements in app.cs), with 16 GB of RAM: Great is 16 GB of
@@ -117,26 +112,26 @@ const GPUS = [
   <div class="gpus">${names.map(n => `<span>${n}</span>`).join("")}</div></div>`).join("");
 
 // The same on every shot: what it needs, and what it doesn't.
-const FACTS = ["NVIDIA or CPU", "Works offline", "No account"];
+const FACTS = ["No limits", "Works offline", "No account"];
 
 // Each shot: its caption, the need it meets in the customer's words, and what's in the window: a home page state,
 // the demo at a time (s), or an image of the window's contents at 940 x 680 (chat.png: a capture of the real Chat
 // page, at 2x).
 const SHOTS = {
   promo: {
-    title: 'An AI agent for your code, <span class="brand">kept on your PC.</span>',
-    text: "Ask about a project or your machine. It reads, runs and edits for you, asking first.",
+    title: 'Out of credits? <span class="brand">Not here.</span>',
+    text: "For the jobs your cloud AI's limits shouldn't go to. It reads, runs and edits on your PC, asking first.",
     numbers: NUMBERS,
     demo: 10,
   },
   chat: {
-    title: 'A private chatbot, <span class="brand">on your own PC.</span>',
-    text: "Chat with the model in the app's own window. Your chats stay on your computer, and nowhere else.",
+    title: 'Quick questions, <span class="brand">no quota.</span>',
+    text: "Ask the model in the app's own window, as often as you like. Your chats stay on your computer.",
     image: "chat.png",
   },
   home: {
-    title: 'Your gaming GPU <span class="brand">is all it needs.</span>',
-    text: "2B checks your GeForce before downloading, then fits the model to it.",
+    title: 'On the PC <span class="brand">you already have.</span>',
+    text: "Your GeForce, or just the CPU. 2B checks your PC before downloading, then fits the model to it.",
     numbers: GPUS,
     home: READY,
   },

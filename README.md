@@ -6,8 +6,12 @@
   <a href="https://apps.microsoft.com/detail/9NCRP4F65JTF"><img src="docs/badges/badge-microsoft-store.svg" height="50"></a>
   <a href="#try-it"><img src="docs/badges/badge-gpu.svg" height="50"></a>
 
-  <h1>Agent 2B - AI in Your Flash Drive</h1>
-  
+  <h1>Agent 2B - Unlimited AI for Small Jobs</h1>
+
+  <p><b>Out of credits? Not here.</b> A free AI on your own PC for the jobs your cloud AI's limits shouldn't go
+  to: the commit message after a big rework, a quick search, a rename, an error you don't recognize.
+  No limits, no account, nothing leaves your PC.</p>
+
   <img src="store-listing/desktop/screenshot-1-promo.png">
   <img src="store-listing/desktop/screenshot-2-chat.png">
   <img src="store-listing/desktop/screenshot-3-home.png">
@@ -38,7 +42,7 @@ You need Windows 10/11, **13 GB of free disk space** for the model, and either:
 4. **Click Chat or Terminal.**
    - **Chat** talks with the model in the same window, using llama.cpp's own chat page. **← 2B** at the top right
      goes back.
-   - **Terminal** opens Git Bash in your home folder with the 2B coding agent running. `/exit` leaves a normal
+   - **Terminal** opens Git Bash in your home folder with 2B running, ready for a job in your files. `/exit` leaves a normal
      prompt: `cd` into a project and type `2b` to work there.
 
 Loading the model takes about 30 s on a GPU. llama.cpp splits it between GPU and CPU to fit whatever VRAM is free at
@@ -61,8 +65,9 @@ It reads the project's `AGENTS.md` or `CLAUDE.md`, streams its reasoning dimmed,
 In the agent: `/clear` starts over, `/effort low|medium|high` sets reasoning effort, `/tokens` shows context used
 (128k on the GPU, 64k on the CPU), `/prompt` shows the exact text the model reads, `/exit` quits.
 
-**Know the limits:** it's a 20B model (about 3.6B active per token). It's good at small, scoped tasks in a codebase
-or on the machine; give it tight tasks rather than open-ended ones.
+**Know the limits:** it's a 20B model (about 3.6B active per token), made for small jobs, not to replace your
+cloud AI. Give it tight, scoped tasks in a codebase or on the machine, and keep the big, open-ended ones for the
+cloud.
 
 ## Change it
 

@@ -31,7 +31,7 @@
     <Application Id="Agent2B" Executable="2B.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="{display_name}"
-        Description="A coding agent that runs on your own GPU"
+        Description="Unlimited AI for small jobs, on your own PC"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png" />
