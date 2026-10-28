@@ -19,13 +19,14 @@ by hand. Images are beside this file (the screenshots in [desktop/](desktop/)), 
   |---|---|---|
   | Keyboard | ✓ (the terminal is typed into) | |
   | Memory | 16 GB | 16 GB |
-  | Video memory | 6 GB | the largest option offered (8 GB or more) |
+  | Video memory | leave unchecked: 2B runs on the CPU without a GPU | the largest option offered (8 GB or more) |
   | Processor | `64-bit (x64)` | |
-  | Graphics | `NVIDIA GTX 1060 6 GB or better, CUDA 12.4+` | `NVIDIA RTX, 8 GB VRAM or more` |
+  | Graphics | leave empty | `NVIDIA RTX, 8 GB VRAM or more` |
   | DirectX | leave empty: 2B uses CUDA, not DirectX | |
 
   Minimum memory is 16 GB, though 8 GB is enough with a 12 GB GPU: the Store has one value per row, and most PCs
-  with 8 GB of RAM can't run 2B. The text in Additional system requirements (below) says so.
+  with 8 GB of RAM can't run 2B. The text in Additional system requirements (below) says so. There's no minimum GPU:
+  without one, 2B runs on the CPU, much slower.
 
 - **Product declarations:** none apply. Leave "This product has been tested to meet accessibility guidelines"
   unchecked unless it has been.
@@ -37,7 +38,7 @@ by hand. Images are beside this file (the screenshots in [desktop/](desktop/)), 
 ```
 Use an AI coding agent without sending your code to the cloud, and without a subscription.
 
-Agent 2B gives you a coding agent that runs on the gaming PC you already have. Point it at a project and it reads the code, edits files and runs commands for you on your own NVIDIA GPU, so what you ask and the files it reads never leave your PC. You don't need an account, an API key or a plan.
+Agent 2B gives you a coding agent that runs on the gaming PC you already have. Point it at a project and it reads the code, edits files and runs commands for you on your own NVIDIA GPU, or on the CPU if you don't have one, so what you ask and the files it reads never leave your PC. You don't need an account, an API key or a plan.
 
 Hand it a task in your project
 • Ask it to find a bug, explain a codebase, write a script or tidy a folder. It reads your files, runs commands in Git Bash and searches the web when it needs to.
@@ -53,10 +54,12 @@ Talk it through in Chat
 • Ask everyday questions in the app's own window, as you would any chatbot.
 • Your chats are saved on your PC and nowhere else.
 
-Use the GPU you game on
+Use the GPU you game on, or just the CPU
 • You don't need a workstation or data-center card: a GeForce from a GTX 1060 6 GB to an RTX 5090 is enough.
+• No NVIDIA GPU? It runs on the CPU with 16 GB of RAM, much slower, but it works.
+• Want the GPU for a game? Turn off Use GPU and 2B moves to the CPU.
 • Before anything downloads, the app checks your PC and tells you plainly whether it can run it.
-• There's nothing to configure: the model is split between your GPU's memory and your RAM to fit whatever is free. Loading takes about 30 seconds.
+• There's nothing to configure: the model is split between your GPU's memory and your RAM to fit whatever is free. Loading takes about 30 seconds on a GPU.
 
 Download once, then work offline
 • The model is a single 12 GB download from Hugging Face on first run. If it's interrupted, it resumes, even after a restart.
@@ -70,12 +73,11 @@ The model is gpt-oss-20b: 20 billion parameters, about 3.6 billion active per to
 
 Requirements
 • Windows 10 or 11, 64-bit
-• An NVIDIA GPU with 6 GB of video memory or more: a GTX 1060 6 GB, a GTX 1660, or any desktop RTX. 8 GB or more is better; with 16 GB the whole model fits on the GPU.
-• An NVIDIA driver with CUDA 12.4 or later
 • 16 GB of RAM (8 GB with a 12 GB GPU)
 • 13 GB of free disk space for the model
+• For speed, an NVIDIA GPU with 6 GB of video memory or more: a GTX 1060 6 GB, a GTX 1660, or any desktop RTX. 8 GB or more is better; with 16 GB the whole model fits on the GPU. It needs a driver with CUDA 12.4 or later.
 
-AMD and Intel graphics aren't supported.
+Without an NVIDIA GPU, including on AMD and Intel graphics, 2B runs on the CPU, much slower.
 
 Agent 2B is open source under the Apache 2.0 license.
 
@@ -95,7 +97,7 @@ One per line in Partner Center ("Add more" for each); each finishes "With this a
 Hand an AI coding agent tasks in your projects: it reads, edits and runs commands
 Keep your code on your PC: nothing you ask or open is sent to an AI service
 Approve every edit, command and web page first, with each edit shown as a diff
-Use the GeForce you game on, from a GTX 1060 6 GB to an RTX 5090
+Use the GeForce you game on, from a GTX 1060 6 GB to an RTX 5090, or just the CPU
 Chat with the model in the app's own window, with your chats saved only on your PC
 Find out whether your PC can run it before anything downloads
 Skip the setup: the model is fitted to your GPU and RAM automatically
@@ -133,7 +135,7 @@ Leave empty: 2B has no trailer, and isn't an Xbox app.
 - **Short description** (270 characters or fewer):
 
   ```
-  Use an AI coding agent without sending your code to the cloud. It reads, edits and runs things in your projects on your own GeForce GPU, asking before every change. No account, no subscription. Needs an NVIDIA GPU with 6 GB+ of video memory.
+  Use an AI coding agent without sending your code to the cloud. It reads, edits and runs things in your projects on your own GeForce GPU, asking before every change. No account, no subscription. Fastest on an NVIDIA GPU with 6 GB+; runs on the CPU too.
   ```
 
 ### Additional information
@@ -155,17 +157,15 @@ Leave empty: 2B has no trailer, and isn't an Xbox app.
   Minimum hardware:
 
   ```
-  NVIDIA GPU with 6 GB of video memory or more: GTX 1060 6 GB, GTX 1660 or any desktop RTX
-  NVIDIA driver with CUDA 12.4 or later
   16 GB of RAM, or 8 GB with a 12 GB GPU
   13 GB of free disk space for the model, downloaded on first run
-  AMD and Intel graphics aren't supported
+  Without an NVIDIA GPU (AMD and Intel graphics included), it runs on the CPU, much slower
   ```
 
   Recommended hardware:
 
   ```
-  NVIDIA RTX GPU with 8 GB of video memory or more
+  NVIDIA RTX GPU with 8 GB of video memory or more, and a driver with CUDA 12.4 or later
   With 16 GB of video memory, the whole model runs on the GPU
   ```
 
@@ -191,5 +191,5 @@ Leave empty: 2B has no trailer, and isn't an Xbox app.
 - **Notes for certification:**
 
   ```
-  No account or sign-in is needed, and there's nothing to configure: 2B picks the model (gpt-oss-20b) and its settings itself. On a supported PC (an NVIDIA GPU with 6 GB of video memory or more and CUDA 12.4 or later): 1. Click Download in the Model row (12 GB from Hugging Face; if it's interrupted, click Resume). 2. Wait until the Server row says Ready (about 30 seconds). 3. Click Terminal and type "list the files in this folder"; it asks before running the command (answer y) and then lists them. Or click Chat and ask a question in the window. On a PC without a supported GPU, the System row says "No GPU Detected" or "Not Supported" with the reason, and nothing is downloaded. Since the last submission: the unvirtualizedResources capability, which was denied, has been removed, and the package declares only runFullTrust.
+  No account or sign-in is needed, and there's nothing to configure: 2B picks the model (gpt-oss-20b) and its settings itself. It runs on an NVIDIA GPU (6 GB of video memory or more, CUDA 12.4 or later) or, without one, on the CPU with 16 GB of RAM, much slower; the System row says GPU Available or CPU Only. 1. Click Download in the Model row (12 GB from Hugging Face; if it's interrupted, click Resume). 2. Wait until the Server row says Ready (about 30 seconds on a GPU, longer on the CPU). 3. Click Terminal and type "list the files in this folder"; it asks before running the command (answer y) and then lists them. Or click Chat and ask a question in the window. On a PC with less than 16 GB of RAM and no GPU 2B can use, the System row says "Not Supported" with the reason, and nothing is downloaded. Since the last submission: the unvirtualizedResources capability, which was denied, has been removed, and the package declares only runFullTrust.
   ```

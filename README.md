@@ -20,17 +20,19 @@
 
 ## Try it
 
-You need Windows 10/11 and:
-- **An NVIDIA GPU with 6 GB of VRAM or more**: a GTX 1060 6 GB, a GTX 1660, or any desktop RTX. 8 GB or more is
-  better; with 16 GB the whole model fits on the GPU. GTX 10-series cards work but are slower.
-- **16 GB of RAM** (8 GB with a 12 GB GPU), for the part of the model the GPU can't hold.
-- **A driver with CUDA 12.4 or later**. CUDA itself doesn't need to be installed.
-- **13 GB of free disk space** for the model.
+You need Windows 10/11, **13 GB of free disk space** for the model, and either:
+- **An NVIDIA GPU** (the fast way): 6 GB of VRAM or more, such as a GTX 1060 6 GB, a GTX 1660, or any desktop RTX.
+  8 GB or more is better; with 16 GB the whole model fits on the GPU. GTX 10-series cards work but are slower. It
+  needs a driver with CUDA 12.4 or later (CUDA itself doesn't need to be installed), and **16 GB of RAM** (8 GB with
+  a 12 GB GPU) for the part of the model the GPU can't hold.
+- **Or just the CPU**: any 64-bit x64 CPU with **16 GB of RAM**. It works, but replies come much slower than on a
+  GPU.
 
 1. **Download `Agent-2B-portable.zip`** from the [latest release](https://github.com/chengmarc/agent-2b/releases/latest)
    and unzip it anywhere, a flash drive included. It holds portable Git Bash, Node.js and llama.cpp (CUDA build).
-2. **Double-click `2B.exe`.** The 2B window checks your PC first: Great, Good or Slow means 2B runs on it, and
-   otherwise it says why not, before anything is downloaded.
+2. **Double-click `2B.exe`.** The 2B window checks your PC first: GPU Available or CPU Only, and whether 2B runs
+   on it (Great, Good or Slow), or why not, before anything is downloaded. With a GPU, **Use GPU** at the top right is
+   on; turn it off to keep the GPU free (for a game, say) and run 2B on the CPU.
 3. **Click Download model** the first time. It downloads gpt-oss-20b (12 GB) into `data/` beside `2B.exe`. If it's
    interrupted, click Resume download, even after a restart. It uses the Windows proxy setting if one is on.
 4. **Click Chat or Terminal.**
@@ -39,14 +41,16 @@ You need Windows 10/11 and:
    - **Terminal** opens Git Bash in your home folder with the 2B coding agent running. `/exit` leaves a normal
      prompt: `cd` into a project and type `2b` to work there.
 
-Loading the model takes about 30 s. llama.cpp splits it between GPU and CPU to fit whatever VRAM is free at that
-moment, so there is nothing to configure per computer. Chat and every terminal share one model server, which stops
+Loading the model takes about 30 s on a GPU. llama.cpp splits it between GPU and CPU to fit whatever VRAM is free at
+that moment, so there is nothing to configure per computer. Chat and every terminal share one model server, which stops
 when the last 2B window closes.
 
 ## What it can do
 
 The model works through eleven tools. Anything that changes a file, runs a command or fetches a page asks first
-(`y` / `n` / `a` for always); after a `n` you can tell it why.
+(`y` / `n` / `a` for always); after a `n` you can tell it why. `a` covers edits, writes and fetches for the rest of the
+session, never commands: a command always asks. A command that deletes anything outside the project folder (or the
+folder itself) is refused before it runs.
 
 | Reads, no asking | Asks first |
 |---|---|

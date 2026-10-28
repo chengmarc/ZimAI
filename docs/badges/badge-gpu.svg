@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 129.5 50" width="129.5" height="50" role="img" aria-label="Needs an NVIDIA GPU with CUDA 12.4 or later">
-<title>Needs an NVIDIA GPU with CUDA 12.4 or later</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 129.5 50" width="129.5" height="50" role="img" aria-label="Runs fastest on an NVIDIA GPU with CUDA 12.4 or later, and on the CPU too">
+<title>Runs fastest on an NVIDIA GPU with CUDA 12.4 or later, and on the CPU too</title>
 <!-- Drawn to sit beside the store badges: black, rounded, a two-line label. NVIDIA's eye from Simple Icons
      (CC0), in NVIDIA green. As wide as its longer line, with the Windows logo's left margin (11.3) on the right. -->
 <rect width="129.5" height="50" rx="6" fill="#000"/>
