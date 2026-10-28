@@ -86,7 +86,8 @@
 // What 2B.exe sends the home page on this developer's PC (an RTX 5060 Laptop GPU with 8 GB and 16 GB of RAM), as in
 // app.cs; the plan is llama-fit-params' for it.
 const MODEL = { name: "GPT OSS 20B", size: 12109566624, parameters: "20.9", license: "Apache-2.0", need: 12109566624, free: 412e9, drive: "C:" };
-const SYSTEM = { name: "NVIDIA GeForce RTX 5060 Laptop GPU", vram: 8, ram: 16, cuda: "12.8", verdict: "good", reason: null };
+const SYSTEM = { name: "NVIDIA GeForce RTX 5060 Laptop GPU", vram: 8, ram: 16, cuda: "12.8", gpuUsable: true, useGpu: true,
+                 verdict: "good", reason: null };
 const READY = {
   version: "1.0.0", system: SYSTEM, model: { ...MODEL, ready: true }, download: null,
   server: { state: "ready", plan: { context: 65536, gpu: 5896, ram: 7673 } }, error: null,
@@ -116,7 +117,7 @@ const GPUS = [
   <div class="gpus">${names.map(n => `<span>${n}</span>`).join("")}</div></div>`).join("");
 
 // The same on every shot: what it needs, and what it doesn't.
-const FACTS = ["NVIDIA, 6 GB+", "Works offline", "No account"];
+const FACTS = ["NVIDIA or CPU", "Works offline", "No account"];
 
 // Each shot: its caption, the need it meets in the customer's words, and what's in the window: a home page state,
 // the demo at a time (s), or an image of the window's contents at 940 x 680 (chat.png: a capture of the real Chat
