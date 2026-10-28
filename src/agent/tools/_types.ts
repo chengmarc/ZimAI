@@ -19,5 +19,6 @@ export interface Session {
   signal: AbortSignal;   // aborted when the user interrupts the request
   path(p: string): string;
   rel(p: string): string;
-  confirm(what: string): Promise<string | null>;   // null = allowed, otherwise the denial to return
+  // null = allowed, otherwise the denial to return. A command (command = true) asks even after "always".
+  confirm(what: string, command?: boolean): Promise<string | null>;
 }

@@ -16,7 +16,8 @@ const HELP = `/clear          start a new conversation
 /tokens         context used so far
 /prompt         show the exact text the model reads (the conversation so far, as rendered)
 /exit           quit
-At a permission question, a (always) approves everything for the rest of the session{auto}.`;
+At a permission question, a (always) approves edits, writes and fetches for the rest of the session{auto};
+commands always ask, and deleting anything outside the project folder is refused.`;
 
 async function main(): Promise<number> {
   if (process.argv.length > 2) {

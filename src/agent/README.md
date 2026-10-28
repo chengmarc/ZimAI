@@ -20,7 +20,7 @@ module except the model call runs without the server (from the repo root):
 ```sh
 src/runtime/node/node.exe --input-type=module -e "
 const { Agent } = await import('./src/agent/agent.ts');
-const ag = new Agent(true);   // true: approve everything, so tools don't stop to ask
+const ag = new Agent(true);   // true: approve edits, writes and fetches (commands still ask)
 console.log(await ag.tools.get('Grep').run(ag, { pattern: 'MAX_LIST', output_mode: 'content' }));
 process.exit(0);
 "

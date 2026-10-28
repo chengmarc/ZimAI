@@ -1,7 +1,7 @@
-// Bash: run a command in Git Bash, after asking.
+// Bash: run a command in Git Bash, after asking; never one that deletes outside the project.
 import type { Session } from "./_types.ts";
 import { GIT_BASH } from "../paths.ts";
-import { runCommand } from "./_commands.ts";
+import { runShell } from "./_commands.ts";
 
 export const SCHEMA = {
   name: "Bash",
@@ -14,5 +14,5 @@ export const TIP = "run the code and its tests, and other commands. Runs in Git 
   "Never run interactive or never-ending commands (servers, watchers, editors).";
 
 export async function run(ag: Session, args: { command: string }): Promise<string> {
-  return runCommand(ag, [GIT_BASH, "-c", args.command]);
+  return runShell(ag, [GIT_BASH, "-c", args.command], args.command);
 }
