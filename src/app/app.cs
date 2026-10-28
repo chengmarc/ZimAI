@@ -49,6 +49,7 @@ static class Paths {
     public static string Model { get { return Path.Combine(Data, @"model\_model.gguf"); } }
     public static string Browser { get { return Path.Combine(Data, "browser"); } }   // the window's browser data, chat history included
     public static string Logs { get { return Path.Combine(Data, "logs"); } }
+    public static string NoGpu { get { return Path.Combine(Data, "no-gpu"); } }   // there while Use GPU is off
     public static string Log { get { return Path.Combine(Logs, "server.log"); } }            // llama-server's own log
     public static string ServerPid { get { return Path.Combine(Logs, "server.pid"); } }      // the keeper's, while it runs
     public static string ServerPlan { get { return Path.Combine(Logs, "server-plan"); } }    // how it runs (Plan.Describe)
@@ -120,7 +121,8 @@ static class Memory {
 
 // Whether this computer can run 2B, and how well, before the 12 GB download. The one place the requirements are
 // decided; the README and the Store listing say the same: an NVIDIA GPU (10-series or newer) with 6 GB of VRAM or
-// more, a driver with CUDA 12.4 or later, and 16 GB of RAM (12 GB+ of VRAM needs less).
+// more, a driver with CUDA 12.4 or later, and 16 GB of RAM (12 GB+ of VRAM needs less). Without such a GPU it runs on
+// the CPU, much slower, with 16 GB of RAM.
 // The 6 GB floor: the GPU must hold the dense weights, the 64k context and llama.cpp's working memory (~4.2 GB), plus
 // its 1 GB safety margin; the experts can go to RAM, which is why RAM matters below 12 GB of VRAM.
 static class Requirements {
@@ -128,8 +130,9 @@ static class Requirements {
     const double FullRam = 15;    // GB: what a 16 GB computer reports, give or take
     const double MinCuda = 12.4;  // the llama.cpp build's
 
-    /** { name, vram, ram, cuda, verdict, reason } for the best NVIDIA GPU. verdict: "great", "good" (supported),
-     *  "slow" (supported, slower), "driver" (update the driver first), "unsupported", or "none" (no NVIDIA GPU). */
+    /** { name, vram, ram, cuda, gpuUsable, useGpu, verdict, reason } for the best NVIDIA GPU. verdict: "great", "good"
+     *  (supported), "slow" (supported, slower), "cpu" (supported, on the CPU: no GPU it can run on, or Use GPU is
+     *  off), or "unsupported". gpuUsable: there's a GPU the model can run on; useGpu: the Use GPU switch. */
     public static Dictionary<string, object> Check() {
         double ram = Math.Round(Memory.Total / (double)(1L << 30), 1);
         string name = null, cuda = null;
@@ -154,18 +157,21 @@ static class Requirements {
         }
         string verdict, reason = null;
         double cudaVersion;
+        // A GPU the model can't run on leaves it to the CPU: verdict "cpu", and why not the GPU
         if (name == null) {
-            verdict = "none";
-            reason = "2B needs an NVIDIA GPU with 6 GB of VRAM or more, such as a GTX 1060 6 GB, a GTX 1660 or any desktop RTX.";
+            verdict = "cpu";
+            reason = "No NVIDIA GPU, so 2B runs on the CPU: replies come much slower than on a GPU.";
         } else if (cc > 0 && cc < 6) {
-            verdict = "unsupported";
-            reason = "This GPU is older than the GTX 10-series, which 2B's llama.cpp doesn't support.";
+            verdict = "cpu";
+            reason = "This GPU is older than the GTX 10-series, which 2B's llama.cpp doesn't support, so 2B runs on the CPU: replies come much slower.";
         } else if (vram < MinVram) {
-            verdict = "unsupported";
-            reason = string.Format(CultureInfo.InvariantCulture, "2B needs 6 GB of VRAM or more; this GPU has {0} GB.", vram);
+            verdict = "cpu";
+            reason = string.Format(CultureInfo.InvariantCulture,
+                "This GPU has {0} GB of VRAM and 2B needs 6 GB, so 2B runs on the CPU: replies come much slower.", vram);
         } else if (cuda == null || !double.TryParse(cuda, NumberStyles.Float, CultureInfo.InvariantCulture, out cudaVersion) || cudaVersion < MinCuda) {
-            verdict = "driver";
-            reason = "Update the NVIDIA driver: 2B needs CUDA 12.4 or later" + (cuda != null ? " (this one has " + cuda + ")." : ".");
+            verdict = "cpu";
+            reason = "The NVIDIA driver is older than CUDA 12.4" + (cuda != null ? " (it has " + cuda + ")" : "") +
+                     ", so 2B runs on the CPU, much slower. Update the driver to run it on the GPU.";
         } else if (vram >= 15) {
             verdict = "great";   // the whole model fits on the GPU
         } else if (vram >= 11) {
@@ -187,14 +193,41 @@ static class Requirements {
             reason = pascal ? "A GTX 10-series GPU has no tensor cores, so replies come slower than on an RTX."
                             : "With 6 GB of VRAM, most of the model runs from RAM, so replies come slower.";
         }
+        bool gpuUsable = verdict != "cpu", useGpu = UseGpu;
+        if (gpuUsable && !useGpu && verdict != "unsupported") {
+            verdict = "cpu";
+            reason = null;   // the switch and the row say it already
+        }
+        if (verdict == "cpu" && ram < FullRam) {   // on the CPU, all of the model is in RAM or read from disk
+            verdict = "unsupported";
+            reason = string.Format(CultureInfo.InvariantCulture,
+                "On the CPU, 2B needs 16 GB of RAM; this PC has {0} GB.", ram) + (gpuUsable ? " Turn on Use GPU." : "");
+        }
         return new Dictionary<string, object> {
-            { "name", name }, { "vram", vram }, { "ram", ram }, { "cuda", cuda }, { "verdict", verdict }, { "reason", reason },
+            { "name", name }, { "vram", vram }, { "ram", ram }, { "cuda", cuda }, { "gpuUsable", gpuUsable },
+            { "useGpu", useGpu }, { "verdict", verdict }, { "reason", reason },
         };
+    }
+
+    /** The window's Use GPU switch: on unless turned off. Its file in the data folder is there while it's off. */
+    public static bool UseGpu {
+        get { return !File.Exists(Paths.NoGpu); }
+        set {
+            if (value) File.Delete(Paths.NoGpu);
+            else { Directory.CreateDirectory(Paths.Data); File.WriteAllText(Paths.NoGpu, ""); }
+        }
     }
 
     /** Whether the verdict lets 2B download and run the model. */
     public static bool Supported(string verdict) {
-        return verdict == "great" || verdict == "good" || verdict == "slow";
+        return verdict == "great" || verdict == "good" || verdict == "slow" || verdict == "cpu";
+    }
+
+    /** Whether the model runs on the CPU only: there's no GPU it can run on, or Use GPU is off (llama.cpp would use
+     *  any GPU it finds). */
+    public static bool OnCpu() {
+        var check = Check();
+        return !((bool)check["gpuUsable"] && (bool)check["useGpu"]);
     }
 
     static string Output(string exe, string args) {
@@ -214,9 +247,14 @@ static class Requirements {
 //    on all; the model's full trained context only where it costs nothing, i.e. all of it still fits on the GPU.
 //  - RAM: the part that doesn't fit on the GPU is loaded into RAM only if that leaves room for the rest of the
 //    computer; otherwise it's memory-mapped, read from disk as needed: slower, but nothing else gets pushed out.
+//  - no GPU it can run on (Requirements.OnCpu): all of it in RAM, and the full context only if it's all loaded with
+//    room to spare. Loaded, the weights are repacked for the CPU (prompts read twice as fast); memory-mapped, they
+//    aren't, since repacking copies them out of the file and so leaves nothing mapped. The fitter is asked without
+//    repacking, which puts all of it in its Host row.
 class Plan {
     public const int Guaranteed = 65536;   // tokens
     const long SpareRam = 2L << 30;        // left for the rest of the computer
+    const string CpuOnly = " --device none";
 
     public int Context;
     public long GpuMiB, RamMiB;   // what the fitter projects
@@ -224,9 +262,10 @@ class Plan {
     string fitted;                // the fitter's arguments: -c, -ngl and which tensors stay in RAM (-ot)
 
     /** The plan for this start; null if the fitter couldn't make one (Arguments then lets llama-server fit). */
-    public static Plan Make() {
-        Plan plan = Fit(Model.TrainedContext, Model.Layers);
-        if (plan == null || !plan.AllOnGpu) plan = Fit(Guaranteed, Model.Layers);
+    public static Plan Make(bool cpu) {
+        Plan plan = Fit(Model.TrainedContext, Model.Layers, cpu);
+        bool fits = plan != null && (cpu ? (plan.RamMiB << 20) + SpareRam <= Memory.Available : plan.AllOnGpu);
+        if (!fits) plan = Fit(Guaranteed, Model.Layers, cpu);
         if (plan == null) return null;
         plan.Mapped = (plan.RamMiB << 20) + SpareRam > Memory.Available;
         return plan;
@@ -234,9 +273,10 @@ class Plan {
 
     /** llama-fit-params' plan for this context: its arguments (on stdout), and from its log the memory each device
      *  and the host would use (the last breakdown table it prints is the plan's). */
-    static Plan Fit(int context, int layers) {
+    static Plan Fit(int context, int layers, bool cpu) {
         string exe = Path.Combine(Path.GetDirectoryName(Paths.Llama), "llama-fit-params.exe");
-        var start = new ProcessStartInfo(exe, "-m \"" + Paths.Model + "\" -c " + context + " -np 1 -lv 4") {
+        var start = new ProcessStartInfo(exe, "-m \"" + Paths.Model + "\" -c " + context + " -np 1 -lv 4" +
+                                              (cpu ? CpuOnly + " --no-repack" : "")) {
             UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true,
         };
         string output, log;
@@ -268,22 +308,24 @@ class Plan {
                 hostSeen = true;
             }
         }
-        Match ngl = Regex.Match(fitted, @"-ngl (\d+)");
+        Match ngl = Regex.Match(fitted, @"-ngl (-?\d+)");   // -1: all of them
         return new Plan {
             Context = int.Parse(Regex.Match(fitted, @"-c (\d+)").Groups[1].Value), GpuMiB = gpu, RamMiB = ram,
-            AllOnGpu = !fitted.Contains("-ot ") && ngl.Success && layers > 0 && int.Parse(ngl.Groups[1].Value) >= layers,
+            AllOnGpu = gpu > 0 && !fitted.Contains("-ot ") && ngl.Success &&
+                       (ngl.Groups[1].Value == "-1" || layers > 0 && int.Parse(ngl.Groups[1].Value) >= layers),
             fitted = fitted,
         };
     }
 
     /** llama-server's arguments: this plan's, or with no plan, llama.cpp's own fitting at the guaranteed context. */
-    public static string Arguments(Plan plan) {
+    public static string Arguments(Plan plan, bool cpu) {
         var uri = new Uri(Model.Server);
         // --jinja: format every message with the chat template inside the model file.
         string common = "-m \"" + Paths.Model + "\" --log-file \"" + Paths.Log + "\" --alias " + Model.Name +
-                        " --parallel 1 --jinja --host " + uri.Host + " --port " + uri.Port;
-        if (plan == null) return common + " -c " + Guaranteed + " --fit on --load-mode mmap";
-        return common + " " + plan.fitted + " --fit off --load-mode " + (plan.Mapped ? "mmap" : "none");
+                        " --parallel 1 --jinja --host " + uri.Host + " --port " + uri.Port + (cpu ? CpuOnly : "");
+        if (plan == null) return common + (cpu ? " --no-repack" : "") + " -c " + Guaranteed + " --fit on --load-mode mmap";
+        return common + (cpu && plan.Mapped ? " --no-repack" : "") + " " + plan.fitted + " --fit off --load-mode " +
+               (plan.Mapped ? "mmap" : "none");
     }
 
     /** For the window's Server row: what was chosen (Paths.ServerPlan). */
@@ -377,10 +419,11 @@ static class Keeper {
             // This process's pid, from the start: it runs exactly as long as the server, planning included, so the
             // window and the agent see one start time (the file's) and one process to check.
             File.WriteAllText(Paths.ServerPid, Process.GetCurrentProcess().Id.ToString());
-            Plan plan = Plan.Make();
+            bool cpu = Requirements.OnCpu();
+            Plan plan = Plan.Make(cpu);
             if (plan != null) File.WriteAllText(Paths.ServerPlan, plan.Describe());
             else try { File.Delete(Paths.ServerPlan); } catch { }
-            var start = new ProcessStartInfo(Paths.Llama, Plan.Arguments(plan)) {
+            var start = new ProcessStartInfo(Paths.Llama, Plan.Arguments(plan, cpu)) {
                 UseShellExecute = false, CreateNoWindow = true, WorkingDirectory = Paths.Root,
             };
             Defaults.Apply(start.EnvironmentVariables);
@@ -409,6 +452,15 @@ static class Server {
     /** Start it, unless it's running: a keeper of its own (2B.exe --server). */
     public static void Start() {
         Process.Start(new ProcessStartInfo(Paths.Exe, "--server") { UseShellExecute = false, CreateNoWindow = true });
+    }
+
+    /** Stop this install's llama-server (by its path: another install's may be running); its keeper then exits. */
+    public static void Stop() {
+        foreach (var p in Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Paths.Llama))) {
+            try {
+                if (string.Equals(p.MainModule.FileName, Paths.Llama, StringComparison.OrdinalIgnoreCase)) p.Kill();
+            } catch { }
+        }
     }
 
     /** "ready", "loading" or "stopped": this install's server, by its pid (another install's may answer the port). */
@@ -720,6 +772,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
     Dictionary<string, object> system;   // Requirements.Check(), null until it's done
     string server = "stopped", error, shown;
     DateTime? asked;    // when this window asked for the server (Ask), until it's ready or has failed
+    bool restarting;    // Use GPU changed while the server ran: stopping it, to start it again with the new setting
     bool modelReady;
     long lastDone;
     DateTime lastTick = DateTime.Now;
@@ -814,6 +867,16 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
                     break;
                 case "cancel": download.Cancel(); break;
                 case "start": Ask(); break;
+                case "gpu":
+                    Requirements.UseGpu = !Requirements.UseGpu;
+                    if (system != null) {   // the switch moves at once; the verdict follows from CheckSystem
+                        var now = new Dictionary<string, object>(system);
+                        now["useGpu"] = Requirements.UseGpu;
+                        system = now;
+                    }
+                    CheckSystem();
+                    if (server != "stopped" || asked.HasValue) { restarting = true; asked = null; Server.Stop(); }
+                    break;
                 case "terminal": if (server == "ready") Terminal.Open(); break;
                 case "chat": if (server == "ready") view.CoreWebView2.Navigate(Model.Server); break;
                 case "home": view.CoreWebView2.Navigate(Home); break;
@@ -861,6 +924,13 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         bool ready = File.Exists(Paths.Model);
         if (ready && !modelReady) Ask();   // just downloaded
         modelReady = ready;
+        if (restarting) {
+            // Again each tick: a keeper still planning starts its llama-server after the first Stop.
+            if (server == "stopped") { restarting = false; Ask(); }
+            else Server.Stop();
+            Push();
+            return;
+        }
         if (asked.HasValue && server == "ready") asked = null;
         // The keeper takes a moment to start llama-server, so "stopped" right after asking isn't a failure yet.
         if (asked.HasValue && server == "stopped" && (DateTime.Now - asked.Value).TotalSeconds > 30) {
@@ -901,10 +971,10 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
 
     /** The server's state for the page; while it loads, for how long, and how long the last load took. */
     Dictionary<string, object> ServerState() {
-        string state = server == "stopped" && asked.HasValue ? "loading" : server;   // asked, not started yet
+        string state = restarting ? "loading" : server == "stopped" && asked.HasValue ? "loading" : server;   // asked, not started yet
         var s = new Dictionary<string, object> { { "state", state }, { "plan", ReadPlan() } };
         if (state == "loading") {
-            DateTime since = File.Exists(Paths.ServerPid) ? File.GetLastWriteTime(Paths.ServerPid) : asked ?? DateTime.Now;
+            DateTime since = !restarting && File.Exists(Paths.ServerPid) ? File.GetLastWriteTime(Paths.ServerPid) : asked ?? DateTime.Now;
             s["seconds"] = Math.Max(0, (int)(DateTime.Now - since).TotalSeconds);
             s["estimate"] = ReadInt(Paths.LoadSeconds);
         }

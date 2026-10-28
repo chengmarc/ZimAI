@@ -29,6 +29,7 @@
   h1 { margin: 0; font: 650 28px/1.15 "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; letter-spacing: -0.01em; }
   h1 span { background: var(--brand); -webkit-background-clip: text; background-clip: text; color: transparent; }
   header p { margin: 4px 0 0; color: var(--muted); }
+  header .switch { margin-left: auto; }
 
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; box-shadow: var(--shadow); }
   .row { display: grid; grid-template-columns: 70px 1fr auto; align-items: center; gap: 4px 14px; padding: 14px 18px; }
@@ -57,6 +58,17 @@
   .pill.off { color: var(--faint); background: transparent; }
   .hint { grid-column: 2 / 4; color: var(--muted); font-size: 13px; }
   .btn:disabled { opacity: 0.45; cursor: default; filter: none; }
+  .switch {
+    display: inline-flex; align-items: center; gap: 10px; border: 0; background: none; padding: 0; white-space: nowrap;
+    color: var(--muted); font-size: 14px; font-weight: 600;
+  }
+  .switch i { width: 44px; height: 26px; border-radius: 13px; background: #ddd2c2; position: relative; transition: background 0.15s; }
+  .switch i::after {
+    content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff;
+    box-shadow: 0 1px 3px rgba(61, 52, 43, 0.3); transition: left 0.15s;
+  }
+  .switch[aria-checked="true"] i { background: var(--brand); }
+  .switch[aria-checked="true"] i::after { left: 21px; }
   .pill.off::before { background: transparent; box-shadow: inset 0 0 0 1.5px currentColor; }
   @keyframes pulse { from { opacity: 1; } to { opacity: 0.25; } }
 
@@ -109,8 +121,9 @@
     <img src="icon.svg" alt="">
     <div>
       <h1>Agent <span>2B</span></h1>
-      <p>A coding agent that runs on your own GPU.</p>
+      <p>A coding agent that runs on your own PC.</p>
     </div>
+    <button class="switch" id="use-gpu" role="switch" aria-checked="true" hidden><i></i>Use GPU</button>
   </header>
 
   <div id="error" class="error" hidden><span id="error-text"></span><button id="error-log">Server log</button></div>
@@ -163,7 +176,8 @@ const host = window.chrome && window.chrome.webview;
 const send = what => host && host.postMessage(what);
 const $ = id => document.getElementById(id);
 
-for (const [id, what] of [["chat", "chat"], ["terminal", "terminal"], ["folder", "folder"], ["log", "log"], ["error-log", "log"]]) {
+for (const [id, what] of [["chat", "chat"], ["terminal", "terminal"], ["folder", "folder"], ["log", "log"], ["error-log", "log"],
+                          ["use-gpu", "gpu"]]) {
   $(id).addEventListener("click", () => send(what));
 }
 
@@ -199,8 +213,8 @@ const hint = (id, text) => { $(id).hidden = !text; $(id).textContent = text || "
 
 // The System row's pill for each of 2B.exe's verdicts (Requirements in app.cs).
 const VERDICTS = {
-  great: ["ok", "Great"], good: ["ok", "Good"], slow: ["warn", "Slow"],
-  driver: ["off", "Update Driver"], unsupported: ["off", "Not Supported"], none: ["off", "No GPU Detected"],
+  great: ["ok", "Great"], good: ["ok", "Good"], slow: ["warn", "Slow"], cpu: ["warn", "Slow"],
+  unsupported: ["off", "Not Supported"],
 };
 
 function render(s) {
@@ -212,15 +226,21 @@ function render(s) {
     $("system").innerHTML = '<span class="sub">Checking this PC...</span>';
     $("system-side").innerHTML = pill("busy", "Checking");
   } else {
-    const short = name => name.replace(/^NVIDIA\s+(GeForce\s+)?/i, "");   // the row is about an NVIDIA GPU already
-    $("system").innerHTML = (sys.name ? `<b>${esc(short(sys.name))}</b> <span class="sub">&middot; ${sys.vram}${THIN}GB VRAM &middot; `
-                                      : '<b>No NVIDIA GPU</b> <span class="sub">&middot; ') + `${sys.ram}${THIN}GB RAM` +
-                           (sys.cuda ? ` &middot; CUDA ${esc(sys.cuda)}` : "") + "</span>";
+    // Only what decides how 2B runs, not the PC's spec: whether it has a GPU it can run on, the memory, and CUDA.
+    // A GPU it can't run on (too old, too little VRAM, an old driver), or Use GPU off, is CPU Only; the hint says why.
+    $("system").innerHTML = sys.gpuUsable && sys.useGpu
+      ? `<b>GPU Available</b> <span class="sub">&middot; ${sys.ram}${THIN}GB RAM + ${sys.vram}${THIN}GB VRAM` +
+        (sys.cuda ? ` &middot; CUDA ${esc(sys.cuda)}` : "") + "</span>"
+      : `<b>CPU Only</b> <span class="sub">&middot; ${sys.ram}${THIN}GB RAM</span>`;
     const [cls, text] = VERDICTS[sys.verdict];
     $("system-side").innerHTML = pill(cls, text);
   }
+  // Use GPU, top right: on by default, and there only with a GPU the model can run on
+  const toggle = $("use-gpu");
+  toggle.hidden = !sys || !sys.gpuUsable;
+  if (sys) toggle.setAttribute("aria-checked", sys.useGpu);
   hint("system-hint", sys && sys.reason);
-  const supported = !!sys && ["great", "good", "slow"].includes(sys.verdict);
+  const supported = !!sys && ["great", "good", "slow", "cpu"].includes(sys.verdict);
 
   // Model
   const d = s.download, modelSide = $("model-side"), bar = $("download-bar"), model = $("model");
