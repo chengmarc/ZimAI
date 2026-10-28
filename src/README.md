@@ -8,15 +8,15 @@ the app finds them beside itself.
 
 One language per layer, and each layer owns what it does:
 
-| Layer | Language | Owns |
-|---|---|---|
-| `2B.exe` ([`app/`](app/)) | C# (.NET Framework 4, which comes with Windows) | where things are; the model, its download and the server's settings; starting and stopping the server; the window; opening the terminal; the proxy; the version |
-| the agent ([`agent/`](agent/)) | TypeScript, run as is by Node.js | the conversation with the model and the tools it uses. It gets everything else from `2B.exe` |
-| the packaging scripts ([`../packaging/`](../packaging/)) | PowerShell (comes with Windows) | fetching `runtime/`, building `2B.exe` and the release artifacts; nothing in `src/` depends on them |
+| Layer                                                    | Language                                        | Owns                                                                                                                                                            |
+| -------------------------------------------------------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `2B.exe` ([`app/`](app/))                                | C# (.NET Framework 4, which comes with Windows) | where things are; the model, its download and the server's settings; starting and stopping the server; the window; opening the terminal; the proxy; the version |
+| the agent ([`agent/`](agent/))                           | TypeScript, run as is by Node.js                | the conversation with the model and the tools it uses. It gets everything else from `2B.exe`                                                                    |
+| the packaging scripts ([`../packaging/`](../packaging/)) | PowerShell (comes with Windows)                 | fetching `runtime/`, building `2B.exe` and the release artifacts; nothing in `src/` depends on them                                                             |
 
 **The model server.** `2B.exe --server` is the server's keeper. Before each start it fits the model to this
-computer (`Plan` in `app.cs`): llama.cpp's dry run (`llama-fit-params`) splits it between GPU and RAM; every computer
-gets a 64k context, the model's full 128k only when it all fits on the GPU; and the RAM part is loaded into RAM only
+computer (`Plan` in `app.cs`): llama.cpp's dry run (`llama-fit-params`) splits it between GPU and RAM; the context is
+the model's full 128k on the GPU, whatever its VRAM, and 64k on the CPU; and the RAM part is loaded into RAM only
 if that leaves 2 GB free, otherwise it's memory-mapped. The plan goes to `data/logs/server-plan` for the window's Server
 row. The keeper writes its own pid to `data/logs/server.pid` before it plans, so the server counts as starting from
 then; it starts llama-server with the plan, and stops it a few seconds after the last 2B window or agent is gone,

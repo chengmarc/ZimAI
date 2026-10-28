@@ -59,7 +59,7 @@ folder itself) is refused before it runs.
 
 It reads the project's `AGENTS.md` or `CLAUDE.md`, streams its reasoning dimmed, and renders answers as markdown.
 In the agent: `/clear` starts over, `/effort low|medium|high` sets reasoning effort, `/tokens` shows context used
-(64k total), `/prompt` shows the exact text the model reads, `/exit` quits.
+(128k on the GPU, 64k on the CPU), `/prompt` shows the exact text the model reads, `/exit` quits.
 
 **Know the limits:** it's a 20B model (about 3.6B active per token). It's good at small, scoped tasks in a codebase
 or on the machine; give it tight tasks rather than open-ended ones.
