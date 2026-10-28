@@ -59,7 +59,11 @@ function Expand-Download([string]$File, [string]$Into, [int]$Strip) {
     New-Item -ItemType Directory -Force $Into | Out-Null
     switch -Regex ($File) {
         "\.zip$" { Invoke-Native $Tar @("-xf", $File, "-C", $Into, "--strip-components", $Strip) }
-        "\.7z\.exe$" { Invoke-Native $File @("-o$Into", "-y") }
+        "\.7z\.exe$" {
+            # A windowed program: & neither waits for it nor sets $LASTEXITCODE, so wait for its exit code here.
+            $p = Start-Process -FilePath $File -ArgumentList "-o`"$Into`"", "-y" -Wait -PassThru -WindowStyle Hidden
+            if ($p.ExitCode -ne 0) { throw "$(Split-Path -Leaf $File) failed ($($p.ExitCode))" }
+        }
         "\.nupkg$" {
             Invoke-Native $Tar @("-xf", $File, "-C", $Into, "--strip-components", 2, "lib/net462/*.dll")
             Invoke-Native $Tar @("-xf", $File, "-C", $Into, "--strip-components", 3, "runtimes/win-x64/native/*.dll")
