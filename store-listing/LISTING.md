@@ -9,8 +9,8 @@ by hand. Images are beside this file (the screenshots in [desktop/](desktop/)), 
 
 - **Category:** Developer tools. **Subcategory:** none.
 - **Privacy policy:** paste [PRIVACY.md](PRIVACY.md) as it is; it's plain text, written for Partner Center's box.
-- **Website:** `https://github.com/chengmarc/zimai`
-- **Support contact info:** `https://github.com/chengmarc/zimai/issues`
+- **Website:** `https://github.com/chengmarc/ZimAI`
+- **Support contact info:** `https://github.com/chengmarc/ZimAI/issues`
 - **System requirements:** what the Store shows under the listing, and a warning on a PC that doesn't meet the
   minimum. It doesn't stop the install; ZimAI's own check does that (`Requirements` in `src/app/app.cs`, which these
   follow). Leave every other row unchecked: no touch, camera, microphone, Bluetooth or the like.
@@ -182,7 +182,7 @@ Leave empty: ZimAI has no trailer, and isn't an Xbox app.
   © 2026 chengmarc. NVIDIA, GeForce, GTX and RTX are trademarks of NVIDIA Corporation.
   ```
 
-- **Additional license terms:** `Apache License 2.0: https://github.com/chengmarc/zimai/blob/main/LICENSE`
+- **Additional license terms:** `Apache License 2.0: https://github.com/chengmarc/ZimAI/blob/main/LICENSE`
 - **Developed by:** `chengmarc`
 
 ## Submission options

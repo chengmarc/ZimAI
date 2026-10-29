@@ -2,7 +2,7 @@
 
   <img src="src/app/icon.svg" width="180"><br>
 
-  <a href="https://github.com/chengmarc/zimai/releases/latest"><img src="docs/badges/badge-download.svg" height="50"></a>
+  <a href="https://github.com/chengmarc/ZimAI/releases/latest"><img src="docs/badges/badge-download.svg" height="50"></a>
   <a href="https://apps.microsoft.com/detail/9NCRP4F65JTF"><img src="docs/badges/badge-microsoft-store.svg" height="50"></a>
   <a href="#try-it"><img src="docs/badges/badge-gpu.svg" height="50"></a>
 
@@ -32,7 +32,7 @@ You need Windows 10/11, **13 GB of free disk space** for the model, and either:
 - **Or just the CPU**: any 64-bit x64 CPU with **16 GB of RAM**. It works, but replies come much slower than on a
   GPU.
 
-1. **Download `ZimAI-portable.zip`** from the [latest release](https://github.com/chengmarc/zimai/releases/latest)
+1. **Download `ZimAI-portable.zip`** from the [latest release](https://github.com/chengmarc/ZimAI/releases/latest)
    and unzip it anywhere, a flash drive included. It holds portable Git Bash, Node.js and llama.cpp (CUDA build).
 2. **Double-click `ZimAI.exe`.** The ZimAI window checks your PC first: GPU Available or CPU Only, and whether ZimAI runs
    on it (Great, Good or Slow), or why not, before anything is downloaded. With a GPU, **Use GPU** at the top right is
