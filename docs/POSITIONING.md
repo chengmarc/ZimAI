@@ -71,6 +71,9 @@ Upgrade plan, Wait) crossed out by a big ✕ in the brand gradient, on top of ev
 - **Generic about the others.** Never name Claude, ChatGPT, Cursor or their plans, and never copy their interfaces;
   the limit banner in a screenshot is our own drawing of a generic one. Readers recognize it anyway, and it keeps the
   copy clear of trademark trouble and of Store review.
+  One exception, decided 2026-10-29: the GitHub topics keep the others' names (anthropic, chatgpt, claude,
+  claude-code, codex, openai), because people search for them and they bring traffic. Topics are for finding the
+  repo, not copy anyone reads as ours.
 
 ## The jobs, as the copy names them
 
