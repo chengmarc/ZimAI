@@ -35,7 +35,7 @@ never stop each other's server. They do share its port, so only one of them can 
 | `HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY` | the Windows proxy, if one is on and they aren't set already |
 
 **The look.** [`ui/palette.css`](ui/palette.css) is where ZimAI's colors are chosen. The page uses it as it is. The
-terminal (`agent/terminal/mintty.conf`), the agent (`agent/terminal/theme.ts`), the window's background, title bar and
+terminal (`ui/mintty.conf`), the agent (`agent/terminal/theme.ts`), the window's background, title bar and
 the chat page's back button (`app/Window.cs`) and llama.cpp's chat page (`ui/chat.css`) repeat its values.
 
 **Chat.** It's llama-server's own chat page, made ZimAI's: the window adds `ui/chat.css` (the palette, the icon, the
@@ -57,14 +57,15 @@ src/
     Terminal.cs           the terminal, and starting it outside the Store package
     Window.cs             the window, its title bar
     Json.cs               the JSON the window sends its page
-  ui/                   what the window serves at https://zimai.local/, and nothing else
+  ui/                   ZimAI's look: what the window serves at https://zimai.local/, and the terminal's
     home.html             the page the window shows
     chat.css              the look of llama.cpp's chat page in the window
     palette.css           the colors
+    mintty.conf           the terminal's look
     icon.svg  icon.ico    the icon (the .ico, built from the .svg by store-listing/generator/icon.ps1, is also in
                           ZimAI.exe and the terminal)
-  agent/                the coding agent: `zim` in the terminal; also who the model is (prompt/identity.md) and
-                        the terminal's look (terminal/mintty.conf), which ZimAI.exe reads
+  agent/                the coding agent: `zim` in the terminal; also who the model is (prompt/identity.md),
+                        which ZimAI.exe reads
   runtime/              downloaded by packaging/fetch.ps1 (untracked)
     node/  git/  llama/ Node.js, portable Git Bash, llama.cpp (CUDA build)
     webview2/           the WebView2 SDK's DLLs, for the window

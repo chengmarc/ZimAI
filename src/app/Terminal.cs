@@ -26,7 +26,7 @@ static class Terminal {
         string mintty = Path.Combine(Paths.Git, @"usr\bin\mintty.exe");
         // -c: our look (mintty.conf), -i and -t: our icon and title (the config keeps programs from changing it).
         // First the agent (a Ctrl+C in it is the agent's, not this shell's), then a normal prompt.
-        string args = "-c \"" + Paths.MinttyConf + "\" -i \"" + Path.Combine(Paths.Ui, "icon.ico") +
+        string args = "-c \"" + Path.Combine(Paths.Ui, "mintty.conf") + "\" -i \"" + Path.Combine(Paths.Ui, "icon.ico") +
                       "\" -t \"ZimAI\" /usr/bin/bash --login -i -c \"trap : INT; zim; trap - INT; exec bash --login -i\"";
         var start = new ProcessStartInfo(mintty, args) {
             UseShellExecute = false, WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),

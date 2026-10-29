@@ -14,9 +14,8 @@ static class Paths {
     public static readonly string Git = Path.Combine(Root, @"runtime\git");
     public static readonly string Llama = Path.Combine(Root, @"runtime\llama\llama-server.exe");
     public static readonly string WebView2 = Path.Combine(Root, @"runtime\webview2");
-    public static readonly string Ui = Path.Combine(Root, "ui");   // what the window serves, and only that
+    public static readonly string Ui = Path.Combine(Root, "ui");   // the look: what the window serves, the terminal's config
     public static readonly string Identity = Path.Combine(Root, @"agent\prompt\identity.md");
-    public static readonly string MinttyConf = Path.Combine(Root, @"agent\terminal\mintty.conf");
     public static readonly string Agent = Path.Combine(Root, @"agent\main.ts");
     public static string Data;   // Main
     public static string Model { get { return Path.Combine(Data, @"model\_model.gguf"); } }
