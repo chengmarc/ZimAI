@@ -1,9 +1,9 @@
 <!doctype html>
 <!-- The Store's screenshots: render.ps1 loads this page at 1366 x 768 (rendered at 2x) once per shot, named by the
-     hash (#promo, #chat, #home). Each is a caption on the left and the real app on the right: the home page
-     (src/ui/home.html) drawing the state ZimAI.exe would send it, the terminal demo (docs/demo.svg) stopped at a
-     moment, or a capture of the Chat page (chat.png). Needs Edge's --allow-file-access-from-files, to read those
-     files from file://. -->
+     hash (#limit, #chat, #home, #terminal). Each is a caption on the left, its line from docs/POSITIONING.md, and the
+     real app on the right: the home page (src/ui/home.html) drawing the state ZimAI.exe would send it, the terminal
+     demo (docs/demo.svg) stopped at a moment, or a capture of the Chat page (chat-*.png, by chat.ps1). Needs Edge's
+     --allow-file-access-from-files, to read those files from file://. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -21,48 +21,50 @@
   .caption p { margin: 20px 0 0; font: 400 17px/1.5 "Segoe UI Variable Text", "Segoe UI", sans-serif; color: rgba(255, 255, 255, 0.78); }
   /* One row, though it may run a few pixels past the column. */
   .facts { display: flex; gap: 8px; width: max-content; margin-top: 28px; }
-  /* #promo: the price, big, and what it means; then the model's numbers. */
+  .facts.gpu { margin-top: 10px; }   /* what it needs, on a row of its own */
+  /* Every shot: the price, big, and what it means. */
   .size { margin-top: 34px; width: 310px; }
-  .size b { display: block; width: max-content; font-size: 58px; line-height: 1; font-weight: 700; letter-spacing: -0.03em; }
+  .size b { display: block; width: max-content; font-size: 116px; line-height: 1; font-weight: 700; letter-spacing: -0.03em; }
   .scale { display: flex; justify-content: space-between; margin: 8px 0 0; font: 400 14px "Segoe UI Variable Text", "Segoe UI", sans-serif; color: rgba(255, 255, 255, 0.78); }
-  .stats { display: flex; gap: 30px; margin-top: 30px; }
-  .stats b { display: block; font-size: 28px; line-height: 1.1; font-weight: 700; }
-  .stats span { font: 400 13px/1.4 "Segoe UI Variable Text", "Segoe UI", sans-serif; color: rgba(255, 255, 255, 0.7); }
-  /* #home: the GPUs, by verdict: each verdict in its color, each GPU outlined in the brand gradient. */
-  .tier { margin-top: 22px; }
-  .verdict { display: flex; align-items: baseline; gap: 8px; font: 700 15px "Segoe UI Variable Text", "Segoe UI", sans-serif; }
-  .verdict b { font-weight: inherit; }
-  .verdict.great b { background: var(--brand); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .verdict.good b { color: #f07fa3; }
-  .verdict.slow b { color: #e8b25a; }
-  .verdict span { font-weight: 400; font-size: 14px; color: rgba(255, 255, 255, 0.6); }
-  .gpus { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
-  .gpus span {
-    padding: 4px 10px; border-radius: 999px; font: 600 12px "Segoe UI Variable Text", "Segoe UI", sans-serif;
-    border: 1px solid transparent;
+  /* #limit and #chat: the moment it's for, an AI's usage-limit dialog, generic (no product's look or words), over the part of
+     the window where it would stop you, and crossed out in the brand gradient. */
+  .wall { position: absolute; left: 230px; top: 392px; width: 540px; z-index: 3; transform: rotate(-3deg); }
+  .wall-card {
+    position: relative; padding: 22px 28px 24px; border-radius: 20px; color: #fff;
+    background: linear-gradient(180deg, #2b2724, #1e1b19); border: 1px solid rgba(255, 255, 255, 0.13);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 34px 90px rgba(0, 0, 0, 0.6), 0 10px 26px rgba(0, 0, 0, 0.4);
+    font-family: "Segoe UI Variable Text", "Segoe UI", sans-serif;
   }
-  /* One gradient across the caption column (fixed to the page), not one per chip, so neighbours blend. */
-  .gpus span {
-    background: linear-gradient(#2a211c, #2a211c) padding-box, var(--brand) border-box;
-    background-attachment: scroll, fixed; background-size: auto, 330px 100%; background-position: 0 0, 60px 0;
+  .wall-head { display: flex; align-items: center; gap: 8px; font: 700 12px "Segoe UI", sans-serif; letter-spacing: 0.08em;
+               text-transform: uppercase; color: #f2b45a; }
+  .wall-head i { font: normal 15px "Segoe Fluent Icons", "Segoe MDL2 Assets"; }
+  .wall-card b { display: block; margin-top: 10px; font: 700 31px/1.12 "Segoe UI Variable Display", "Segoe UI", sans-serif;
+                 letter-spacing: -0.02em; }
+  .meter { margin-top: 18px; }
+  .meter-text { display: flex; justify-content: space-between; font-size: 13px; color: rgba(255, 255, 255, 0.6); }
+  .meter-text b { display: inline; margin: 0; font: 700 13px "Segoe UI", sans-serif; color: #f07a6a; letter-spacing: 0; }
+  .wall-buttons { display: flex; gap: 10px; margin-top: 18px; }
+  .wall-buttons span { padding: 9px 18px; border-radius: 10px; font: 600 14px "Segoe UI", sans-serif; }
+  .wall-buttons span:first-child { background: #f4efe8; color: #1e1b19; }
+  .wall-buttons span:last-child { border: 1px solid rgba(255, 255, 255, 0.22); color: rgba(255, 255, 255, 0.75); }
+  /* The cross: two strokes, corner past corner, on top of everything, the dialog's words included. */
+  .wall-card::before, .wall-card::after {
+    content: ""; position: absolute; left: -7%; right: -7%; top: 50%; height: 12px; margin-top: -6px; border-radius: 6px;
+    z-index: 2;
+    background: linear-gradient(90deg, var(--gold), var(--rose) 55%, var(--violet));
   }
-  /* #promo: the moment it's for, a cloud AI's usage-limit notice, generic (no product's look or words), dimmed. */
-  .limit {
-    display: flex; gap: 12px; align-items: flex-start; margin-bottom: 26px; padding: 13px 16px; border-radius: 10px;
-    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.16);
-    font: 400 14px/1.45 "Segoe UI Variable Text", "Segoe UI", sans-serif; color: rgba(255, 255, 255, 0.62);
-  }
-  .limit i { font: normal 18px/1.2 "Segoe Fluent Icons", "Segoe MDL2 Assets"; color: #e8b25a; }
-  .limit b { display: block; font-weight: 600; color: rgba(255, 255, 255, 0.88); }
+  .wall-card::before { transform: rotate(21deg); }
+  .wall-card::after { transform: rotate(-21deg); }
+  .wall-card > * { position: relative; z-index: 1; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.75); }
   .facts span {
     padding: 6px 13px; border-radius: 999px; font: 600 13px "Segoe UI Variable Text", "Segoe UI", sans-serif;
     background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
   }
 
-  /* The window, at the app's own size (940 x 680, app/Window.cs), scaled to the height of the shot. */
+  /* The window, at the app's own size (960 x 640, app/Window.cs), scaled to clear the caption. */
   .window {
     position: absolute; right: 44px; top: 50%; transform-origin: right center; transform: translateY(-50%) scale(0.95);
-    width: 940px; border-radius: 9px; overflow: hidden; background: var(--bg);
+    width: 960px; border-radius: 9px; overflow: hidden; background: var(--bg);
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 32px 80px rgba(0, 0, 0, 0.55), 0 10px 24px rgba(0, 0, 0, 0.3);
   }
   /* A Windows 11 title bar, with the icon and title ZimAI.exe and its terminal both set. */
@@ -70,91 +72,96 @@
   .titlebar img { width: 16px; height: 16px; margin: 0 10px 0 12px; }
   .titlebar span { flex: 1; }
   .titlebar i { width: 46px; text-align: center; font: normal 10px "Segoe Fluent Icons", "Segoe MDL2 Assets"; }
-  .client { display: block; width: 940px; height: 680px; border: 0; background: var(--bg); }
+  .client { display: block; width: 960px; height: 640px; border: 0; background: var(--bg); }
   /* demo.svg without its own title bar; a line cut by the top of its screen fades out. */
-  svg.client { height: 685px; mask-image: linear-gradient(transparent 0, #000 36px); }
+  svg.client { mask-image: linear-gradient(transparent 0, #000 36px); }
 </style>
 </head>
 <body>
   <div class="caption">
-    <div class="app"><img src="../../src/ui/icon.svg" alt=""><span>ZimAI<small>Unlimited AI for small jobs</small></span></div>
-    <div id="limit"></div>
+    <div class="app"><img src="../../src/ui/icon.svg" alt=""><span>ZimAI<small>Unlimited AI for Small Jobs</small></span></div>
     <h1 id="title"></h1>
     <p id="text"></p>
     <div class="facts" id="facts"></div>
-    <div id="numbers"></div>
+    <div class="facts gpu"><span>Dedicated GPU Preferred</span></div>
+    <div class="size">
+      <b class="brand">$0</b>
+      <div class="scale"><span>No usage limit, no credits, no plan to upgrade</span></div>
+    </div>
   </div>
   <div class="window">
+    <div class="wall"><div class="wall-card">
+      <div class="wall-head"><i>&#xE7BA;</i>Usage limit</div>
+      <b>You've reached your usage limit</b>
+      <div class="meter">
+        <div class="meter-text"><span><b>100%</b> used</span><span>Resets at 4:00 PM</span></div></div>
+      <div class="wall-buttons"><span>Upgrade plan</span><span>Wait 4 h 12 m</span></div>
+    </div></div>
     <div class="titlebar"><img src="../../src/ui/icon.svg" alt=""><span>ZimAI</span><i>&#xE921;</i><i>&#xE922;</i><i>&#xE8BB;</i></div>
   </div>
 
 <script>
 // What ZimAI.exe sends the home page on this developer's PC (an RTX 5060 Laptop GPU with 8 GB and 16 GB of RAM), as in
-// app/*.cs; the plan is llama-fit-params' for it.
+// app/Window.cs (Push); the plan is the one its server ran with (logs/server-plan).
 const MODEL = { name: "GPT OSS 20B", size: 12109566624, parameters: "20.9", license: "Apache-2.0", need: 12109566624, free: 412e9, drive: "C:" };
-const SYSTEM = { name: "NVIDIA GeForce RTX 5060 Laptop GPU", vram: 8, ram: 16, cuda: "12.8", gpuUsable: true, useGpu: true,
+const SYSTEM = { name: "NVIDIA GeForce RTX 5060 Laptop GPU", vram: 8, ram: 15.7, cuda: "12.8", gpuUsable: true, useGpu: true,
                  verdict: "good", reason: null };
 const READY = {
   version: "1.1.0", system: SYSTEM, model: { ...MODEL, ready: true }, download: null,
-  server: { state: "ready", plan: { context: 65536, gpu: 5896, ram: 7673 } }, error: null,
+  server: { state: "ready", plan: { context: 131072, gpu: 5880, ram: 10907, mapped: 1 } }, error: null,
 };
 
-// The promo shot's numbers: what it costs (nothing, however much it's used), then the model.
-const NUMBERS = `
-      <div class="size">
-        <b class="brand">$0</b>
-        <div class="scale"><span>No credits, no rate limits, no account, no API key</span></div>
-      </div>
-      <div class="stats">
-        <div><b>20.9&nbsp;B</b><span>total<br>parameters</span></div>
-        <div><b>128&nbsp;k</b><span>tokens of context<br>on a GPU</span></div>
-      </div>`;
-
-// Popular GPUs by the verdict ZimAI's check gives them (app/Requirements.cs), with 16 GB of RAM: Great is 16 GB of
-// VRAM or more, Good is an RTX with 8 to 12 GB, Slow is 6 GB or a GTX 10-series (no tensor cores).
-const GPUS = [
-  ["great", "Great", "the whole model on the GPU", ["RTX 5090", "RTX 5080", "RTX 5070 Ti", "RTX 5060 Ti 16 GB", "RTX 4090", "RTX 4080", "RTX 4070 Ti Super", "RTX 4060 Ti 16 GB", "RTX 3090"]],
-  ["good", "Good", "desktop and laptop", ["RTX 5070", "RTX 5060", "RTX 4070", "RTX 4060", "RTX 3080", "RTX 3070", "RTX 3060 12 GB", "RTX 2080", "RTX 2070", "RTX 2060 Super"]],
-  ["slow", "Slow", "works, replies come slower", ["RTX 2060", "GTX 1660", "GTX 1080 Ti", "GTX 1080", "GTX 1070", "GTX 1060 6 GB"]],
-].map(([tier, verdict, note, names]) => `
-  <div class="tier ${tier}"><div class="verdict ${tier}"><b>${verdict}</b><span>${note}</span></div>
-  <div class="gpus">${names.map(n => `<span>${n}</span>`).join("")}</div></div>`).join("");
-
-// The same on every shot: what it needs, and what it doesn't.
+// The same on every shot, with the GPU pill and the price (above): what it needs, and what it doesn't.
 const FACTS = ["No limits", "Works offline", "No account"];
 
-// Each shot: its caption, the need it meets in the customer's words, and what's in the window: a home page state,
-// the demo at a time (s), or an image of the window's contents at 940 x 680 (chat.png: a capture of the real Chat
-// page, at 2x).
+// Each shot, in upload order: its line (docs/POSITIONING.md), the need it meets in the customer's words, and what's
+// in the window: a home page state, the demo at a time (s), or an image of the window's contents at 960 x 640
+// (chat-*.png: captures of the real Chat page at 2x, by chat.ps1).
 const SHOTS = {
-  promo: {
-    limit: true,
-    title: 'Out of credits? <span class="brand">Not here.</span>',
-    text: "For the jobs your cloud AI's limits shouldn't go to. It reads, runs and edits on your PC, asking first.",
-    numbers: NUMBERS,
-    demo: 12.3,
+  limit: {
+    title: 'Hit your limit? <span class="brand">Keep going.</span>',
+    text: "When your AI stops halfway through, ZimAI picks up the job, on your own PC, with no limit of its own.",
+    image: "chat-limit.png",
+    wall: true,
   },
   chat: {
-    title: 'Quick questions, <span class="brand">no quota.</span>',
-    text: "Ask the model in the app's own window, as often as you like. Your chats stay on your computer.",
-    image: "chat.png",
+    title: 'Resets at 4 PM? <span class="brand">Not here.</span>',
+    text: "Emails, formulas, rewrites, quick questions: ask as often as you like. Your chats stay on your PC.",
+    image: "chat-everyday.png",
+    wall: true,
+    tilt: 3,   // the other way from shot 1's, so the two don't look copied
   },
   home: {
-    title: 'On the PC <span class="brand">you already have.</span>',
-    text: "Your GeForce, or just the CPU. ZimAI checks your PC before downloading, then fits the model to it.",
-    numbers: GPUS,
+    title: "Your AI runs out. <span class=\"brand\">Your PC didn't.</span>",
+    text: "It runs on your own PC: your GeForce, or just the CPU. ZimAI checks it before downloading, then fits the model to it.",
     home: READY,
+    hover: "chat",   // the home page's Chat card, as under the pointer
+  },
+  terminal: {
+    title: 'The AI that never says <span class="brand">come back later.</span>',
+    text: "For developers, a terminal that works in your projects. It reads, runs and edits on your PC, asking first.",
+    demo: 12.3,
   },
 };
+
+// An element of the home page shown as under the pointer: the page's own :hover rules, given to it as a class.
+function hover(doc, id) {
+  const sheet = [...doc.styleSheets].find(s => s.ownerNode.tagName === "STYLE");
+  for (const rule of [...sheet.cssRules]) {
+    if (rule.selectorText && rule.selectorText.includes(":hover")) {
+      sheet.insertRule(rule.cssText.replaceAll(":hover", ".hover"), sheet.cssRules.length);
+    }
+  }
+  doc.getElementById(id).classList.add("hover");
+}
 
 const shot = SHOTS[location.hash.slice(1)];
 if (!shot) throw new Error("Unknown shot " + location.hash);
-document.getElementById("limit").outerHTML = shot.limit
-  ? `<div class="limit"><i>&#xE7BA;</i><span><b>You've reached your usage limit.</b>Your limit resets in 4 h 12 m.</span></div>` : "";
+if (!shot.wall) document.querySelector(".wall").remove();
+else if (shot.tilt) document.querySelector(".wall").style.transform = `rotate(${shot.tilt}deg)`;
 document.getElementById("title").innerHTML = shot.title;
 document.getElementById("text").textContent = shot.text || "";
 if (!shot.text) document.getElementById("text").remove();
-document.getElementById("numbers").innerHTML = shot.numbers || "";
 document.getElementById("facts").innerHTML = FACTS.map(f => `<span>${f}</span>`).join("");
 const win = document.querySelector(".window");
 
@@ -164,7 +171,10 @@ if (shot.image) {
   const frame = document.createElement("iframe");
   frame.className = "client";
   frame.src = "../../src/ui/home.html";
-  frame.onload = () => frame.contentWindow.render(shot.home);
+  frame.onload = () => {
+    frame.contentWindow.render(shot.home);
+    if (shot.hover) hover(frame.contentDocument, shot.hover);
+  };
   win.append(frame);
 } else {
   // The demo, stopped at its time, without its own (macOS-style) title bar: the window has one.
@@ -172,7 +182,7 @@ if (shot.image) {
     win.insertAdjacentHTML("beforeend", text);
     const svg = win.querySelector("svg");
     svg.classList.add("client");
-    svg.setAttribute("viewBox", "0 35 940 685");
+    svg.setAttribute("viewBox", "0 35 940 627");   // 960 x 640: the demo's 940 width, scaled up to fit
     svg.querySelectorAll(":scope > rect, :scope > circle, :scope > .ttl").forEach(e => e.remove());
     svg.getAnimations({ subtree: true }).forEach(a => { a.pause(); a.currentTime = shot.demo * 1000; });
   });

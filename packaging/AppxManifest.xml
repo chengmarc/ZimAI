@@ -31,7 +31,7 @@
     <Application Id="ZimAI" Executable="ZimAI.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="{display_name}"
-        Description="Unlimited AI for small jobs, on your own PC"
+        Description="Unlimited AI for Small Jobs, on your own PC"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png" />

@@ -12,9 +12,10 @@
   to: the commit message after a big rework, a quick search, a rename, an error you don't recognize.
   No limits, no account, nothing leaves your PC.</p>
 
-  <img src="store-listing/desktop/screenshot-1-promo.png">
+  <img src="store-listing/desktop/screenshot-1-limit.png">
   <img src="store-listing/desktop/screenshot-2-chat.png">
   <img src="store-listing/desktop/screenshot-3-home.png">
+  <img src="store-listing/desktop/screenshot-4-terminal.png">
 
 </div>
 

@@ -90,9 +90,9 @@ powershell -ExecutionPolicy Bypass -File store-listing\generator\render.ps1
 
 It redraws the images in `store-listing/` with Microsoft Edge in headless mode, from `generator/logo.html` (box
 art, poster art, tile icon) and `generator/shots.html` (the screenshots). The screenshots show the real home page, `src/ui/home.html`, drawing
-the state written in `shots.html`, and the README's terminal demo, `docs/demo.svg`, stopped at a moment. Change the
-captions or the state there, and the system requirements in `LISTING.md` when `Requirements` in `src/app/Requirements.cs`
-changes.
+the state written in `shots.html`, the README's terminal demo, `docs/demo.svg`, stopped at a moment, and two captures
+of the Chat page (below). Their lines come from `docs/POSITIONING.md`. Change the captions or the state in
+`shots.html`, and the system requirements in `LISTING.md` when `Requirements` in `src/app/Requirements.cs` changes.
 
 When `src/ui/icon.svg` changes, rebuild `icon.ico` first, then re-render:
 
@@ -100,16 +100,17 @@ When `src/ui/icon.svg` changes, rebuild `icon.ico` first, then re-render:
 powershell -ExecutionPolicy Bypass -File store-listing\generator\icon.ps1
 ```
 
-The Chat screenshot is the exception: `store-listing/generator/chat.png` is a capture, since the Chat page is llama-server's own and
-only runs with the model loaded. Retake it when that page or `src/ui/chat.css` changes, then re-render. In the app,
-click Chat, start a new chat and send:
+The Chat screenshots are captures: `store-listing/generator/chat-*.png`, since the Chat page is llama-server's own
+and only runs with the model loaded. Retake them when that page, `src/ui/chat.css` or the window's script for it
+(`ChatScript` in `src/app/Window.cs`) changes, then re-render. Open ZimAI, click Start, wait for Server Ready, and run:
 
-```text
-Three of us got dinner: I had a $22 pasta, Sam had a $38 steak, Lee had a $15 salad. We shared $30 of wine, and tip is 18%. What does each person owe?
+```powershell
+powershell -ExecutionPolicy Bypass -File store-listing\generator\chat.ps1
 ```
 
-Once the answer has finished, capture the window's contents without its title bar at 200% scaling, so the file is
-1880 × 1360 (940 × 680 at 2x), and save it over `store-listing/generator/chat.png`.
+It sends each capture's message (in the script) to the real model in a headless Edge with a profile of its own, so the
+app's chat history is untouched, and saves the window's contents at 960 × 640, 2x. The answers differ each run: look
+at both before re-rendering, and run it again if one doesn't fit the window.
 
 ## Explanation
 
