@@ -37,7 +37,7 @@ by hand. Images are beside this file (the screenshots in [desktop/](desktop/)), 
 ### Description
 
 ```
-Unlimited AI for small jobs. Out of credits? Not here.
+Unlimited AI for Small Jobs. Out of credits? Not here.
 
 You're halfway through something and your AI stops: "You've reached your usage limit. Resets at 4:00 PM." You can wait hours, pay for the next plan up, or do it by hand, which you stopped doing a while ago.
 
@@ -115,8 +115,8 @@ Upload in this order (the first is shown first). The line on each is fixed in
 
 1. `desktop/screenshot-1-limit.png`: Hit your limit? Keep going. (a generic usage-limit banner, and ZimAI picking up the job)
 2. `desktop/screenshot-2-chat.png`: Resets at 4 PM? Not here. (Chat finishing an everyday job)
-3. `desktop/screenshot-3-terminal.png`: The AI that never says *come back later*. (the terminal, a developer's small job)
-4. `desktop/screenshot-4-home.png`: Your AI ran out. Yours didn't. (the home page, on your own PC)
+3. `desktop/screenshot-3-home.png`: Your AI runs out. Your PC didn't. (the home page, on your own PC)
+4. `desktop/screenshot-4-terminal.png`: The AI that never says *come back later*. (the terminal, a developer's small job)
 
 ### Store logos
 

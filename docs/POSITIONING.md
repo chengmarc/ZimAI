@@ -7,7 +7,8 @@ listing, the screenshots or the demo, and before adding a feature: if it doesn't
 
 > **A free, unlimited AI on your own PC for the small jobs, for when your AI hits its usage limit mid-task.**
 
-**Slogan: "Unlimited AI for small jobs."** Second line: "Out of credits? Not here." Both stay as the headline of the
+**Slogan: "Unlimited AI for Small Jobs."**, in title case wherever it appears. Second line: "Out of credits? Not
+here." Both stay as the headline of the
 README, the Store listing, the box art and the app.
 
 ZimAI is **advertised as AI, not as an agent**. The agent is how it does the work in a terminal, not what it's sold as.
@@ -54,10 +55,14 @@ One line each, in upload order. Each pairs a line with what it shows:
 | - | ------------------------------------------ | --------------------------------------------------------------------------------- |
 | 1 | Hit your limit? Keep going.                | the moment: a usage-limit banner, generic, and ZimAI picking up the job           |
 | 2 | Resets at 4 PM? Not here.                  | Chat finishing an everyday job (an email, a rewrite) with no clock running        |
-| 3 | The AI that never says *come back later*.  | the terminal doing a developer's small job in their project                       |
-| 4 | Your AI ran out. Yours didn't.             | the home page: it's on your own PC, checked and ready (the GPUs it runs on)       |
+| 3 | Your AI runs out. Your PC didn't.          | the home page: it's on your own PC, checked and ready                             |
+| 4 | The AI that never says *come back later*.  | the terminal doing a developer's small job in their project                       |
 
-The screenshots follow the app as it is (the 960 × 640 window, the home page without pills).
+The screenshots follow the app as it is (the 960 × 640 window, the home page without pills). Every one carries the
+same frame: under its line, the pills No limits, Works offline, No account, and on a row of its own, Dedicated GPU
+Preferred; then the price, $0. Shots 1 and 2 name the pain loudly, in the picture, not in a footnote: over the lower
+part of the window, where the limit would stop you, a generic usage-limit dialog (100% used, resets at 4:00 PM,
+Upgrade plan, Wait) crossed out by a big ✕ in the brand gradient, on top of every layer.
 
 ## How it talks
 
