@@ -28,7 +28,7 @@
   </Resources>
 
   <Applications>
-    <Application Id="Agent2B" Executable="2B.exe" EntryPoint="Windows.FullTrustApplication">
+    <Application Id="ZimAI" Executable="ZimAI.exe" EntryPoint="Windows.FullTrustApplication">
       <uap:VisualElements
         DisplayName="{display_name}"
         Description="Unlimited AI for small jobs, on your own PC"

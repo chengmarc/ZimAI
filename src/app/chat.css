@@ -1,4 +1,4 @@
-/* The look of llama-server's chat page in the 2B window. app.cs adds it to the page every time it opens (ChatScript):
+/* The look of llama-server's chat page in the ZimAI window. app.cs adds it to the page every time it opens (ChatScript):
    the page's own customCss setting would take it only on a user's first visit, so a newer chat.css would never
    reach them. The page is built on shadcn/ui, so its colors are these variables; the values are palette.css's.
    Elements are picked by their labels (aria-label) or icons, which are less likely to change in a llama.cpp update
@@ -63,7 +63,7 @@ button:has(> svg.lucide-arrow-up) {
   box-shadow: 0 8px 28px rgba(220, 75, 120, 0.18), 0 2px 16px rgba(150, 100, 215, 0.14) !important;
 }
 
-/* 2B's icon in place of llama.cpp's, top left (icon.svg, from the window's own files): on the button that expands the
+/* ZimAI's icon in place of llama.cpp's, top left (icon.svg, from the window's own files): on the button that expands the
    sidebar while it's collapsed, and on the link to the start screen once it's expanded */
 button[aria-label="Expand navigation"] svg,
 a[aria-label="Go to start"] svg {
@@ -71,17 +71,17 @@ a[aria-label="Go to start"] svg {
 }
 button[aria-label="Expand navigation"],
 a[aria-label="Go to start"] {
-  background: url("https://2b.local/icon.svg") center / 26px no-repeat !important;
+  background: url("https://zimai.local/icon.svg") center / 26px no-repeat !important;
 }
 
-/* What 2B's chat doesn't use: MCP Servers, a button in the collapsed sidebar and a link in the expanded one */
+/* What ZimAI's chat doesn't use: MCP Servers, a button in the collapsed sidebar and a link in the expanded one */
 button[aria-label="MCP Servers"],
 a[href$="#/mcp-servers"] {
   display: none !important;
 }
 
-/* The start screen's heading, which the window's script renames to Agent 2B: the 2B in the gradient */
-h1 .two-b {
+/* The start screen's heading, which the window's script renames to ZimAI: the AI in the gradient */
+h1 .ai {
   background: linear-gradient(90deg, #c88214, #dc4b78 55%, #9664d7);
   -webkit-background-clip: text;
   background-clip: text;

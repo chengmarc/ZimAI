@@ -2,11 +2,11 @@
 
   <img src="src/app/icon.svg" width="180"><br>
 
-  <a href="https://github.com/chengmarc/agent-2b/releases/latest"><img src="docs/badges/badge-download.svg" height="50"></a>
+  <a href="https://github.com/chengmarc/zimai/releases/latest"><img src="docs/badges/badge-download.svg" height="50"></a>
   <a href="https://apps.microsoft.com/detail/9NCRP4F65JTF"><img src="docs/badges/badge-microsoft-store.svg" height="50"></a>
   <a href="#try-it"><img src="docs/badges/badge-gpu.svg" height="50"></a>
 
-  <h1>Agent 2B - Unlimited AI for Small Jobs</h1>
+  <h1>ZimAI - Unlimited AI for Small Jobs</h1>
 
   <p><b>Out of credits? Not here.</b> A free AI on your own PC for the jobs your cloud AI's limits shouldn't go
   to: the commit message after a big rework, a quick search, a rename, an error you don't recognize.
@@ -32,22 +32,22 @@ You need Windows 10/11, **13 GB of free disk space** for the model, and either:
 - **Or just the CPU**: any 64-bit x64 CPU with **16 GB of RAM**. It works, but replies come much slower than on a
   GPU.
 
-1. **Download `Agent-2B-portable.zip`** from the [latest release](https://github.com/chengmarc/agent-2b/releases/latest)
+1. **Download `ZimAI-portable.zip`** from the [latest release](https://github.com/chengmarc/zimai/releases/latest)
    and unzip it anywhere, a flash drive included. It holds portable Git Bash, Node.js and llama.cpp (CUDA build).
-2. **Double-click `2B.exe`.** The 2B window checks your PC first: GPU Available or CPU Only, and whether 2B runs
+2. **Double-click `ZimAI.exe`.** The ZimAI window checks your PC first: GPU Available or CPU Only, and whether ZimAI runs
    on it (Great, Good or Slow), or why not, before anything is downloaded. With a GPU, **Use GPU** at the top right is
-   on; turn it off to keep the GPU free (for a game, say) and run 2B on the CPU.
-3. **Click Download model** the first time. It downloads gpt-oss-20b (12 GB) into `data/` beside `2B.exe`. If it's
+   on; turn it off to keep the GPU free (for a game, say) and run ZimAI on the CPU.
+3. **Click Download model** the first time. It downloads gpt-oss-20b (12 GB) into `data/` beside `ZimAI.exe`. If it's
    interrupted, click Resume download, even after a restart. It uses the Windows proxy setting if one is on.
 4. **Click Chat or Terminal.**
-   - **Chat** talks with the model in the same window, using llama.cpp's own chat page. **← 2B** at the top right
+   - **Chat** talks with the model in the same window, using llama.cpp's own chat page. **← ZimAI** at the top right
      goes back.
-   - **Terminal** opens Git Bash in your home folder with 2B running, ready for a job in your files. `/exit` leaves a normal
-     prompt: `cd` into a project and type `2b` to work there.
+   - **Terminal** opens Git Bash in your home folder with ZimAI running, ready for a job in your files. `/exit` leaves a normal
+     prompt: `cd` into a project and type `zim` to work there.
 
 Loading the model takes about 30 s on a GPU. llama.cpp splits it between GPU and CPU to fit whatever VRAM is free at
 that moment, so there is nothing to configure per computer. Chat and every terminal share one model server, which stops
-when the last 2B window closes.
+when the last ZimAI window closes.
 
 ## What it can do
 
@@ -71,11 +71,11 @@ cloud.
 
 ## Change it
 
-2B is three layers, each in one language: the app, `2B.exe`, in C#; the agent in TypeScript, run as is by Node with
+ZimAI is three layers, each in one language: the app, `ZimAI.exe`, in C#; the agent in TypeScript, run as is by Node with
 no npm packages; and the tools that build it in PowerShell. Everything the model reads is a text file in
 [`src/agent/prompt/`](src/agent/prompt/), and each tool is one file in [`src/agent/tools/`](src/agent/tools/).
 
-In a clone, download the runtimes into `src/runtime/` once and build `src/2B.exe`:
+In a clone, download the runtimes into `src/runtime/` once and build `src/ZimAI.exe`:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File packaging\fetch.ps1

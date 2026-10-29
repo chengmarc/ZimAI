@@ -21,7 +21,7 @@ $Components = @(
     @{ Dest = "llama"; Strip = 0; Urls = @(
         "https://github.com/ggml-org/llama.cpp/releases/download/b10434/llama-b10434-bin-win-cuda-12.4-x64.zip",
         "https://github.com/ggml-org/llama.cpp/releases/download/b10434/cudart-llama-bin-win-cuda-12.4-x64.zip") },
-    # WebView2 SDK 1.0.2903.40, for 2B.exe's window (the WebView2 runtime itself comes with Windows)  ~1 MB
+    # WebView2 SDK 1.0.2903.40, for ZimAI.exe's window (the WebView2 runtime itself comes with Windows)  ~1 MB
     @{ Dest = "webview2"; Urls = @("https://api.nuget.org/v3-flatcontainer/microsoft.web.webview2/1.0.2903.40/microsoft.web.webview2.1.0.2903.40.nupkg") }
 )
 
@@ -85,7 +85,7 @@ try {
         Write-Host "Ready: src\runtime\$($c.Dest)"
     }
     if ((Test-Path $Staging) -and -not (Get-ChildItem $Staging)) { Remove-Item $Staging }
-    Write-Host "`nDone. Build 2B.exe next: powershell -ExecutionPolicy Bypass -File packaging\build.ps1 -Exe"
+    Write-Host "`nDone. Build ZimAI.exe next: powershell -ExecutionPolicy Bypass -File packaging\build.ps1 -Exe"
 } catch {
     Write-Host "`n$($_.Exception.Message)`nFailed; run this again to retry (downloads resume)." -ForegroundColor Red
     exit 1

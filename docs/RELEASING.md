@@ -1,9 +1,9 @@
 # Releasing
 
-2B ships two ways, both built from `src/`:
+ZimAI ships two ways, both built from `src/`:
 
-- **Portable, on GitHub:** `Agent-2B-portable.zip`, ready to run. The user unzips it anywhere, a flash drive
-  included, and double-clicks `2B.exe`.
+- **Portable, on GitHub:** `ZimAI-portable.zip`, ready to run. The user unzips it anywhere, a flash drive
+  included, and double-clicks `ZimAI.exe`.
 - **Microsoft Store:** an MSIX package with the same contents.
 
 Neither includes the model: the app downloads it (Download model).
@@ -27,17 +27,17 @@ plus `makeappx.exe` for the Store package. Nothing in `packaging/` ships inside 
    ```
 
    This takes about ten minutes: five to zip and five to pack.
-4. Smoke-test the portable zip: unzip it somewhere new and double-click `2B.exe`. Then smoke-test the Store package
+4. Smoke-test the portable zip: unzip it somewhere new and double-click `ZimAI.exe`. Then smoke-test the Store package
    (below).
-5. Tag the release, push the tag, and publish a GitHub release with `dist/Agent-2B-portable.zip` attached.
+5. Tag the release, push the tag, and publish a GitHub release with `dist/ZimAI-portable.zip` attached.
    GitHub takes release files up to 2 GB; the zip is about 860 MB.
-6. Upload `dist/Agent 2B.msix` in a new Partner Center submission. If the window or the demo changed, re-render
+6. Upload `dist/ZimAI.msix` in a new Partner Center submission. If the window or the demo changed, re-render
    the listing images first (below).
 
 ### Try a change to the app
 
-`packaging\build.ps1 -Exe` builds only `src/2B.exe`, in a few seconds. Then double-click it. Changes to `home.html` or
-`palette.css` need no build: reopen the window. To look inside the window, start `2B.exe` with `AGENT_2B_DEVTOOLS=1`
+`packaging\build.ps1 -Exe` builds only `src/ZimAI.exe`, in a few seconds. Then double-click it. Changes to `home.html` or
+`palette.css` need no build: reopen the window. To look inside the window, start `ZimAI.exe` with `ZIMAI_DEVTOOLS=1`
 set, which turns on DevTools (F12).
 
 ### Set up the Store identity (once)
@@ -51,25 +51,25 @@ those are filled in, `-Msix` stops before building anything.
 Both tests skip the 12 GB download if you hard-link a model you already have into the app's data folder first:
 `mklink /H <data folder>\model\_model.gguf appdata\model\_model.gguf`.
 
-**The portable zip.** Unzip it somewhere new. Its data folder is `data\` beside `2B.exe`.
+**The portable zip.** Unzip it somewhere new. Its data folder is `data\` beside `ZimAI.exe`.
 
 **The Store package.** With Developer Mode on, register the staged app. That avoids installing the unsigned MSIX:
 
 ```powershell
-Add-AppxPackage -Register "build\Agent 2B\AppxManifest.xml"
+Add-AppxPackage -Register "build\ZimAI\AppxManifest.xml"
 ```
 
-Start **Agent 2B** from the Start menu. Its data folder is `%LOCALAPPDATA%\Packages\<package family name>\LocalCache\`.
+Start **ZimAI** from the Start menu. Its data folder is `%LOCALAPPDATA%\Packages\<package family name>\LocalCache\`.
 
 In each case, check that:
 - the window shows the GPU and the version. Without a model, Download model fills the progress bar, Cancel keeps
   what was downloaded, and Resume download continues from there.
-- Chat loads the model and opens the chat page. A message gets an answer, and **← 2B** goes back.
+- Chat loads the model and opens the chat page. A message gets an answer, and **← ZimAI** goes back.
 - Terminal opens Git Bash with the agent. A request gets an answer, and Bash and Edit work after asking. `/exit`
-  leaves a prompt where `2b` starts the agent again.
+  leaves a prompt where `zim` starts the agent again.
 - with the window and a terminal open, closing either one leaves `llama-server.exe` running, and closing the other
   stops it within a few seconds.
-- in the Store app, the terminal runs outside the package: `mkdir "$APPDATA/2b-check"` there makes a folder that
+- in the Store app, the terminal runs outside the package: `mkdir "$APPDATA/zimai-check"` there makes a folder that
   Explorer shows in `%APPDATA%` (delete it afterwards).
 
 Remove the Store app afterwards with `Get-AppxPackage <identity name> | Remove-AppxPackage`. That also deletes its data
@@ -114,21 +114,21 @@ Once the answer has finished, capture the window's contents without its title ba
 ## Explanation
 
 **One app, three places for its data.** The portable app keeps its data (the model, chat history, logs) in `data/`
-beside `2B.exe`. The Store package is installed read-only, so there `2B.exe` uses the package's `LocalCache` folder,
-which is deleted when the app is uninstalled. Run from a clone of the repo, `src\2B.exe` uses `appdata/` at the
+beside `ZimAI.exe`. The Store package is installed read-only, so there `ZimAI.exe` uses the package's `LocalCache` folder,
+which is deleted when the app is uninstalled. Run from a clone of the repo, `src\ZimAI.exe` uses `appdata/` at the
 repo's root, so 12 GB of model and your chat history stay out of the source tree. [`src/README.md`](../src/README.md) has the layout.
 
 **Why the terminal runs outside the package.** A packaged app's processes, and every process they start, have
 their new files in AppData and their writes to HKCU redirected into a private copy, which only the package sees and
-which is deleted with it. For 2B that would include everything the user and the agent run in its terminal
+which is deleted with it. For ZimAI that would include everything the user and the agent run in its terminal
 (`npm install -g`, `pip install --user`, `setx`). So the window starts the terminal outside the package, with the
 desktop app breakaway policy (`Terminal` and `Breakaway` in `src/app/app.cs`). Turning virtualization off in the
-manifest instead needs the `unvirtualizedResources` capability, which the Store denied for 2B. Breakaway only works
+manifest instead needs the `unvirtualizedResources` capability, which the Store denied for ZimAI. Breakaway only works
 through a process from outside the package (cmd): one of the package's own executables started directly stays
 inside.
 
 **Why PowerShell.** The tools have to run before anything is downloaded, so they use only what Windows has:
-PowerShell 5.1, `curl.exe` and `tar.exe`, the C# compiler of .NET Framework 4 (for `2B.exe`), and System.Drawing
+PowerShell 5.1, `curl.exe` and `tar.exe`, the C# compiler of .NET Framework 4 (for `ZimAI.exe`), and System.Drawing
 (for the Store logos, scaled from `src/app/icon.ico`). They don't use the Node.js in `src/runtime/`, which belongs to
 the app.
 
@@ -138,10 +138,10 @@ the app.
 
 | File | Where it goes |
 |---|---|
-| `dist/Agent-2B-portable.zip` | GitHub release |
-| `dist/Agent 2B.msix` | Partner Center (only with `-Msix`) |
+| `dist/ZimAI-portable.zip` | GitHub release |
+| `dist/ZimAI.msix` | Partner Center (only with `-Msix`) |
 
-`build/` holds intermediates: `build/Agent 2B/` is the staged app (`src/` without `data/`, plus `LICENSE`), and
+`build/` holds intermediates: `build/ZimAI/` is the staged app (`src/` without `data/`, plus `LICENSE`), and
 `build/downloads/` holds `packaging\fetch.ps1`'s unfinished downloads. `-Clean` deletes both, along with `dist/`.
 
 ### Build prerequisites
@@ -150,7 +150,7 @@ the app.
 - For `-Msix` only: `makeappx.exe`, from either the full
   [Windows SDK](https://developer.microsoft.com/windows/downloads/windows-sdk/) or, much smaller (~22 MB), the
   [Microsoft.Windows.SDK.BuildTools](https://www.nuget.org/packages/Microsoft.Windows.SDK.BuildTools) NuGet package:
-  download the `.nupkg`, rename it to `.zip`, and unzip it to `%LOCALAPPDATA%\Agent 2B Build\sdk-buildtools\`.
+  download the `.nupkg`, rename it to `.zip`, and unzip it to `%LOCALAPPDATA%\ZimAI Build\sdk-buildtools\`.
   No install or admin rights needed.
 
 ### Files
@@ -158,7 +158,7 @@ the app.
 | File | Role |
 |---|---|
 | [`packaging/fetch.ps1`](../packaging/fetch.ps1) | Downloads Node.js, Git Bash, llama.cpp and the WebView2 SDK into `src/runtime/` |
-| [`packaging/build.ps1`](../packaging/build.ps1) | Builds `src/2B.exe` and the portable zip; `-Msix` adds the Store package, `-Exe` builds only `2B.exe` |
+| [`packaging/build.ps1`](../packaging/build.ps1) | Builds `src/ZimAI.exe` and the portable zip; `-Msix` adds the Store package, `-Exe` builds only `ZimAI.exe` |
 | [`packaging/AppxManifest.xml`](../packaging/AppxManifest.xml) | The package manifest; `build.ps1` fills in the identity and version |
 | [`store-listing/LISTING.md`](../store-listing/LISTING.md) | The Store listing's text, field by field |
 | [`store-listing/generator/render.ps1`](../store-listing/generator/render.ps1) | Renders the listing's images into `store-listing/` |

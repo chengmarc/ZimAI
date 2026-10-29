@@ -1,22 +1,22 @@
-# Builds 2B from src\ (docs\RELEASING.md): src\2B.exe, then the ready-to-run zip for GitHub and, with -Msix, the
+# Builds ZimAI from src\ (docs\RELEASING.md): src\ZimAI.exe, then the ready-to-run zip for GitHub and, with -Msix, the
 # Microsoft Store package. Both hold src\ as it is after packaging\fetch.ps1, minus data\ (the app downloads the model).
 #   powershell -ExecutionPolicy Bypass -File packaging\build.ps1 [-Clean] [-Msix | -Exe]
-# -Exe builds only src\2B.exe, for trying a change to the app; -Clean deletes build\ and dist\ first.
+# -Exe builds only src\ZimAI.exe, for trying a change to the app; -Clean deletes build\ and dist\ first.
 param([switch]$Clean, [switch]$Msix, [switch]$Exe)
 $ErrorActionPreference = "Stop"
 
 # From Partner Center > the app > Product identity.
-$IdentityName = "chengmarc.Agent2B"
+$IdentityName = "chengmarc.ZimAI"   # TODO: from Partner Center once ZimAI is reserved; it was chengmarc.Agent2B
 $Publisher = "CN=58F02A86-A694-404A-8E09-F891292262CA"
 $PublisherDisplayName = "chengmarc"
-$DisplayName = "Agent 2B"      # must match the app name reserved in Partner Center
+$DisplayName = "ZimAI"      # must match the app name reserved in Partner Center
 
 $Root = Split-Path $PSScriptRoot
 $Src = Join-Path $Root "src"
 $Build = Join-Path $Root "build"
-$App = Join-Path $Build "Agent 2B"   # the app as it ships: the zip's one folder, then the package
-$Zip = Join-Path $Root "dist\Agent-2B-portable.zip"
-$Package = Join-Path $Root "dist\Agent 2B.msix"
+$App = Join-Path $Build "ZimAI"   # the app as it ships: the zip's one folder, then the package
+$Zip = Join-Path $Root "dist\ZimAI-portable.zip"
+$Package = Join-Path $Root "dist\ZimAI.msix"
 $Csc = Join-Path $env:SystemRoot "Microsoft.NET\Framework64\v4.0.30319\csc.exe"
 $Tar = Join-Path $env:SystemRoot "System32\tar.exe"
 
@@ -46,9 +46,9 @@ function Get-Manifest {
 }
 
 # makeappx.exe from the Windows SDK, or from the Microsoft.Windows.SDK.BuildTools NuGet package unzipped into
-# %LOCALAPPDATA%\Agent 2B Build\sdk-buildtools (docs\RELEASING.md). The newest one found.
+# %LOCALAPPDATA%\ZimAI Build\sdk-buildtools (docs\RELEASING.md). The newest one found.
 function Find-MakeAppx {
-    $found = @("${env:ProgramFiles(x86)}\Windows Kits\10\bin", "$env:LOCALAPPDATA\Agent 2B Build\sdk-buildtools\bin") |
+    $found = @("${env:ProgramFiles(x86)}\Windows Kits\10\bin", "$env:LOCALAPPDATA\ZimAI Build\sdk-buildtools\bin") |
         Where-Object { Test-Path $_ } |
         ForEach-Object { Get-ChildItem $_ -Directory -Filter "10.*" } |
         Where-Object { Test-Path "$($_.FullName)\x64\makeappx.exe" } |
@@ -57,17 +57,17 @@ function Find-MakeAppx {
     return "$($found.FullName)\x64\makeappx.exe"
 }
 
-# src\2B.exe, with the C# compiler that comes with Windows (.NET Framework 4).
+# src\ZimAI.exe, with the C# compiler that comes with Windows (.NET Framework 4).
 function Build-Exe {
     $webview2 = Join-Path $Src "runtime\webview2"
     if (-not (Test-Path $webview2)) { throw "src\runtime\webview2 is missing: run packaging\fetch.ps1 first" }
     $refs = @("System.Net.Http.dll", "System.Windows.Forms.dll", "System.Drawing.dll",
               "$webview2\Microsoft.Web.WebView2.Core.dll", "$webview2\Microsoft.Web.WebView2.WinForms.dll")
-    Invoke-Native $Csc (@("/nologo", "/target:winexe", "/optimize+", "/win32icon:$Src\app\icon.ico", "/out:$Src\2B.exe") +
+    Invoke-Native $Csc (@("/nologo", "/target:winexe", "/optimize+", "/win32icon:$Src\app\icon.ico", "/out:$Src\ZimAI.exe") +
                         ($refs | ForEach-Object { "/r:$_" }) + @("$Src\app\app.cs"))
 }
 
-# build\Agent 2B: src\ without data\, and the license.
+# build\ZimAI: src\ without data\, and the license.
 function Build-Stage {
     foreach ($dir in "node", "git", "llama", "webview2") {
         if (-not (Test-Path "$Src\runtime\$dir")) { throw "src\runtime\$dir is missing: run packaging\fetch.ps1 first" }
@@ -133,7 +133,7 @@ try {
     Build-Stage
     Build-Zip   # before Build-Package, which adds the package's own files to the staged app
     if ($Msix) { Build-Package $manifest }
-    Write-Host "`nBuilt (version $(Get-Version)):`n- $Src\2B.exe`n- $Zip"
+    Write-Host "`nBuilt (version $(Get-Version)):`n- $Src\ZimAI.exe`n- $Zip"
     if ($Msix) { Write-Host "- $Package (Microsoft Store upload)" }
 } catch {
     Write-Host "build: $($_.Exception.Message)" -ForegroundColor Red
