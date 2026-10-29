@@ -6,7 +6,7 @@ param([switch]$Clean, [switch]$Msix, [switch]$Exe)
 $ErrorActionPreference = "Stop"
 
 # From Partner Center > the app > Product identity.
-$IdentityName = "chengmarc.ZimAI"   # TODO: from Partner Center once ZimAI is reserved; it was chengmarc.Agent2B
+$IdentityName = "chengmarc.Agent2B" # fixed when the app's first name was reserved; renaming the app doesn't change it
 $Publisher = "CN=58F02A86-A694-404A-8E09-F891292262CA"
 $PublisherDisplayName = "chengmarc"
 $DisplayName = "ZimAI"      # must match the app name reserved in Partner Center

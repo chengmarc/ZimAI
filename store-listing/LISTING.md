@@ -40,8 +40,16 @@ Made for small jobs: it's a 20B open-weight model, not a replacement for the AI 
 
 ### What's new in this version
 
-Leave blank until a version is in the Store: 1.0.0 was never published (the Store denied `unvirtualizedResources`),
-so 1.0.1 is still the first version customers see.
+The short form of this version's notes ([docs/release-notes/](../docs/release-notes/)), up to 1500 characters:
+
+```
+Agent 2B is now ZimAI: Unlimited AI for Small Jobs. Hit your usage limit? Keep going.
+• A new name, a new icon, and a brighter home page
+• CPU mode: no NVIDIA GPU? ZimAI runs on the CPU with 16 GB of RAM, slower but it works
+• The model's full 128k context on a GPU
+• The first message no longer stalls while the model loads into memory
+• The terminal agent always asks before running a command
+```
 
 ### Product features
 
