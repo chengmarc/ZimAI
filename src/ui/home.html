@@ -20,19 +20,39 @@
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { margin: 0; height: 100%; }
+  html { background: var(--bg); }   /* the paper, under the glows (below) */
   body {
-    /* The icon's tile on the page's paper: its corner glows, amber top left, rose top right, violet bottom right */
-    background:
-      radial-gradient(65% 60% at 0% 0%, color-mix(in srgb, var(--gold) 36%, transparent), transparent),
-      radial-gradient(55% 55% at 100% 0%, color-mix(in srgb, var(--rose) 28%, transparent), transparent),
-      radial-gradient(70% 65% at 100% 100%, color-mix(in srgb, var(--violet) 36%, transparent), transparent),
-      var(--bg);
-    background-attachment: fixed;
     color: var(--strong);
     font: 14px/1.5 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
     display: flex; flex-direction: column; align-items: center;
     padding: 28px 24px 20px; user-select: none; overflow-y: auto;
   }
+  /* The icon's tile on the page's paper: its corner glows, amber top left, rose top right, violet bottom right, each on
+     a layer of its own behind the page, drifting slowly on its own path and time. The layers reach past the window
+     (30vmax each side), so a drifting edge never shows; transform keeps the drift off the page's layout. */
+  html::before, html::after, body::before {
+    content: ""; position: fixed; inset: -30vmax; z-index: -1; pointer-events: none;
+  }
+  html::before {
+    background: radial-gradient(65vw 60vh at 30vmax 30vmax, color-mix(in srgb, var(--gold) 36%, transparent), transparent);
+    animation: drift-gold 8s ease-in-out infinite alternate;
+  }
+  body::before {
+    background: radial-gradient(55vw 55vh at calc(100% - 30vmax) 30vmax, color-mix(in srgb, var(--rose) 28%, transparent), transparent);
+    animation: drift-rose 10s ease-in-out infinite alternate;
+  }
+  html::after {
+    background: radial-gradient(70vw 65vh at calc(100% - 30vmax) calc(100% - 30vmax),
+                                color-mix(in srgb, var(--violet) 36%, transparent), transparent);
+    animation: drift-violet 11s ease-in-out infinite alternate;
+  }
+  @keyframes drift-gold { to { transform: translate(22vw, 16vh); } }
+  @keyframes drift-rose { to { transform: translate(-25vw, 20vh); } }
+  @keyframes drift-violet { to { transform: translate(-22vw, -18vh); } }
+  @media (prefers-reduced-motion: reduce) {
+    html::before, html::after, body::before { animation: none; }
+  }
+
   main { width: 100%; max-width: 640px; flex: 1; display: flex; flex-direction: column; gap: 22px; }
 
   header { display: flex; align-items: center; gap: 18px; }

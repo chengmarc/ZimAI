@@ -33,16 +33,36 @@
   --code-foreground: #2e261e;
 }
 
-/* The icon's tile, as on the home page (the same glows, there in home.html's body): amber top left, rose top right,
-   violet bottom right, on the page's paper */
+/* The icon's tile, drifting, as on the home page (home.html has the same layers, sizes, paths and times): amber top
+   left, rose top right, violet bottom right, each on a layer of its own behind the page, on the page's paper. The body
+   is see-through so they show. */
+html {
+  background: #fbf8f3 !important;
+}
 body {
   font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
-  background:
-    radial-gradient(65% 60% at 0% 0%, rgba(200, 130, 20, 0.36), transparent),
-    radial-gradient(55% 55% at 100% 0%, rgba(220, 75, 120, 0.28), transparent),
-    radial-gradient(70% 65% at 100% 100%, rgba(150, 100, 215, 0.36), transparent),
-    #fbf8f3 !important;
-  background-attachment: fixed !important;
+  background: transparent !important;
+}
+html::before, html::after, body::before {
+  content: ""; position: fixed; inset: -30vmax; z-index: -1; pointer-events: none;
+}
+html::before {
+  background: radial-gradient(65vw 60vh at 30vmax 30vmax, rgba(200, 130, 20, 0.36), transparent);
+  animation: zimai-drift-gold 8s ease-in-out infinite alternate;
+}
+body::before {
+  background: radial-gradient(55vw 55vh at calc(100% - 30vmax) 30vmax, rgba(220, 75, 120, 0.28), transparent);
+  animation: zimai-drift-rose 10s ease-in-out infinite alternate;
+}
+html::after {
+  background: radial-gradient(70vw 65vh at calc(100% - 30vmax) calc(100% - 30vmax), rgba(150, 100, 215, 0.36), transparent);
+  animation: zimai-drift-violet 11s ease-in-out infinite alternate;
+}
+@keyframes zimai-drift-gold { to { transform: translate(22vw, 16vh); } }
+@keyframes zimai-drift-rose { to { transform: translate(-25vw, 20vh); } }
+@keyframes zimai-drift-violet { to { transform: translate(-22vw, -18vh); } }
+@media (prefers-reduced-motion: reduce) {
+  html::before, html::after, body::before { animation: none; }
 }
 
 /* Send: the brand gradient (palette.css --gold, --rose, --violet), glowing like the icon's loop. Picked by its icon
