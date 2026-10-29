@@ -1,11 +1,11 @@
-# Builds src\app\icon.ico from src\app\icon.svg: one PNG frame per size Windows asks for, rendered by Microsoft Edge
+# Builds src\ui\icon.ico from src\ui\icon.svg: one PNG frame per size Windows asks for, rendered by Microsoft Edge
 # in headless mode. Under 64 pixels the loop's thin lines would blur away, so those frames reweight its layers (#halo,
 # #tube, #core, #flare in icon.svg): a bolder tube, less glow. Re-run render.ps1 after, for the Store logo.
 # Run: powershell -ExecutionPolicy Bypass -File store-listing\generator\icon.ps1
 # ASCII only: Windows PowerShell reads a script in the system code page.
 $ErrorActionPreference = "Stop"
 
-$App = Join-Path $PSScriptRoot "..\..\src\app" | Resolve-Path
+$Ui = Join-Path $PSScriptRoot "..\..\src\ui" | Resolve-Path
 $Work = Join-Path $PSScriptRoot "..\..\build\icon"
 $EdgeProfile = Join-Path $PSScriptRoot "..\..\build\edge-render"   # a profile of its own, so a running Edge isn't involved
 
@@ -23,7 +23,7 @@ $Weights = @(
 )
 
 New-Item -ItemType Directory -Force $Work | Out-Null
-$svg = [IO.File]::ReadAllText((Join-Path $App "icon.svg"))
+$svg = [IO.File]::ReadAllText((Join-Path $Ui "icon.svg"))
 Add-Type -AssemblyName System.Drawing
 $frames = @()
 
@@ -75,5 +75,5 @@ foreach ($f in $frames) {
 }
 foreach ($f in $frames) { $w.Write($f.Png) }
 $w.Flush()
-[IO.File]::WriteAllBytes((Join-Path $App "icon.ico"), $ico.ToArray())
-Write-Host "src\app\icon.ico  $(($frames | ForEach-Object { $_.Size }) -join ', ') px"
+[IO.File]::WriteAllBytes((Join-Path $Ui "icon.ico"), $ico.ToArray())
+Write-Host "src\ui\icon.ico  $(($frames | ForEach-Object { $_.Size }) -join ', ') px"

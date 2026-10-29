@@ -26,10 +26,10 @@ function Invoke-Native([string]$Exe, [string[]]$Arguments) {
     if ($LASTEXITCODE -ne 0) { throw "$(Split-Path -Leaf $Exe) failed ($LASTEXITCODE)" }
 }
 
-# The version is app.cs's (AssemblyInformationalVersion), MAJOR.MINOR.PATCH; the git tag is v<it>.
+# The version is Program.cs's (AssemblyInformationalVersion), MAJOR.MINOR.PATCH; the git tag is v<it>.
 function Get-Version {
-    $m = Select-String -Path (Join-Path $Src "app\app.cs") -Pattern 'AssemblyInformationalVersion\("(\d+\.\d+\.\d+)"\)'
-    if (-not $m) { throw "no MAJOR.MINOR.PATCH AssemblyInformationalVersion in src\app\app.cs" }
+    $m = Select-String -Path (Join-Path $Src "app\Program.cs") -Pattern 'AssemblyInformationalVersion\("(\d+\.\d+\.\d+)"\)'
+    if (-not $m) { throw "no MAJOR.MINOR.PATCH AssemblyInformationalVersion in src\app\Program.cs" }
     return $m.Matches[0].Groups[1].Value
 }
 
@@ -63,8 +63,8 @@ function Build-Exe {
     if (-not (Test-Path $webview2)) { throw "src\runtime\webview2 is missing: run packaging\fetch.ps1 first" }
     $refs = @("System.Net.Http.dll", "System.Windows.Forms.dll", "System.Drawing.dll",
               "$webview2\Microsoft.Web.WebView2.Core.dll", "$webview2\Microsoft.Web.WebView2.WinForms.dll")
-    Invoke-Native $Csc (@("/nologo", "/target:winexe", "/optimize+", "/win32icon:$Src\app\icon.ico", "/out:$Src\ZimAI.exe") +
-                        ($refs | ForEach-Object { "/r:$_" }) + @("$Src\app\app.cs"))
+    Invoke-Native $Csc (@("/nologo", "/target:winexe", "/optimize+", "/win32icon:$Src\ui\icon.ico", "/out:$Src\ZimAI.exe") +
+                        ($refs | ForEach-Object { "/r:$_" }) + @("$Src\app\*.cs"))
 }
 
 # build\ZimAI: src\ without data\, and the license.
@@ -89,7 +89,7 @@ function Build-Zip {
 # The Store logos: icon.ico's 256-pixel image (stored as a PNG inside it), scaled down.
 function Build-Logos([string]$Into) {
     Add-Type -AssemblyName System.Drawing
-    $ico = [IO.File]::ReadAllBytes((Join-Path $Src "app\icon.ico"))
+    $ico = [IO.File]::ReadAllBytes((Join-Path $Src "ui\icon.ico"))
     $png = $null
     for ($i = 0; $i -lt [BitConverter]::ToUInt16($ico, 4); $i++) {
         $entry = 6 + 16 * $i
@@ -99,7 +99,7 @@ function Build-Logos([string]$Into) {
             $png = New-Object IO.MemoryStream(, $ico[$offset..($offset + $size - 1)])
         }
     }
-    if (-not $png) { throw "src\app\icon.ico has no 256-pixel image" }
+    if (-not $png) { throw "src\ui\icon.ico has no 256-pixel image" }
     $source = [Drawing.Image]::FromStream($png)
     New-Item -ItemType Directory -Force $Into | Out-Null
     foreach ($logo in @{ "StoreLogo.png" = 50; "Square44x44Logo.png" = 44; "Square150x150Logo.png" = 150 }.GetEnumerator()) {

@@ -1,6 +1,6 @@
 <div align="center">
 
-  <img src="src/app/icon.svg" width="180"><br>
+  <img src="src/ui/icon.svg" width="180"><br>
 
   <a href="https://github.com/chengmarc/ZimAI/releases/latest"><img src="docs/badges/badge-download.svg" height="50"></a>
   <a href="https://apps.microsoft.com/detail/9NCRP4F65JTF"><img src="docs/badges/badge-microsoft-store.svg" height="50"></a>
