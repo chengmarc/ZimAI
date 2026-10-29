@@ -4,7 +4,7 @@ import { spawn } from "node:child_process";
 import * as fs from "node:fs";
 import * as http from "node:http";
 import * as path from "node:path";
-import { APP, CLIENTS, MODEL, SERVER, SERVER_PID } from "../paths.ts";
+import { APP, CLIENTS, MODEL, SERVER, SERVER_PID, SERVER_READY } from "../paths.ts";
 
 export { SERVER };
 const LOCAL = new http.Agent();   // talks to llama-server directly, never through HTTPS_PROXY
@@ -52,9 +52,10 @@ export async function readAll(res: http.IncomingMessage): Promise<string> {
   return text;
 }
 
-/** Whether this install's server has loaded the model and takes requests (another install's may answer the port). */
+/** Whether this install's server has loaded the model and takes requests (another install's may answer the port), as
+ *  its keeper says: with part of the model memory-mapped, only once that part is read too (app/Server.cs). */
 export function serverReady(): Promise<boolean> {
-  if (!running()) return Promise.resolve(false);
+  if (!running() || !fs.existsSync(SERVER_READY)) return Promise.resolve(false);
   return new Promise(resolve => {
     const req = http.get(SERVER + "/health", { agent: LOCAL, timeout: 2000 }, res =>
       readAll(res).then(body => resolve(res.statusCode === 200 && body.includes('"ok"')), () => resolve(false)));

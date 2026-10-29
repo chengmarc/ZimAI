@@ -26,6 +26,7 @@ static class Paths {
     public static string ServerPid { get { return Path.Combine(Logs, "server.pid"); } }      // the keeper's, while it runs
     public static string ServerPlan { get { return Path.Combine(Logs, "server-plan"); } }    // how it runs (Plan.Describe)
     public static string LoadSeconds { get { return Path.Combine(Logs, "load-seconds"); } }  // the last load time, for the agent's loading screen
+    public static string ServerReady { get { return Path.Combine(Logs, "server-ready"); } }  // there once the server takes requests (Keeper)
     public static string Clients { get { return Path.Combine(Logs, "clients"); } }           // <pid>: each open ZimAI window and agent
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
