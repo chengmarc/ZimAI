@@ -1,6 +1,6 @@
 // ZimAI.exe, the app. With no arguments it's the ZimAI window: home.html in WebView2, which shows the GPU, the model and
 // the model server, and has Download model, Chat (llama-server's own chat page) and Terminal (Git Bash with the
-// agent). The window starts the server as soon as it opens, so Chat and Terminal open without a wait. With
+// agent). The server starts when the home page's Start is clicked; Chat and Terminal wait for it. With
 // --server it's the model server's keeper (Keeper): the window and each agent ask for the server that way. With
 // --terminal it starts the terminal and exits (Terminal).
 // It owns everything outside the agent: where things are (Paths), the model (Model), the server's settings and
@@ -53,7 +53,7 @@ static class Paths {
     public static string Log { get { return Path.Combine(Logs, "server.log"); } }            // llama-server's own log
     public static string ServerPid { get { return Path.Combine(Logs, "server.pid"); } }      // the keeper's, while it runs
     public static string ServerPlan { get { return Path.Combine(Logs, "server-plan"); } }    // how it runs (Plan.Describe)
-    public static string LoadSeconds { get { return Path.Combine(Logs, "load-seconds"); } }  // the last load time, for estimates
+    public static string LoadSeconds { get { return Path.Combine(Logs, "load-seconds"); } }  // the last load time, for the agent's loading screen
     public static string Clients { get { return Path.Combine(Logs, "clients"); } }           // <pid>: each open ZimAI window and agent
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
@@ -88,7 +88,7 @@ static class Paths {
 
 // The model: the one file ZimAI uses, pinned by its URL, so its facts are fixed here with it.
 static class Model {
-    public const string Name = "gpt-oss-20b";   // its name in the API
+    public const string Name = "ZimAI";         // its name in the API (--alias), which Chat shows; the agent sends none
     public const string Title = "GPT OSS 20B";  // its name on screen
     public const string Url = "https://huggingface.co/ggml-org/gpt-oss-20b-GGUF/resolve/ef9b12f2ff56c69cf32153a02784e7a3c88bf524/gpt-oss-20b-MXFP4.gguf";
     public const long Size = 12109566624;
@@ -496,8 +496,8 @@ static class Terminal {
         else Start();
     }
 
-    /** ZimAI.exe --terminal, or the portable app's window. */
-    public static void Start() {
+    /** ZimAI.exe --terminal, or the portable app's window. Done once the terminal's title bar is colored. */
+    public static Task Start() {
         string mintty = Path.Combine(Paths.Git, @"usr\bin\mintty.exe");
         // -c: our look (mintty.conf), -i and -t: our icon and title (the config keeps programs from changing it).
         // First the agent (a Ctrl+C in it is the agent's, not this shell's), then a normal prompt.
@@ -515,12 +515,41 @@ static class Terminal {
         // The zim command: bash defines a function from each BASH_FUNC_<name>%% variable it starts with, and passes
         // it on to the bashes it starts.
         env["BASH_FUNC_zim%%"] = "() { node \"" + Unix(Paths.Agent) + "\" \"$@\"; }";
-        Process.Start(start);
+        var terminal = Process.Start(start);
+        // mintty has no setting for its title bar, so it's colored from here, once its window is up (10 s at most)
+        return Task.Run(() => {
+            try {
+                for (int i = 0; i < 100 && terminal.MainWindowHandle == IntPtr.Zero && !terminal.HasExited; i++) {
+                    Thread.Sleep(100);
+                    terminal.Refresh();
+                }
+                if (terminal.MainWindowHandle != IntPtr.Zero) TitleBar.Color(terminal.MainWindowHandle);
+            } catch { }
+        });
     }
 
     /** C:\a\b as Git Bash writes it: /c/a/b. */
     static string Unix(string path) {
         return "/" + char.ToLowerInvariant(path[0]) + path.Substring(2).Replace('\\', '/');
+    }
+}
+
+// The title bar of ZimAI's windows, the app's and the terminal's, in palette.css's colors, so it runs into what's
+// below it: --bg, with --strong text and a --line border. Windows 11 only; Windows 10 ignores it and keeps its own.
+static class TitleBar {
+    [DllImport("dwmapi.dll")]
+    static extern int DwmSetWindowAttribute(IntPtr window, int attribute, ref int value, int size);
+
+    /** Any window's, this process's or not. */
+    public static void Color(IntPtr window) {
+        Set(window, 34, 0xe2d8c8);   // DWMWA_BORDER_COLOR
+        Set(window, 35, 0xfbf8f3);   // DWMWA_CAPTION_COLOR
+        Set(window, 36, 0x3d342b);   // DWMWA_TEXT_COLOR
+    }
+
+    static void Set(IntPtr window, int attribute, int rgb) {
+        int color = (rgb >> 16 & 0xff) | (rgb & 0xff00) | (rgb & 0xff) << 16;   // a COLORREF: 0x00BBGGRR
+        DwmSetWindowAttribute(window, attribute, ref color, 4);
     }
 }
 
@@ -597,7 +626,7 @@ static class Program {
         Environment.SetEnvironmentVariable("ZIMAI_EXE", Paths.Exe);
         UseProxy();
         if (args.Length == 1 && args[0] == "--server") return Keeper.Run();
-        if (args.Length == 1 && args[0] == "--terminal") { Terminal.Start(); return 0; }
+        if (args.Length == 1 && args[0] == "--terminal") { Terminal.Start().Wait(); return 0; }
         // The WebView2 assemblies are in runtime\webview2, not beside this file.
         AppDomain.CurrentDomain.AssemblyResolve += (sender, e) => {
             string file = Path.Combine(Paths.WebView2, new AssemblyName(e.Name).Name + ".dll");
@@ -772,7 +801,6 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
     string server = "stopped", error, shown;
     DateTime? asked;    // when this window asked for the server (Ask), until it's ready or has failed
     bool restarting;    // Use GPU changed while the server ran: stopping it, to start it again with the new setting
-    bool modelReady;
     long lastDone;
     DateTime lastTick = DateTime.Now;
     double speed;
@@ -781,8 +809,9 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
     public Window() {
         Text = "ZimAI";
         Icon = Icon.ExtractAssociatedIcon(Paths.Exe);
-        ClientSize = new Size(940, 680);
-        MinimumSize = new Size(640, 560);
+        // 960 x 640 inside the frame, and no smaller: it fits a 1080p laptop at 150% scaling, the smallest common screen
+        ClientSize = new Size(960, 640);
+        MinimumSize = Size;
         StartPosition = FormStartPosition.CenterScreen;
         BackColor = Color.FromArgb(0xfb, 0xf8, 0xf3);   // palette.css --bg, so opening doesn't flash white
         view.Dock = DockStyle.Fill;
@@ -798,6 +827,11 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         FormClosed += (s, e) => Clients.Remove(pid);
         timer.Interval = 500;
         timer.Tick += (s, e) => Tick();
+    }
+
+    protected override void OnHandleCreated(EventArgs e) {
+        base.OnHandleCreated(e);
+        TitleBar.Color(Handle);
     }
 
     async Task Start() {
@@ -831,8 +865,6 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         core.NavigationCompleted += (s, e) => { shown = null; };   // a new page: send it the state again
         core.Navigate(Home);
         CheckSystem();
-        modelReady = File.Exists(Paths.Model);
-        if (modelReady) Ask();
         timer.Start();
     }
 
@@ -888,8 +920,8 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         Push();
     }
 
-    /** Start the model server, unless it's running. The window asks as soon as it opens, and again once the model is
-     *  downloaded, so Chat and Terminal are ready by the time they're clicked; until then they're grayed out. */
+    /** Start the model server, unless it's running: when Start is clicked, or again after Use GPU changes while it
+     *  runs. Until it's ready, Chat and Terminal are grayed out. */
     void Ask() {
         if (server != "stopped") return;
         asked = DateTime.Now;
@@ -920,9 +952,6 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
             lastDone = download.Done;
             lastTick = DateTime.Now;
         }
-        bool ready = File.Exists(Paths.Model);
-        if (ready && !modelReady) Ask();   // just downloaded
-        modelReady = ready;
         if (restarting) {
             // Again each tick: a keeper still planning starts its llama-server after the first Stop.
             if (server == "stopped") { restarting = false; Ask(); }
@@ -968,16 +997,10 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         view.CoreWebView2.PostWebMessageAsJson(text);
     }
 
-    /** The server's state for the page; while it loads, for how long, and how long the last load took. */
+    /** The server's state for the page, and how it runs. */
     Dictionary<string, object> ServerState() {
         string state = restarting ? "loading" : server == "stopped" && asked.HasValue ? "loading" : server;   // asked, not started yet
-        var s = new Dictionary<string, object> { { "state", state }, { "plan", ReadPlan() } };
-        if (state == "loading") {
-            DateTime since = !restarting && File.Exists(Paths.ServerPid) ? File.GetLastWriteTime(Paths.ServerPid) : asked ?? DateTime.Now;
-            s["seconds"] = Math.Max(0, (int)(DateTime.Now - since).TotalSeconds);
-            s["estimate"] = ReadInt(Paths.LoadSeconds);
-        }
-        return s;
+        return new Dictionary<string, object> { { "state", state }, { "plan", ReadPlan() } };
     }
 
     /** The running server's plan (Plan.Describe), as { context, gpu, ram, mapped }; null before it has one. */
@@ -992,11 +1015,5 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         } catch {
             return null;
         }
-    }
-
-    // ---------- helpers ----------
-    static int ReadInt(string file) {
-        int n;
-        try { return int.TryParse(File.ReadAllText(file).Trim(), out n) ? n : 0; } catch { return 0; }
     }
 }
