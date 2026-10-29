@@ -1,6 +1,6 @@
-/* The look shared by the Store's designed images (logo.html, shots.html): the icon's dot matrix and its gradient
-   (amber -> rose -> violet, palette.css's) glowing on warm near-black, so the icon's light tile stands out. Sizes are
-   relative where a page is rendered at more than one size. */
+/* The look shared by the Store's designed images (logo.html, shots.html): a dot matrix and the brand gradient
+   (amber -> rose -> violet, palette.css's) glowing on warm near-black, the same corner glows as the icon's tile. Sizes
+   are relative where a page is rendered at more than one size. */
 @import url("../../src/app/palette.css");
 
 :root {
@@ -22,7 +22,7 @@ body {
     var(--night);
 }
 
-/* The icon's dot matrix. Each page fades it out where its content sits, with mask-image. */
+/* The dot matrix (the terminal banner's). Each page fades it out where its content sits, with mask-image. */
 body::before {
   content: "";
   position: absolute;
