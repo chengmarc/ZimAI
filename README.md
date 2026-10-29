@@ -8,10 +8,6 @@
 
   <h1>ZimAI - Unlimited AI for Small Jobs</h1>
 
-  <p><b>Out of credits? Not here.</b> A free AI on your own PC for the jobs your cloud AI's limits shouldn't go
-  to: the commit message after a big rework, a quick search, a rename, an error you don't recognize.
-  No limits, no account, nothing leaves your PC.</p>
-
   <img src="store-listing/desktop/screenshot-1-limit.png">
   <img src="store-listing/desktop/screenshot-2-chat.png">
   <img src="store-listing/desktop/screenshot-3-home.png">
