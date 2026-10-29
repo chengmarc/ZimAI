@@ -46,6 +46,14 @@
     background: linear-gradient(#2a211c, #2a211c) padding-box, var(--brand) border-box;
     background-attachment: scroll, fixed; background-size: auto, 330px 100%; background-position: 0 0, 60px 0;
   }
+  /* #promo: the moment it's for, a cloud AI's usage-limit notice, generic (no product's look or words), dimmed. */
+  .limit {
+    display: flex; gap: 12px; align-items: flex-start; margin-bottom: 26px; padding: 13px 16px; border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.16);
+    font: 400 14px/1.45 "Segoe UI Variable Text", "Segoe UI", sans-serif; color: rgba(255, 255, 255, 0.62);
+  }
+  .limit i { font: normal 18px/1.2 "Segoe Fluent Icons", "Segoe MDL2 Assets"; color: #e8b25a; }
+  .limit b { display: block; font-weight: 600; color: rgba(255, 255, 255, 0.88); }
   .facts span {
     padding: 6px 13px; border-radius: 999px; font: 600 13px "Segoe UI Variable Text", "Segoe UI", sans-serif;
     background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
@@ -70,6 +78,7 @@
 <body>
   <div class="caption">
     <div class="app"><img src="../../src/app/icon.svg" alt=""><span>Agent 2B<small>Unlimited AI for small jobs</small></span></div>
+    <div id="limit"></div>
     <h1 id="title"></h1>
     <p id="text"></p>
     <div class="facts" id="facts"></div>
@@ -119,6 +128,7 @@ const FACTS = ["No limits", "Works offline", "No account"];
 // page, at 2x).
 const SHOTS = {
   promo: {
+    limit: true,
     title: 'Out of credits? <span class="brand">Not here.</span>',
     text: "For the jobs your cloud AI's limits shouldn't go to. It reads, runs and edits on your PC, asking first.",
     numbers: NUMBERS,
@@ -139,6 +149,8 @@ const SHOTS = {
 
 const shot = SHOTS[location.hash.slice(1)];
 if (!shot) throw new Error("Unknown shot " + location.hash);
+document.getElementById("limit").outerHTML = shot.limit
+  ? `<div class="limit"><i>&#xE7BA;</i><span><b>You've reached your usage limit.</b>Your limit resets in 4 h 12 m.</span></div>` : "";
 document.getElementById("title").innerHTML = shot.title;
 document.getElementById("text").textContent = shot.text || "";
 if (!shot.text) document.getElementById("text").remove();
