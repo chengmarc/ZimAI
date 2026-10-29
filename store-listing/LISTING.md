@@ -7,7 +7,8 @@ by hand. Images are beside this file (the screenshots in [desktop/](desktop/)), 
 
 ## Properties
 
-- **Category:** Developer tools. **Subcategory:** none.
+- **Category:** Productivity. **Subcategory:** none. (Developer tools until 2026-10-29: developers are now one of two
+  audiences, [POSITIONING.md](../docs/POSITIONING.md).)
 - **Privacy policy:** paste [PRIVACY.md](PRIVACY.md) as it is; it's plain text, written for Partner Center's box.
 - **Website:** `https://github.com/chengmarc/ZimAI`
 - **Support contact info:** `https://github.com/chengmarc/ZimAI/issues`
@@ -38,43 +39,37 @@ by hand. Images are beside this file (the screenshots in [desktop/](desktop/)), 
 ```
 Unlimited AI for small jobs. Out of credits? Not here.
 
-ZimAI is a free AI that runs on your own PC, for the jobs your cloud AI's limits shouldn't go to. Keep your subscription for the big work; hand ZimAI the small stuff, as often as you like. It runs on your NVIDIA GPU, or on the CPU if you don't have one, so there are no credits, no rate limits, and nothing you ask or open leaves your PC. You don't need an account, an API key or a plan.
+You're halfway through something and your AI stops: "You've reached your usage limit. Resets at 4:00 PM." You can wait hours, pay for the next plan up, or do it by hand, which you stopped doing a while ago.
+
+ZimAI is the fourth option: keep going. It's a free AI that runs on your own PC, so there's no usage limit, no reset clock and no plan to upgrade. Keep your subscription for the big work, and hand ZimAI the small stuff, as often as you like.
 
 Hand it the small jobs
-• Finished a big rework and out of quota? Ask it to draft the commit message from your changes.
-• "Where is this function used?", "rename these files", "what does this error mean?", "add this folder to .gitignore": the quick jobs that aren't worth your cloud AI's limits.
+• Reply to this email, reword this paragraph, summarize this, explain this: in the app's own Chat window.
+• For developers, a terminal that works in your projects: the commit message after a big rework, "where is this function used?", rename these files, what does this error mean.
 • Ask about your PC, too: "my C: drive is 97% full, what's eating the space?" gets you the biggest folders, first to last.
-• It reads your files, runs commands in Git Bash and searches the web when it needs to, and follows your project's AGENTS.md or CLAUDE.md.
 
 No meter running
-• No credits to buy and no daily cap: use it a hundred times a day, or let it work through a pile of small jobs.
+• No usage limit, no credits, no daily cap: use it a hundred times a day.
+• No account, no API key, no subscription, no ads and no telemetry.
 • It sits beside the AI you already use; it doesn't ask you to switch.
 
-Stay in control of every change
-• Anything that changes a file, runs a command or opens a web page waits for your yes.
-• You see each edit as a diff before it's made, and after a no you can tell it why.
-• Reading files and searching your code happen without asking, so simple questions stay quick.
-
-Quick questions in Chat
-• Ask everyday questions in the app's own window, as you would any chatbot, with no quota.
+Private by default
+• It runs on your PC: nothing you ask, type or open is sent to an AI service.
 • Your chats are saved on your PC and nowhere else.
+• Once the model is downloaded, it works offline. Only web searches, and pages and commands you approve, go online.
 
-On the PC you already have: the GPU you game on, or just the CPU
-• You don't need a workstation or data-center card: a GeForce from a GTX 1060 6 GB to an RTX 5090 is enough.
+You approve every change
+• In the terminal, anything that changes a file, runs a command or opens a web page waits for your yes.
+• You see each edit as a diff before it's made, and after a no you can tell it why.
+
+On the PC you already have
+• It runs on the NVIDIA GeForce you game on, from a GTX 1060 6 GB to an RTX 5090.
 • No NVIDIA GPU? It runs on the CPU with 16 GB of RAM, much slower, but it works.
-• Want the GPU for a game? Turn off Use GPU and ZimAI moves to the CPU.
-• Before anything downloads, the app checks your PC and tells you plainly whether it can run it.
-• There's nothing to configure: the model is split between your GPU's memory and your RAM to fit whatever is free. Loading takes about 30 seconds on a GPU.
-
-Download once, then work offline
-• The model is a single 12 GB download from Hugging Face on first run. If it's interrupted, it resumes, even after a restart.
-• After that, you can work without an internet connection. Only web searches, and pages and commands you approve, go online.
-
-Free, with nothing to sign up for
-No account, no API key, no subscription, no ads and no telemetry.
+• Before anything downloads, the app checks your PC and tells you plainly whether it can run ZimAI.
+• Nothing to set up: the model is fitted to your GPU and RAM automatically. It's one 12 GB download, and it resumes if interrupted, even after a restart.
 
 Know the limits
-The model is gpt-oss-20b: 20 billion parameters, about 3.6 billion active per token. It's made for small jobs, not to replace your cloud AI: give it tight, scoped tasks in a codebase or on your machine, and keep the big, open-ended ones for the cloud.
+ZimAI is built on gpt-oss-20b, an open-weight model: 20 billion parameters, about 3.6 billion active per token. It's made for small jobs, not to replace the AI you pay for: give it quick, clear tasks, and keep the big, open-ended ones for the cloud.
 
 Requirements
 • Windows 10 or 11, 64-bit
@@ -99,16 +94,15 @@ so 1.0.1 is still the first version customers see.
 One per line in Partner Center ("Add more" for each); each finishes "With this app, you can …":
 
 ```
-Use AI for small jobs as often as you like: no credits, no rate limits
-Hand off the jobs not worth your cloud AI's quota, like a commit message after a big rework
-Have it read, edit and run commands in your projects and on your PC
-Keep your code on your PC: nothing you ask or open is sent to an AI service
+Keep going when your AI hits its usage limit: ZimAI has none
+Hand off small jobs as often as you like: emails, rewrites, summaries, quick questions
+Skip the hours-long wait for a reset, and the upgrade to a bigger plan
+Have it draft a commit message, find where code is used or rename files in your projects
+Keep everything on your PC: nothing you ask or open is sent to an AI service
 Approve every edit, command and web page first, with each edit shown as a diff
 Use the GeForce you game on, from a GTX 1060 6 GB to an RTX 5090, or just the CPU
-Chat with the model in the app's own window, with your chats saved only on your PC
 Find out whether your PC can run it before anything downloads
 Skip the setup: the model is fitted to your GPU and RAM automatically
-Resume the 12 GB model download if it's interrupted, even after a restart
 Work offline once the model is downloaded
 Use it with no account, no API key and no subscription
 Read and change every line: it's open source under Apache 2.0
@@ -116,11 +110,13 @@ Read and change every line: it's open source under Apache 2.0
 
 ### Screenshots
 
-Upload in this order (the first is shown first):
+Upload in this order (the first is shown first). The line on each is fixed in
+[POSITIONING.md](../docs/POSITIONING.md) → The four screenshots:
 
-1. `desktop/screenshot-1-promo.png`: out of credits? not here (the terminal, and what it costs: nothing)
-2. `desktop/screenshot-2-chat.png`: quick questions with no quota (Chat)
-3. `desktop/screenshot-3-home.png`: on the PC you already have (the GPUs it runs on, and the home page)
+1. `desktop/screenshot-1-limit.png`: Hit your limit? Keep going. (a generic usage-limit banner, and ZimAI picking up the job)
+2. `desktop/screenshot-2-chat.png`: Resets at 4 PM? Not here. (Chat finishing an everyday job)
+3. `desktop/screenshot-3-terminal.png`: The AI that never says *come back later*. (the terminal, a developer's small job)
+4. `desktop/screenshot-4-home.png`: Your AI ran out. Yours didn't. (the home page, on your own PC)
 
 ### Store logos
 
@@ -142,7 +138,7 @@ Leave empty: ZimAI has no trailer, and isn't an Xbox app.
 - **Short description** (270 characters or fewer):
 
   ```
-  Unlimited AI for small jobs. When your cloud AI is out of credits, or the job isn't worth it, ZimAI reads, edits and runs things in your projects on your own PC, asking before every change. No limits, no account. Fastest on an NVIDIA GPU; runs on the CPU too.
+  Hit your usage limit mid-task? Keep going. ZimAI is a free AI on your own PC for the small jobs: emails, rewrites, quick questions, commit messages. No usage limit, no account, nothing leaves your PC. Fastest on an NVIDIA GPU; runs on the CPU too.
   ```
 
 ### Additional information
@@ -151,12 +147,12 @@ Leave empty: ZimAI has no trailer, and isn't an Xbox app.
 
   ```
   unlimited AI
+  usage limit
   free AI
   local AI
   offline AI
+  AI chat
   AI coding assistant
-  local LLM
-  gpt-oss
   ```
 
 - **Additional system requirements** (each line one item, 200 characters each):
