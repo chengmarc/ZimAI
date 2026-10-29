@@ -34,4 +34,4 @@ If this policy changes, the new version will be posted here and the "Last update
 
 Contact
 
-Questions about this policy can go to the project's issue tracker: https://github.com/chengmarc/zimai/issues
+Questions about this policy can go to the project's issue tracker: https://github.com/chengmarc/ZimAI/issues
