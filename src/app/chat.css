@@ -25,7 +25,7 @@
   --sidebar-foreground: #3d342b;
   --sidebar-primary: #3d342b;
   --sidebar-primary-foreground: #fbf8f3;
-  --sidebar-accent: #efe7da;
+  --sidebar-accent: #f3ece1;
   --sidebar-accent-foreground: #3d342b;
   --sidebar-border: #e2d8c8;
   --sidebar-ring: #dc4b78;
@@ -33,13 +33,14 @@
   --code-foreground: #2e261e;
 }
 
-/* The icon's tile, faintly, as on the home page: its corner glows (amber, rose, violet) on the page's paper */
+/* The icon's tile, as on the home page (the same glows, there in home.html's body): amber top left, rose top right,
+   violet bottom right, on the page's paper */
 body {
   font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
   background:
-    radial-gradient(50% 45% at 0% 0%, rgba(200, 130, 20, 0.13), transparent),
-    radial-gradient(40% 40% at 100% 0%, rgba(220, 75, 120, 0.08), transparent),
-    radial-gradient(55% 50% at 100% 100%, rgba(150, 100, 215, 0.13), transparent),
+    radial-gradient(65% 60% at 0% 0%, rgba(200, 130, 20, 0.36), transparent),
+    radial-gradient(55% 55% at 100% 0%, rgba(220, 75, 120, 0.28), transparent),
+    radial-gradient(70% 65% at 100% 100%, rgba(150, 100, 215, 0.36), transparent),
     #fbf8f3 !important;
   background-attachment: fixed !important;
 }
@@ -61,6 +62,29 @@ button:has(> svg.lucide-arrow-up) {
 [data-slot="input-area"]:focus-within {
   border-color: rgba(220, 75, 120, 0.35) !important;
   box-shadow: 0 8px 28px rgba(220, 75, 120, 0.18), 0 2px 16px rgba(150, 100, 215, 0.14) !important;
+}
+
+/* The open sidebar, the message box and the user's messages, pure white: llama.cpp draws them as frosted glass (a
+   see-through tint over a blur of the page), which lets the glows through, so they blended in. The box is picked by
+   its data-slot and the messages by their own class; the sidebar, with no label or icon, by its classes. */
+[class*="md:bg-muted/60"][class*="backdrop-blur-xl"],
+[data-slot="input-area"],
+.chat-message-user-bubble {
+  background: #ffffff !important;
+}
+
+/* Settings. Its fields and outline buttons (Reset to default) are see-through too, so white like the message box;
+   while hovered, an outline button keeps its own tint. */
+[data-slot="input"],
+[data-slot="textarea"],
+[data-slot="select-trigger"],
+[data-slot="button"][class*="backdrop-blur-sm"]:not(:hover) {
+  background-color: #ffffff !important;
+}
+/* Its menu (Agentic, Developer, ...) is a block of the page's paper, square, cut out of the glows: see-through instead,
+   so the glows run under it. Picked by its classes; nothing names it. */
+[class*="sticky"][class*="w-64"][class*="bg-background"] {
+  background: transparent !important;
 }
 
 /* ZimAI's icon in place of llama.cpp's, top left (icon.svg, from the window's own files): on the button that expands the
