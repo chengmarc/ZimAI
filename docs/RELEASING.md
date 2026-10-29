@@ -29,10 +29,18 @@ plus `makeappx.exe` for the Store package. Nothing in `packaging/` ships inside 
    This takes about ten minutes: five to zip and five to pack.
 4. Smoke-test the portable zip: unzip it somewhere new and double-click `ZimAI.exe`. Then smoke-test the Store package
    (below).
-5. Tag the release, push the tag, and publish a GitHub release with `dist/ZimAI-portable.zip` attached.
-   GitHub takes release files up to 2 GB; the zip is about 860 MB.
-6. Upload `dist/ZimAI.msix` in a new Partner Center submission. If the window or the demo changed, re-render
-   the listing images first (below).
+5. Write what's new in `docs/release-notes/v<version>.md`, for customers, not developers: what they'll notice since the
+   last release, and how to get it. `git log v<last>..HEAD` lists what changed.
+6. Tag the release, push the tag, and publish a GitHub release named `ZimAI <version>` from those notes, with
+   `dist/ZimAI-portable.zip` attached. GitHub takes release files up to 2 GB; the zip is about 860 MB.
+
+   ```powershell
+   gh release create v<version> dist\ZimAI-portable.zip --title "ZimAI <version>" --notes-file docs\release-notes\v<version>.md
+   ```
+
+7. Upload `dist/ZimAI.msix` in a new Partner Center submission, with the product name ZimAI, and paste a short form of
+   the notes into "What's new in this version" ([`store-listing/LISTING.md`](../store-listing/LISTING.md) keeps it). If
+   the window or the demo changed, re-render the listing images first (below).
 
 ### Try a change to the app
 
