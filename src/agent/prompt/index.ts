@@ -1,6 +1,6 @@
 // What the model reads besides the tools, from the text files beside this one: instructions.md (filled with the
 // tool tips and a line about the machine) and messages.toml (the loop's own texts). Who the model is
-// (app/identity.md) is the server's, so Chat and the agent share it. The server wraps it all in the model's format
+// (identity.md, also here) is the server's, so Chat and the agent share it: ZimAI.exe reads it, not this. The server wraps it all in the model's format
 // with the chat template inside the model file.
 // Read at every new conversation, so /clear picks up edits to the text files.
 import * as fs from "node:fs";

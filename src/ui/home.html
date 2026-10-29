@@ -1,5 +1,5 @@
 <!doctype html>
-<!-- The home page ZimAI.exe shows (app.cs): the GPU, the model, and the two ways in. It only draws the state ZimAI.exe
+<!-- The home page ZimAI.exe shows (app/Window.cs): the GPU, the model, and the two ways in. It only draws the state ZimAI.exe
      sends it, and sends back the name of what was clicked ("download" and so on). Its colors are palette.css's. -->
 <html lang="en">
 <head>
@@ -221,7 +221,7 @@ function button(label, what, primary) {
   return b;
 }
 
-/** The model, as ZimAI.exe describes it (Model in app.cs): "11.27 GB · 20.9 B Parameters". */
+/** The model, as ZimAI.exe describes it (app/Model.cs): "11.27 GB · 20.9 B Parameters". */
 function about(model) {
   return `${gb(model.size, 2)} &middot; ${esc(model.parameters)}${THIN}B Parameters`;
 }
@@ -231,7 +231,7 @@ function about(model) {
 const line = (head, details) => `<b>${head}</b>` + (details ? ` <span class="sub">&middot; ${details}</span>` : "");
 const hint = (id, text) => { $(id).hidden = !text; $(id).textContent = text || ""; };
 
-// How the System row words each of ZimAI.exe's verdicts (Requirements in app.cs), and its color.
+// How the System row words each of ZimAI.exe's verdicts (app/Requirements.cs), and its color.
 const VERDICTS = {
   great: ["ok", "Great"], good: ["ok", "Good"], slow: ["warn", "Slow"], cpu: ["warn", "Slow"],
   unsupported: ["bad", "Not Supported"],

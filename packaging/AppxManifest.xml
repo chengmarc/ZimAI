@@ -40,7 +40,7 @@
 
   <Capabilities>
     <!-- No unvirtualizedResources: the terminal, where the agent's commands run, starts outside the package
-         (Terminal in src/app/app.cs). -->
+         (Terminal in src/app/Terminal.cs). -->
     <rescap:Capability Name="runFullTrust" />
   </Capabilities>
 </Package>

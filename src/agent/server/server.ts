@@ -1,5 +1,5 @@
 // The model server (llama-server, run by ZimAI.exe): asking ZimAI.exe for it, and talking to it over HTTP. Its settings
-// and its lifetime are ZimAI.exe's (app/app.cs): it stays up while any ZimAI window or agent is running (CLIENTS).
+// and its lifetime are ZimAI.exe's (app/Server.cs): it stays up while any ZimAI window or agent is running (CLIENTS).
 import { spawn } from "node:child_process";
 import * as fs from "node:fs";
 import * as http from "node:http";

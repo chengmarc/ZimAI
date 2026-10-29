@@ -1,7 +1,7 @@
 /* The look shared by the Store's designed images (logo.html, shots.html): a dot matrix and the brand gradient
    (amber -> rose -> violet, palette.css's) glowing on warm near-black, the same corner glows as the icon's tile. Sizes
    are relative where a page is rendered at more than one size. */
-@import url("../../src/app/palette.css");
+@import url("../../src/ui/palette.css");
 
 :root {
   --night: #1f1915;   /* --ink, darker */

@@ -15,7 +15,7 @@ One language per layer, and each layer owns what it does:
 | the packaging scripts ([`../packaging/`](../packaging/)) | PowerShell (comes with Windows)                 | fetching `runtime/`, building `ZimAI.exe` and the release artifacts; nothing in `src/` depends on them                                                             |
 
 **The model server.** `ZimAI.exe --server` is the server's keeper. Before each start it fits the model to this
-computer (`Plan` in `app.cs`): llama.cpp's dry run (`llama-fit-params`) splits it between GPU and RAM; the context is
+computer (`Plan`, in `app/Plan.cs`): llama.cpp's dry run (`llama-fit-params`) splits it between GPU and RAM; the context is
 the model's full 128k on the GPU, whatever its VRAM, and 64k on the CPU; and the RAM part is loaded into RAM only
 if that leaves 2 GB free, otherwise it's memory-mapped. The plan goes to `data/logs/server-plan` for the window's Server
 row. The keeper writes its own pid to `data/logs/server.pid` before it plans, so the server counts as starting from
@@ -34,28 +34,37 @@ never stop each other's server. They do share its port, so only one of them can 
 | `ZIMAI_DATA` | the data folder (below) |
 | `HTTPS_PROXY`, `HTTP_PROXY`, `NO_PROXY` | the Windows proxy, if one is on and they aren't set already |
 
-**The look.** [`app/palette.css`](app/palette.css) is where ZimAI's colors are chosen. The page uses it as it is. The
-terminal (`app/mintty.conf`), the agent (`agent/terminal/theme.ts`), the window's background and the chat page's back
-button (`app.cs`) and llama.cpp's chat page (`app/chat.css`) repeat its values.
+**The look.** [`ui/palette.css`](ui/palette.css) is where ZimAI's colors are chosen. The page uses it as it is. The
+terminal (`agent/terminal/mintty.conf`), the agent (`agent/terminal/theme.ts`), the window's background, title bar and
+the chat page's back button (`app/Window.cs`) and llama.cpp's chat page (`ui/chat.css`) repeat its values.
 
-**Chat.** It's llama-server's own chat page, made ZimAI's: the window adds `app/chat.css` (the palette, the icon, the
+**Chat.** It's llama-server's own chat page, made ZimAI's: the window adds `ui/chat.css` (the palette, the icon, the
 brand gradient on Send, no MCP Servers) and renames its "Hello there" to ZimAI, every time the page opens. Who the
-model is (`app/identity.md`) is a server default (`Defaults` in `app.cs`), so Chat and the agent are the same ZimAI.
+model is (`agent/prompt/identity.md`) is a server default (`Defaults`, in `app/Server.cs`), so Chat and the agent are the same ZimAI.
 
 ## Reference
 
 ```
 src/
-  ZimAI.exe                the app, built from app/ by packaging/build.ps1 (untracked)
-  app/
-    app.cs              ZimAI.exe's source
-    home.html           the page the window shows
-    palette.css         the colors
-    chat.css            the look of llama.cpp's chat page in the window
-    identity.md         who the model is, for Chat and the agent
-    icon.svg  icon.ico  the icon (the .ico, built from the .svg by store-listing/generator/icon.ps1, is in ZimAI.exe and the terminal)
-    mintty.conf         the terminal's look
-  agent/                the coding agent: `zim` in the terminal
+  ZimAI.exe             the app, built from app/ by packaging/build.ps1 (untracked)
+  app/                  ZimAI.exe's source, C# 5 and ASCII only (Program.cs says why), one part per file:
+    Program.cs            Main: the window, --server or --terminal; the proxy; the version
+    Paths.cs              where everything is
+    Model.cs              the model's facts, and its download
+    Requirements.cs       whether this PC can run it, and how well
+    Plan.cs               how the server runs the model on this PC, worked out before each start
+    Server.cs             the server's keeper, its clients, its defaults, and the server as the window sees it
+    Terminal.cs           the terminal, and starting it outside the Store package
+    Window.cs             the window, its title bar
+    Json.cs               the JSON the window sends its page
+  ui/                   what the window serves at https://zimai.local/, and nothing else
+    home.html             the page the window shows
+    chat.css              the look of llama.cpp's chat page in the window
+    palette.css           the colors
+    icon.svg  icon.ico    the icon (the .ico, built from the .svg by store-listing/generator/icon.ps1, is also in
+                          ZimAI.exe and the terminal)
+  agent/                the coding agent: `zim` in the terminal; also who the model is (prompt/identity.md) and
+                        the terminal's look (terminal/mintty.conf), which ZimAI.exe reads
   runtime/              downloaded by packaging/fetch.ps1 (untracked)
     node/  git/  llama/ Node.js, portable Git Bash, llama.cpp (CUDA build)
     webview2/           the WebView2 SDK's DLLs, for the window
@@ -67,7 +76,7 @@ src/
       server.log        llama-server's log, overwritten at each start
       server.pid        the keeper's pid, while it runs (planning included)
       server-plan       how it was fitted to this computer: context, GPU and RAM use
-      load-seconds      how long the last load took, for the loading estimates
+      load-seconds      how long the last load took, for the agent's loading screen
       clients/<pid>     one empty file per open ZimAI window and agent
 ```
 

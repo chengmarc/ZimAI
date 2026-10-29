@@ -12,7 +12,7 @@ by hand. Images are beside this file (the screenshots in [desktop/](desktop/)), 
 - **Website:** `https://github.com/chengmarc/ZimAI`
 - **Support contact info:** `https://github.com/chengmarc/ZimAI/issues`
 - **System requirements:** what the Store shows under the listing, and a warning on a PC that doesn't meet the
-  minimum. It doesn't stop the install; ZimAI's own check does that (`Requirements` in `src/app/app.cs`, which these
+  minimum. It doesn't stop the install; ZimAI's own check does that (`Requirements` in `src/app/Requirements.cs`, which these
   follow). Leave every other row unchecked: no touch, camera, microphone, Bluetooth or the like.
 
   | | Minimum hardware | Recommended hardware |

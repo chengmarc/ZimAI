@@ -17,7 +17,7 @@ plus `makeappx.exe` for the Store package. Nothing in `packaging/` ships inside 
 ### Cut a release
 
 1. Pick the version and set it in `AssemblyInformationalVersion` at the top of
-   [`src/app/app.cs`](../src/app/app.cs). The window shows it, the Store package gets it, and the git tag is
+   [`src/app/Program.cs`](../src/app/Program.cs). The window shows it, the Store package gets it, and the git tag is
    `v<version>`. The Store needs every new submission to have a higher version than the last.
 2. Run `packaging\fetch.ps1` so `src/runtime/` is complete. It only downloads what's missing.
 3. Build both artifacts (see [Build prerequisites](#build-prerequisites)):
@@ -89,19 +89,19 @@ powershell -ExecutionPolicy Bypass -File store-listing\generator\render.ps1
 ```
 
 It redraws the images in `store-listing/` with Microsoft Edge in headless mode, from `generator/logo.html` (box
-art, poster art, tile icon) and `generator/shots.html` (the screenshots). The screenshots show the real home page, `src/app/home.html`, drawing
+art, poster art, tile icon) and `generator/shots.html` (the screenshots). The screenshots show the real home page, `src/ui/home.html`, drawing
 the state written in `shots.html`, and the README's terminal demo, `docs/demo.svg`, stopped at a moment. Change the
-captions or the state there, and the system requirements in `LISTING.md` when `Requirements` in `src/app/app.cs`
+captions or the state there, and the system requirements in `LISTING.md` when `Requirements` in `src/app/Requirements.cs`
 changes.
 
-When `src/app/icon.svg` changes, rebuild `icon.ico` first, then re-render:
+When `src/ui/icon.svg` changes, rebuild `icon.ico` first, then re-render:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File store-listing\generator\icon.ps1
 ```
 
 The Chat screenshot is the exception: `store-listing/generator/chat.png` is a capture, since the Chat page is llama-server's own and
-only runs with the model loaded. Retake it when that page or `src/app/chat.css` changes, then re-render. In the app,
+only runs with the model loaded. Retake it when that page or `src/ui/chat.css` changes, then re-render. In the app,
 click Chat, start a new chat and send:
 
 ```text
@@ -122,14 +122,14 @@ repo's root, so 12 GB of model and your chat history stay out of the source tree
 their new files in AppData and their writes to HKCU redirected into a private copy, which only the package sees and
 which is deleted with it. For ZimAI that would include everything the user and the agent run in its terminal
 (`npm install -g`, `pip install --user`, `setx`). So the window starts the terminal outside the package, with the
-desktop app breakaway policy (`Terminal` and `Breakaway` in `src/app/app.cs`). Turning virtualization off in the
+desktop app breakaway policy (`Terminal` and `Breakaway` in `src/app/Terminal.cs`). Turning virtualization off in the
 manifest instead needs the `unvirtualizedResources` capability, which the Store denied for ZimAI. Breakaway only works
 through a process from outside the package (cmd): one of the package's own executables started directly stays
 inside.
 
 **Why PowerShell.** The tools have to run before anything is downloaded, so they use only what Windows has:
 PowerShell 5.1, `curl.exe` and `tar.exe`, the C# compiler of .NET Framework 4 (for `ZimAI.exe`), and System.Drawing
-(for the Store logos, scaled from `src/app/icon.ico`). They don't use the Node.js in `src/runtime/`, which belongs to
+(for the Store logos, scaled from `src/ui/icon.ico`). They don't use the Node.js in `src/runtime/`, which belongs to
 the app.
 
 ## Reference
@@ -162,4 +162,4 @@ the app.
 | [`packaging/AppxManifest.xml`](../packaging/AppxManifest.xml) | The package manifest; `build.ps1` fills in the identity and version |
 | [`store-listing/LISTING.md`](../store-listing/LISTING.md) | The Store listing's text, field by field |
 | [`store-listing/generator/render.ps1`](../store-listing/generator/render.ps1) | Renders the listing's images into `store-listing/` |
-| [`store-listing/generator/icon.ps1`](../store-listing/generator/icon.ps1) | Builds `src/app/icon.ico` from `src/app/icon.svg`, with bolder frames under 64 pixels |
+| [`store-listing/generator/icon.ps1`](../store-listing/generator/icon.ps1) | Builds `src/ui/icon.ico` from `src/ui/icon.svg`, with bolder frames under 64 pixels |

@@ -32,11 +32,11 @@ schema, tip line and argument checks follow from that. Anything that changes, ru
 `ag.confirm()` first.
 
 ### Use a different model
-The model, its download and the server's settings are `ZimAI.exe`'s (`Model` and `Defaults` in `app/app.cs`), and so
-is who the model is (`app/identity.md`), which Chat shares. gpt-oss is also assumed here:
+The model, its download and the server's settings are `ZimAI.exe`'s (`Model` in `app/Model.cs`, `Defaults` in `app/Server.cs`), and so
+is who the model is ([`prompt/identity.md`](prompt/identity.md)), which Chat shares. gpt-oss is also assumed here:
 - `chat_template_kwargs` in `agent.ts`: `reasoning_effort` is a variable of the gpt-oss chat template, like the
-  server's `model_identity`, so `/effort` and `app/identity.md` do nothing under another template.
-- `app/identity.md`, which describes gpt-oss-20b.
+  server's `model_identity`, so `/effort` and `prompt/identity.md` do nothing under another template.
+- `prompt/identity.md`, which describes gpt-oss-20b.
 
 ## Explanation
 

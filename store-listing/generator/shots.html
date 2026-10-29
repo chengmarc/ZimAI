@@ -1,7 +1,7 @@
 <!doctype html>
 <!-- The Store's screenshots: render.ps1 loads this page at 1366 x 768 (rendered at 2x) once per shot, named by the
      hash (#promo, #chat, #home). Each is a caption on the left and the real app on the right: the home page
-     (src/app/home.html) drawing the state ZimAI.exe would send it, the terminal demo (docs/demo.svg) stopped at a
+     (src/ui/home.html) drawing the state ZimAI.exe would send it, the terminal demo (docs/demo.svg) stopped at a
      moment, or a capture of the Chat page (chat.png). Needs Edge's --allow-file-access-from-files, to read those
      files from file://. -->
 <html lang="en">
@@ -59,7 +59,7 @@
     background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
   }
 
-  /* The window, at the app's own size (940 x 680, app.cs), scaled to the height of the shot. */
+  /* The window, at the app's own size (940 x 680, app/Window.cs), scaled to the height of the shot. */
   .window {
     position: absolute; right: 44px; top: 50%; transform-origin: right center; transform: translateY(-50%) scale(0.95);
     width: 940px; border-radius: 9px; overflow: hidden; background: var(--bg);
@@ -77,7 +77,7 @@
 </head>
 <body>
   <div class="caption">
-    <div class="app"><img src="../../src/app/icon.svg" alt=""><span>ZimAI<small>Unlimited AI for small jobs</small></span></div>
+    <div class="app"><img src="../../src/ui/icon.svg" alt=""><span>ZimAI<small>Unlimited AI for small jobs</small></span></div>
     <div id="limit"></div>
     <h1 id="title"></h1>
     <p id="text"></p>
@@ -85,12 +85,12 @@
     <div id="numbers"></div>
   </div>
   <div class="window">
-    <div class="titlebar"><img src="../../src/app/icon.svg" alt=""><span>ZimAI</span><i>&#xE921;</i><i>&#xE922;</i><i>&#xE8BB;</i></div>
+    <div class="titlebar"><img src="../../src/ui/icon.svg" alt=""><span>ZimAI</span><i>&#xE921;</i><i>&#xE922;</i><i>&#xE8BB;</i></div>
   </div>
 
 <script>
 // What ZimAI.exe sends the home page on this developer's PC (an RTX 5060 Laptop GPU with 8 GB and 16 GB of RAM), as in
-// app.cs; the plan is llama-fit-params' for it.
+// app/*.cs; the plan is llama-fit-params' for it.
 const MODEL = { name: "GPT OSS 20B", size: 12109566624, parameters: "20.9", license: "Apache-2.0", need: 12109566624, free: 412e9, drive: "C:" };
 const SYSTEM = { name: "NVIDIA GeForce RTX 5060 Laptop GPU", vram: 8, ram: 16, cuda: "12.8", gpuUsable: true, useGpu: true,
                  verdict: "good", reason: null };
@@ -110,7 +110,7 @@ const NUMBERS = `
         <div><b>128&nbsp;k</b><span>tokens of context<br>on a GPU</span></div>
       </div>`;
 
-// Popular GPUs by the verdict ZimAI's check gives them (Requirements in app.cs), with 16 GB of RAM: Great is 16 GB of
+// Popular GPUs by the verdict ZimAI's check gives them (app/Requirements.cs), with 16 GB of RAM: Great is 16 GB of
 // VRAM or more, Good is an RTX with 8 to 12 GB, Slow is 6 GB or a GTX 10-series (no tensor cores).
 const GPUS = [
   ["great", "Great", "the whole model on the GPU", ["RTX 5090", "RTX 5080", "RTX 5070 Ti", "RTX 5060 Ti 16 GB", "RTX 4090", "RTX 4080", "RTX 4070 Ti Super", "RTX 4060 Ti 16 GB", "RTX 3090"]],
@@ -163,7 +163,7 @@ if (shot.image) {
 } else if (shot.home) {
   const frame = document.createElement("iframe");
   frame.className = "client";
-  frame.src = "../../src/app/home.html";
+  frame.src = "../../src/ui/home.html";
   frame.onload = () => frame.contentWindow.render(shot.home);
   win.append(frame);
 } else {

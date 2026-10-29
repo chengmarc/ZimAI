@@ -1,4 +1,4 @@
-/* The look of llama-server's chat page in the ZimAI window. app.cs adds it to the page every time it opens (ChatScript):
+/* The look of llama-server's chat page in the ZimAI window. Window.cs adds it to the page every time it opens (ChatScript):
    the page's own customCss setting would take it only on a user's first visit, so a newer chat.css would never
    reach them. The page is built on shadcn/ui, so its colors are these variables; the values are palette.css's.
    Elements are picked by their labels (aria-label) or icons, which are less likely to change in a llama.cpp update
