@@ -8,12 +8,16 @@
 
   <h1>ZimAI - Unlimited AI for Small Jobs</h1>
 
-  <img src="store-listing/desktop/screenshot-1-limit.png">
-  <img src="store-listing/desktop/screenshot-2-chat.png">
-  <img src="store-listing/desktop/screenshot-3-home.png">
-  <img src="store-listing/desktop/screenshot-4-terminal.png">
+  <img src="docs/social-preview.png">
 
 </div>
+
+## Screenshots
+
+<img src="store-listing/desktop/screenshot-1-limit.png">
+<img src="store-listing/desktop/screenshot-2-chat.png">
+<img src="store-listing/desktop/screenshot-3-home.png">
+<img src="store-listing/desktop/screenshot-4-terminal.png">
 
 ## Demonstration
 
