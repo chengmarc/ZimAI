@@ -21,66 +21,17 @@
 
 ## Try it
 
-You need Windows 10/11, **13 GB of free disk space** for the model, and either:
-- **An NVIDIA GPU** (the fast way): 6 GB of VRAM or more, such as a GTX 1060 6 GB, a GTX 1660, or any desktop RTX.
-  8 GB or more is better; with 16 GB the whole model fits on the GPU. GTX 10-series cards work but are slower. It
-  needs a driver with CUDA 12.4 or later (CUDA itself doesn't need to be installed), and **16 GB of RAM** (8 GB with
-  a 12 GB GPU) for the part of the model the GPU can't hold.
-- **Or just the CPU**: any 64-bit x64 CPU with **16 GB of RAM**. It works, but replies come much slower than on a
-  GPU.
-
-1. **Download `ZimAI-portable.zip`** from the [latest release](https://github.com/chengmarc/ZimAI/releases/latest)
-   and unzip it anywhere, a flash drive included. It holds portable Git Bash, Node.js and llama.cpp (CUDA build).
-2. **Double-click `ZimAI.exe`.** The ZimAI window checks your PC first: GPU Available or CPU Only, and whether ZimAI runs
-   on it (Great, Good or Slow), or why not, before anything is downloaded. With a GPU, **Use GPU** at the top right is
-   on; turn it off to keep the GPU free (for a game, say) and run ZimAI on the CPU.
-3. **Click Download model** the first time. It downloads gpt-oss-20b (12 GB) into `data/` beside `ZimAI.exe`. If it's
-   interrupted, click Resume download, even after a restart. It uses the Windows proxy setting if one is on.
-4. **Click Chat or Terminal.**
-   - **Chat** talks with the model in the same window, using llama.cpp's own chat page. **← ZimAI** at the top right
-     goes back.
-   - **Terminal** opens Git Bash in your home folder with ZimAI running, ready for a job in your files. `/exit` leaves a normal
-     prompt: `cd` into a project and type `zim` to work there.
-
-Loading the model takes about 30 s on a GPU. llama.cpp splits it between GPU and CPU to fit whatever VRAM is free at
-that moment, so there is nothing to configure per computer. Chat and every terminal share one model server, which stops
-when the last ZimAI window closes.
+1. Download `ZimAI-portable.zip` from the [latest release](https://github.com/chengmarc/ZimAI/releases/latest) and
+   unzip it anywhere.
+2. Double-click `ZimAI.exe`. It checks your PC before downloading anything.
+3. Click **Download** (the 12 GB model, once), then **Start**.
+4. Click **Chat**, or **Terminal** for jobs in your files.
 
 ## What it can do
 
-The model works through eleven tools. Anything that changes a file, runs a command or fetches a page asks first
-(`y` / `n` / `a` for always); after a `n` you can tell it why. `a` covers edits, writes and fetches for the rest of the
-session, never commands: a command always asks. A command that deletes anything outside the project folder (or the
-folder itself) is refused before it runs.
-
-| Reads, no asking | Asks first |
-|---|---|
-| Read, Glob, Grep, WebSearch | Edit, Write (shown as a diff), Bash, PowerShell, WebFetch |
-| Git, GitHub (`gh`) when read-only | Git, GitHub when they change something |
-
-It reads the project's `AGENTS.md` or `CLAUDE.md`, streams its reasoning dimmed, and renders answers as markdown.
-In the agent: `/clear` starts over, `/effort low|medium|high` sets reasoning effort, `/tokens` shows context used
-(128k on the GPU, 64k on the CPU), `/prompt` shows the exact text the model reads, `/exit` quits.
-
-**Know the limits:** it's a 20B model (about 3.6B active per token), made for small jobs, not to replace your
-cloud AI. Give it tight, scoped tasks in a codebase or on the machine, and keep the big, open-ended ones for the
-cloud.
-
-## Change it
-
-ZimAI is three layers, each in one language: the app, `ZimAI.exe`, in C#; the agent in TypeScript, run as is by Node with
-no npm packages; and the tools that build it in PowerShell. Everything the model reads is a text file in
-[`src/agent/prompt/`](src/agent/prompt/), and each tool is one file in [`src/agent/tools/`](src/agent/tools/).
-
-In a clone, download the runtimes into `src/runtime/` once and build `src/ZimAI.exe`:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File packaging\fetch.ps1
-powershell -ExecutionPolicy Bypass -File packaging\build.ps1 -Exe
-```
-
-[`src/README.md`](src/README.md) explains the layers, [`src/agent/README.md`](src/agent/README.md) covers changing the
-agent, and [`docs/RELEASING.md`](docs/RELEASING.md) covers building and publishing.
+- **Chat:** emails, rewrites, formulas and quick questions, in the app's own window.
+- **Terminal:** reads, edits and runs things in your projects, and asks before every change or command.
+- **Know the limits:** it's a 20B model, made for small jobs, not to replace the AI you pay for.
 
 ## License
 
