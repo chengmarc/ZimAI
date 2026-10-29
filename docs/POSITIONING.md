@@ -1,4 +1,4 @@
-# Positioning: what 2B is, and for whom
+# Positioning: what ZimAI is, and for whom
 
 Decided 2026-10-28. Read this before changing the README, the Store listing, the screenshots or the demo, and before
 adding a feature: if it doesn't serve this, it needs a reason.
@@ -11,9 +11,9 @@ adding a feature: if it doesn't serve this, it needs a reason.
 **Slogan: "Unlimited AI for small jobs."** Second line: "Out of credits? Not here." "Small jobs" was chosen over
 "odd jobs", "chores" and "loose ends" (each narrower or less plain), and without "the", as a headline.
 
-2B is **advertised as AI, not as an agent**. The agent is how it does the work, not what it's sold as.
+ZimAI is **advertised as AI, not as an agent**. The agent is how it does the work, not what it's sold as.
 
-2B **sits beside** Claude, Cursor, Codex and the like; it doesn't compete with them. Nobody has to choose 2B over
+ZimAI **sits beside** Claude, Cursor, Codex and the like; it doesn't compete with them. Nobody has to choose ZimAI over
 them. They use it for the jobs those are too limited, or too costly, for.
 
 ## Who it's for
@@ -36,17 +36,17 @@ what matters.
 
 **Product**, in this order:
 
-1. A one-shot mode: `2b "question"` answers and exits, so a small job doesn't need a session.
-2. `2b commit`: drafts a message from the staged diff in the repo's own style (`git log`), and asks y / n / edit
+1. A one-shot mode: `zim "question"` answers and exits, so a small job doesn't need a session.
+2. `zim commit`: drafts a message from the staged diff in the repo's own style (`git log`), and asks y / n / edit
    before it commits. It must handle a diff larger than the context: `git diff --stat` first, then files in chunks.
 3. Test both on real diffs (this repo's history) before any copy claims them.
 
 **Marketing**: the framing may lead the product, but no copy names a feature before it's built and demoed (the
-one-shot mode, `2b commit`).
+one-shot mode, `zim commit`).
 
 - The README, the Store listing, the screenshots, the box art and the app lead with the slogan (done 2026-10-28).
 - The demo and the first screenshot should show the commit scenario, once it's been tested with gpt-oss-20b. Until
-  then the copy only says you can ask 2B for a commit message, which the agent does today through Git.
+  then the copy only says you can ask ZimAI for a commit message, which the agent does today through Git.
 - Supporting facts, never the headline: it runs on the gaming PC you have (or the CPU), it's private, it works
   offline, it fits on a flash drive.
 
@@ -65,8 +65,8 @@ one-shot mode, `2b commit`).
 
 ## Guardrails against drift
 
-- Don't lead with "agent", and don't compare 2B to cloud tools on capability.
+- Don't lead with "agent", and don't compare ZimAI to cloud tools on capability.
 - Don't claim what hasn't been demoed with gpt-oss-20b on real work.
 - Don't widen the audience in the headline: one person, one problem.
-- A new feature should make a small job faster or simpler. If it only makes 2B more capable at large jobs, it's off
+- A new feature should make a small job faster or simpler. If it only makes ZimAI more capable at large jobs, it's off
   this course.

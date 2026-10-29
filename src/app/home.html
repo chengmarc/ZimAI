@@ -1,10 +1,10 @@
 <!doctype html>
-<!-- The home page 2B.exe shows (app.cs): the GPU, the model, and the two ways in. It only draws the state 2B.exe
+<!-- The home page ZimAI.exe shows (app.cs): the GPU, the model, and the two ways in. It only draws the state ZimAI.exe
      sends it, and sends back the name of what was clicked ("download" and so on). Its colors are palette.css's. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Agent 2B</title>
+<title>ZimAI</title>
 <link rel="stylesheet" href="palette.css">
 <style>
   :root {
@@ -138,7 +138,7 @@
   <header>
     <img src="icon.svg" alt="">
     <div>
-      <h1>Agent <span>2B</span></h1>
+      <h1>Zim<span>AI</span></h1>
       <p>Unlimited AI for small jobs, on your own PC.</p>
     </div>
     <button class="switch" id="use-gpu" role="switch" aria-checked="true" hidden><i></i>Use GPU</button>
@@ -177,7 +177,7 @@
     <button class="way" id="terminal" disabled>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M7 9l3 3-3 3M12.5 15H17"/></svg>
       <strong>Terminal</strong>
-      <span>Hand 2B a job in Git Bash: it reads, edits and runs things in your projects.</span>
+      <span>Hand ZimAI a job in Git Bash: it reads, edits and runs things in your projects.</span>
     </button>
   </section>
 
@@ -220,7 +220,7 @@ function button(label, what, primary) {
   return b;
 }
 
-/** The model, as 2B.exe describes it (Model in app.cs): "GPT OSS 20B · 11.27 GB · 20.9 B Parameters · Apache-2.0". */
+/** The model, as ZimAI.exe describes it (Model in app.cs): "GPT OSS 20B · 11.27 GB · 20.9 B Parameters · Apache-2.0". */
 function about(model) {
   return `<b>${esc(model.name)}</b> <span class="sub">&middot; ${gb(model.size, 2)} &middot; ` +
     `${esc(model.parameters)}${THIN}B Parameters &middot; ${esc(model.license)}</span>`;
@@ -230,7 +230,7 @@ function about(model) {
 const pill = (cls, text) => `<span class="pill ${cls}">${text}</span>`;
 const hint = (id, text) => { $(id).hidden = !text; $(id).textContent = text || ""; };
 
-// The System row's pill for each of 2B.exe's verdicts (Requirements in app.cs).
+// The System row's pill for each of ZimAI.exe's verdicts (Requirements in app.cs).
 const VERDICTS = {
   great: ["ok", "Great"], good: ["ok", "Good"], slow: ["warn", "Slow"], cpu: ["warn", "Slow"],
   unsupported: ["off", "Not Supported"],
@@ -239,13 +239,13 @@ const VERDICTS = {
 function render(s) {
   $("version").textContent = "v" + s.version;
 
-  // System: whether this PC can run 2B, known before the download
+  // System: whether this PC can run ZimAI, known before the download
   const sys = s.system;
   if (!sys) {
     $("system").innerHTML = '<span class="sub">Checking this PC...</span>';
     $("system-side").innerHTML = pill("busy", "Checking");
   } else {
-    // Only what decides how 2B runs, not the PC's spec: whether it has a GPU it can run on, the memory, and CUDA.
+    // Only what decides how ZimAI runs, not the PC's spec: whether it has a GPU it can run on, the memory, and CUDA.
     // A GPU it can't run on (too old, too little VRAM, an old driver), or Use GPU off, is CPU Only; the hint says why.
     $("system").innerHTML = sys.gpuUsable && sys.useGpu
       ? `<b>GPU Available</b> <span class="sub">&middot; ${sys.ram}${THIN}GB RAM + ${sys.vram}${THIN}GB VRAM` +
@@ -286,7 +286,7 @@ function render(s) {
       bar.hidden = false;
       bar.firstChild.style.width = (100 * d.done / d.total).toFixed(1) + "%";
     }
-    // Download only once the PC is known to run it, and the disk has room (2B.exe checks both too)
+    // Download only once the PC is known to run it, and the disk has room (ZimAI.exe checks both too)
     const room = s.model.free >= s.model.need;
     const get = button(resume ? "Resume" : "Download", "download", true);
     get.disabled = !supported || !room;
@@ -295,11 +295,11 @@ function render(s) {
   hint("model-hint", !s.model.ready && !(d && d.active) && s.model.free < s.model.need &&
     `The model needs ${gb(s.model.need)} free on drive ${s.model.drive}, which has ${gb(s.model.free)}.`);
 
-  // Server: 2B.exe starts it when the window opens (or once the model is downloaded)
+  // Server: ZimAI.exe starts it when the window opens (or once the model is downloaded)
   const sv = s.server, side = $("server-side"), serverBar = $("server-bar");
   side.replaceChildren();
   serverBar.hidden = sv.state !== "loading";
-  // How 2B.exe fitted it to this computer: what's in RAM (loaded or memory-mapped), what's in VRAM (none on the CPU),
+  // How ZimAI.exe fitted it to this computer: what's in RAM (loaded or memory-mapped), what's in VRAM (none on the CPU),
   // and the context, as the System row orders them. The plan is there only while the server runs; without one, what will happen, or that llama.cpp
   // fitted it itself (the dry run failed)
   const p = sv.plan, gib = mib => gb(mib * 2 ** 20);

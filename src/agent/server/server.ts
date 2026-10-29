@@ -1,5 +1,5 @@
-// The model server (llama-server, run by 2B.exe): asking 2B.exe for it, and talking to it over HTTP. Its settings
-// and its lifetime are 2B.exe's (app/app.cs): it stays up while any 2B window or agent is running (CLIENTS).
+// The model server (llama-server, run by ZimAI.exe): asking ZimAI.exe for it, and talking to it over HTTP. Its settings
+// and its lifetime are ZimAI.exe's (app/app.cs): it stays up while any ZimAI window or agent is running (CLIENTS).
 import { spawn } from "node:child_process";
 import * as fs from "node:fs";
 import * as http from "node:http";
@@ -10,16 +10,16 @@ export { SERVER };
 const LOCAL = new http.Agent();   // talks to llama-server directly, never through HTTPS_PROXY
 export let CTX = 0;               // the server's context window, in tokens (props())
 
-/** Ask 2B.exe for the server, unless it's running (for another 2B window, or still loading), and count this agent as
+/** Ask ZimAI.exe for the server, unless it's running (for another ZimAI window, or still loading), and count this agent as
  *  one that needs it; or say why it can't be. It only asks: the agent is on screen at once, and its loading screen
  *  waits for the model (loading.ts). */
 export async function startServer(): Promise<string | null> {
-  if (!APP || !SERVER) return "start 2b from the 2B window's terminal (its Terminal button)";
+  if (!APP || !SERVER) return "start zim from the ZimAI window's terminal (its Terminal button)";
   fs.mkdirSync(CLIENTS, { recursive: true });
   const me = path.join(CLIENTS, String(process.pid));
   fs.writeFileSync(me, "");
   process.on("exit", () => fs.rmSync(me, { force: true }));
-  if (!fs.existsSync(MODEL)) return "the model isn't downloaded yet: click Download model in the 2B window";
+  if (!fs.existsSync(MODEL)) return "the model isn't downloaded yet: click Download model in the ZimAI window";
   if (!running()) {
     // If another keeper got there first, this one sees it and quits.
     spawn(APP, ["--server"], { detached: true, stdio: "ignore", windowsHide: true }).on("error", () => {}).unref();
@@ -63,7 +63,7 @@ export function serverReady(): Promise<boolean> {
   });
 }
 
-/** Whether this install's server is running (or still being planned): the keeper (2B.exe --server) leaves its pid
+/** Whether this install's server is running (or still being planned): the keeper (ZimAI.exe --server) leaves its pid
  *  in SERVER_PID for as long as it runs, which is as long as llama-server does. */
 export function running(): boolean {
   try {

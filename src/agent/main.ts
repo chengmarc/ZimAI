@@ -1,4 +1,4 @@
-// The agent command (what `2b` runs): the ▶ prompt and its /commands;
+// The agent command (what `zim` runs): the ▶ prompt and its /commands;
 // anything else typed there is a request for the Agent.
 // Node runs these .ts files as they are (no build step, no npm packages), which only works for type syntax
 // Node can strip: no enums, namespaces, or constructor parameter properties.
@@ -21,12 +21,12 @@ commands always ask, and deleting anything outside the project folder is refused
 
 async function main(): Promise<number> {
   if (process.argv.length > 2) {
-    console.error("2b takes no options (in the agent, /help lists its commands)");
+    console.error("zim takes no options (in the agent, /help lists its commands)");
     return 1;
   }
-  const problem = await startServer();   // or use the one already running, e.g. for the 2B window's Chat
+  const problem = await startServer();   // or use the one already running, e.g. for the ZimAI window's Chat
   if (problem) {
-    console.error(`2b: ${problem}`);
+    console.error(`zim: ${problem}`);
     return 1;
   }
   useProxy();   // for WebSearch / WebFetch, and the commands the agent runs

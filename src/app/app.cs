@@ -1,10 +1,10 @@
-// 2B.exe, the app. With no arguments it's the 2B window: home.html in WebView2, which shows the GPU, the model and
+// ZimAI.exe, the app. With no arguments it's the ZimAI window: home.html in WebView2, which shows the GPU, the model and
 // the model server, and has Download model, Chat (llama-server's own chat page) and Terminal (Git Bash with the
 // agent). The window starts the server as soon as it opens, so Chat and Terminal open without a wait. With
 // --server it's the model server's keeper (Keeper): the window and each agent ask for the server that way. With
 // --terminal it starts the terminal and exits (Terminal).
 // It owns everything outside the agent: where things are (Paths), the model (Model), the server's settings and
-// lifetime, the terminal, and the environment the agent gets (AGENT_2B_*, the proxy).
+// lifetime, the terminal, and the environment the agent gets (ZIMAI_*, the proxy).
 // packaging/build.ps1 compiles it with the C# compiler that comes with Windows (.NET Framework 4), which reads C# 5
 // (no $"", no ?., no => members) and reads files in the system code page (so ASCII only).
 using System;
@@ -29,8 +29,8 @@ using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
-[assembly: AssemblyTitle("Agent 2B")]
-[assembly: AssemblyProduct("Agent 2B")]
+[assembly: AssemblyTitle("ZimAI")]
+[assembly: AssemblyProduct("ZimAI")]
 [assembly: AssemblyInformationalVersion("1.0.1")]   // the version: MAJOR.MINOR.PATCH; packaging/build.ps1 reads it from here
 
 // Where everything is. src/ is the app as it ships; data/ beside it is what the app makes as it runs, except in the
@@ -54,7 +54,7 @@ static class Paths {
     public static string ServerPid { get { return Path.Combine(Logs, "server.pid"); } }      // the keeper's, while it runs
     public static string ServerPlan { get { return Path.Combine(Logs, "server-plan"); } }    // how it runs (Plan.Describe)
     public static string LoadSeconds { get { return Path.Combine(Logs, "load-seconds"); } }  // the last load time, for estimates
-    public static string Clients { get { return Path.Combine(Logs, "clients"); } }           // <pid>: each open 2B window and agent
+    public static string Clients { get { return Path.Combine(Logs, "clients"); } }           // <pid>: each open ZimAI window and agent
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
     static extern int GetCurrentPackageFamilyName(ref uint length, StringBuilder name);
@@ -67,11 +67,11 @@ static class Paths {
     }
 
     /** data/ beside the app, or in the Store app the package's LocalCache, which is deleted when it's uninstalled,
-     *  or in a clone of the repo (src\2B.exe, with .git beside src\) appdata\ at the repo's root, so the model and
-     *  the logs stay out of the source tree. A 2B.exe started by the terminal or the agent runs outside the package
-     *  (Terminal), so it takes the one its 2B window passed down. */
+     *  or in a clone of the repo (src\ZimAI.exe, with .git beside src\) appdata\ at the repo's root, so the model and
+     *  the logs stay out of the source tree. A ZimAI.exe started by the terminal or the agent runs outside the package
+     *  (Terminal), so it takes the one its ZimAI window passed down. */
     public static string FindData() {
-        string passed = Environment.GetEnvironmentVariable("AGENT_2B_DATA");
+        string passed = Environment.GetEnvironmentVariable("ZIMAI_DATA");
         if (!string.IsNullOrEmpty(passed)) return passed;
         string repo = Path.GetDirectoryName(Root);
         if (Path.GetFileName(Root) == "src" && repo != null && Directory.Exists(Path.Combine(repo, ".git")))
@@ -86,7 +86,7 @@ static class Paths {
     }
 }
 
-// The model: the one file 2B uses, pinned by its URL, so its facts are fixed here with it.
+// The model: the one file ZimAI uses, pinned by its URL, so its facts are fixed here with it.
 static class Model {
     public const string Name = "gpt-oss-20b";   // its name in the API
     public const string Title = "GPT OSS 20B";  // its name on screen
@@ -118,7 +118,7 @@ static class Memory {
     public static long Available { get { return (long)Now().Available; } }
 }
 
-// Whether this computer can run 2B, and how well, before the 12 GB download. The one place the requirements are
+// Whether this computer can run ZimAI, and how well, before the 12 GB download. The one place the requirements are
 // decided; the README and the Store listing say the same: an NVIDIA GPU (10-series or newer) with 6 GB of VRAM or
 // more, a driver with CUDA 12.4 or later, and 16 GB of RAM (12 GB+ of VRAM needs less). Without such a GPU it runs on
 // the CPU, much slower, with 16 GB of RAM.
@@ -159,18 +159,18 @@ static class Requirements {
         // A GPU the model can't run on leaves it to the CPU: verdict "cpu", and why not the GPU
         if (name == null) {
             verdict = "cpu";
-            reason = "No NVIDIA GPU, so 2B runs on the CPU: replies come much slower than on a GPU.";
+            reason = "No NVIDIA GPU, so ZimAI runs on the CPU: replies come much slower than on a GPU.";
         } else if (cc > 0 && cc < 6) {
             verdict = "cpu";
-            reason = "This GPU is older than the GTX 10-series, which 2B's llama.cpp doesn't support, so 2B runs on the CPU: replies come much slower.";
+            reason = "This GPU is older than the GTX 10-series, which ZimAI's llama.cpp doesn't support, so ZimAI runs on the CPU: replies come much slower.";
         } else if (vram < MinVram) {
             verdict = "cpu";
             reason = string.Format(CultureInfo.InvariantCulture,
-                "This GPU has {0} GB of VRAM and 2B needs 6 GB, so 2B runs on the CPU: replies come much slower.", vram);
+                "This GPU has {0} GB of VRAM and ZimAI needs 6 GB, so ZimAI runs on the CPU: replies come much slower.", vram);
         } else if (cuda == null || !double.TryParse(cuda, NumberStyles.Float, CultureInfo.InvariantCulture, out cudaVersion) || cudaVersion < MinCuda) {
             verdict = "cpu";
             reason = "The NVIDIA driver is older than CUDA 12.4" + (cuda != null ? " (it has " + cuda + ")" : "") +
-                     ", so 2B runs on the CPU, much slower. Update the driver to run it on the GPU.";
+                     ", so ZimAI runs on the CPU, much slower. Update the driver to run it on the GPU.";
         } else if (vram >= 15) {
             verdict = "great";   // the whole model fits on the GPU
         } else if (vram >= 11) {
@@ -182,7 +182,7 @@ static class Requirements {
         }
         if (verdict == "unsupported" && reason == null) {
             reason = string.Format(CultureInfo.InvariantCulture,
-                "With {0} GB of VRAM, 2B needs {1} GB of RAM for the rest of the model; this PC has {2} GB.",
+                "With {0} GB of VRAM, ZimAI needs {1} GB of RAM for the rest of the model; this PC has {2} GB.",
                 vram, vram >= 11 ? 8 : 16, ram);
         }
         bool pascal = cc >= 6 && cc < 7;   // the 10-series: no tensor cores
@@ -200,7 +200,7 @@ static class Requirements {
         if (verdict == "cpu" && ram < FullRam) {   // on the CPU, all of the model is in RAM or read from disk
             verdict = "unsupported";
             reason = string.Format(CultureInfo.InvariantCulture,
-                "On the CPU, 2B needs 16 GB of RAM; this PC has {0} GB.", ram) + (gpuUsable ? " Turn on Use GPU." : "");
+                "On the CPU, ZimAI needs 16 GB of RAM; this PC has {0} GB.", ram) + (gpuUsable ? " Turn on Use GPU." : "");
         }
         return new Dictionary<string, object> {
             { "name", name }, { "vram", vram }, { "ram", ram }, { "cuda", cuda }, { "gpuUsable", gpuUsable },
@@ -217,7 +217,7 @@ static class Requirements {
         }
     }
 
-    /** Whether the verdict lets 2B download and run the model. */
+    /** Whether the verdict lets ZimAI download and run the model. */
     public static bool Supported(string verdict) {
         return verdict == "great" || verdict == "good" || verdict == "slow" || verdict == "cpu";
     }
@@ -333,7 +333,7 @@ class Plan {
     }
 }
 
-// Who needs the model server: each open 2B window and agent leaves a file named by its pid in Paths.Clients.
+// Who needs the model server: each open ZimAI window and agent leaves a file named by its pid in Paths.Clients.
 static class Clients {
     public static void Add(int pid) {
         Directory.CreateDirectory(Paths.Clients);
@@ -361,7 +361,7 @@ static class Clients {
     }
 }
 
-// JSON for what 2B.exe sends: dictionaries, strings, numbers, booleans and null.
+// JSON for what ZimAI.exe sends: dictionaries, strings, numbers, booleans and null.
 static class Json {
     public static string Of(object value) {
         if (value == null) return "null";
@@ -382,7 +382,7 @@ static class Json {
 }
 
 // What every client of the model server gets, as llama-server's defaults: who the model is (identity.md), so Chat
-// and the agent are the same 2B, and for llama-server's own chat page, 2B's look and settings (chat.css). Passed in
+// and the agent are the same ZimAI, and for llama-server's own chat page, ZimAI's look and settings (chat.css). Passed in
 // the environment (LLAMA_ARG_*), which keeps the JSON off the command line.
 static class Defaults {
     public static void Apply(System.Collections.Specialized.StringDictionary env) {
@@ -396,13 +396,13 @@ static class Defaults {
         // The chat page's settings (its own names). The page takes them on a user's first visit only; its look
         // (chat.css) the window adds every time instead (Window.ChatScript).
         env["LLAMA_ARG_UI_CONFIG"] = Json.Of(new Dictionary<string, object> {
-            { "theme", "light" },   // 2B's look is light only
+            { "theme", "light" },   // ZimAI's look is light only
             { "showBuildVersion", false },
         });
     }
 }
 
-// The model server's keeper (2B.exe --server): starts llama-server, and stops it, by its pid, once no client has
+// The model server's keeper (ZimAI.exe --server): starts llama-server, and stops it, by its pid, once no client has
 // been running for a few seconds. One per install (the mutex); asking again while it runs does nothing.
 static class Keeper {
     const int GraceSeconds = 10;   // after starting, before the first client must be there
@@ -410,7 +410,7 @@ static class Keeper {
 
     public static int Run() {
         string id = Convert.ToBase64String(Encoding.UTF8.GetBytes(Paths.Data.ToLowerInvariant())).Replace('/', '_');
-        using (var mutex = new Mutex(false, @"Local\Agent2B-" + (id.Length > 200 ? id.Substring(id.Length - 200) : id))) {
+        using (var mutex = new Mutex(false, @"Local\ZimAI-" + (id.Length > 200 ? id.Substring(id.Length - 200) : id))) {
             if (!mutex.WaitOne(0)) return 0;
             if (!File.Exists(Paths.Model) || !File.Exists(Paths.Llama)) return 1;
             Directory.CreateDirectory(Paths.Logs);
@@ -448,7 +448,7 @@ static class Keeper {
 
 // The model server as the window sees it.
 static class Server {
-    /** Start it, unless it's running: a keeper of its own (2B.exe --server). */
+    /** Start it, unless it's running: a keeper of its own (ZimAI.exe --server). */
     public static void Start() {
         Process.Start(new ProcessStartInfo(Paths.Exe, "--server") { UseShellExecute = false, CreateNoWindow = true });
     }
@@ -483,11 +483,11 @@ static class Server {
 }
 
 // The terminal: mintty from the portable Git Bash, in the home folder, with the agent running; quitting it leaves a
-// normal prompt where `2b` starts it again.
+// normal prompt where `zim` starts it again.
 // In the Store app it runs outside the package, like a Git Bash the user started: inside it, what the user and the
-// agent run would have its writes to AppData and HKCU redirected into a copy only 2B sees (npm install -g, pip
-// install --user, setx), and deleted with 2B. So the window starts cmd outside the package (Breakaway), cmd starts
-// `2B.exe --terminal`, and that starts mintty. Not 2B.exe directly: Windows keeps the package's own executables
+// agent run would have its writes to AppData and HKCU redirected into a copy only ZimAI sees (npm install -g, pip
+// install --user, setx), and deleted with ZimAI. So the window starts cmd outside the package (Breakaway), cmd starts
+// `ZimAI.exe --terminal`, and that starts mintty. Not ZimAI.exe directly: Windows keeps the package's own executables
 // inside it when the package starts them, breakaway or not, but not when a process outside it does.
 static class Terminal {
     public static void Open() {
@@ -496,13 +496,13 @@ static class Terminal {
         else Start();
     }
 
-    /** 2B.exe --terminal, or the portable app's window. */
+    /** ZimAI.exe --terminal, or the portable app's window. */
     public static void Start() {
         string mintty = Path.Combine(Paths.Git, @"usr\bin\mintty.exe");
         // -c: our look (mintty.conf), -i and -t: our icon and title (the config keeps programs from changing it).
         // First the agent (a Ctrl+C in it is the agent's, not this shell's), then a normal prompt.
         string args = "-c \"" + Path.Combine(Paths.App, "mintty.conf") + "\" -i \"" + Path.Combine(Paths.App, "icon.ico") +
-                      "\" -t \"Agent 2B\" /usr/bin/bash --login -i -c \"trap : INT; 2b; trap - INT; exec bash --login -i\"";
+                      "\" -t \"ZimAI\" /usr/bin/bash --login -i -c \"trap : INT; zim; trap - INT; exec bash --login -i\"";
         var start = new ProcessStartInfo(mintty, args) {
             UseShellExecute = false, WorkingDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
         };
@@ -512,9 +512,9 @@ static class Terminal {
         env["PATH"] = Paths.Node + ";" + env["PATH"];
         env.Remove("ORIGINAL_PATH");
         env["MSYSTEM"] = "MINGW64";   // what git-bash.exe sets
-        // The 2b command: bash defines a function from each BASH_FUNC_<name>%% variable it starts with, and passes
+        // The zim command: bash defines a function from each BASH_FUNC_<name>%% variable it starts with, and passes
         // it on to the bashes it starts.
-        env["BASH_FUNC_2b%%"] = "() { node \"" + Unix(Paths.Agent) + "\" \"$@\"; }";
+        env["BASH_FUNC_zim%%"] = "() { node \"" + Unix(Paths.Agent) + "\" \"$@\"; }";
         Process.Start(start);
     }
 
@@ -592,9 +592,9 @@ static class Program {
     static int Main(string[] args) {
         Paths.Data = Paths.FindData();
         // What the agent, and everything started from here, gets.
-        Environment.SetEnvironmentVariable("AGENT_2B_DATA", Paths.Data);
-        Environment.SetEnvironmentVariable("AGENT_2B_SERVER", Model.Server);
-        Environment.SetEnvironmentVariable("AGENT_2B_EXE", Paths.Exe);
+        Environment.SetEnvironmentVariable("ZIMAI_DATA", Paths.Data);
+        Environment.SetEnvironmentVariable("ZIMAI_SERVER", Model.Server);
+        Environment.SetEnvironmentVariable("ZIMAI_EXE", Paths.Exe);
         UseProxy();
         if (args.Length == 1 && args[0] == "--server") return Keeper.Run();
         if (args.Length == 1 && args[0] == "--terminal") { Terminal.Start(); return 0; }
@@ -680,7 +680,7 @@ class Download {
             var drive = new DriveInfo(Path.GetPathRoot(Paths.Model));
             long need = Model.Size - Done + (1L << 30);
             if (drive.AvailableFreeSpace < need) {
-                throw new IOException(string.Format("2B needs {0:0.0} GB free on {1} for the model; there are {2:0.0} GB",
+                throw new IOException(string.Format("ZimAI needs {0:0.0} GB free on {1} for the model; there are {2:0.0} GB",
                                                     need / 1e9, drive.Name, drive.AvailableFreeSpace / 1e9));
             }
             for (int attempt = 1; ; attempt++) {
@@ -735,12 +735,12 @@ class Download {
     }
 }
 
-// The 2B window. The page only draws: this sends it the whole state as JSON whenever something changes (Push), and
+// The ZimAI window. The page only draws: this sends it the whole state as JSON whenever something changes (Push), and
 // the page sends back the name of what was clicked ("download", "chat", ...).
 class Window : Form {
-    const string Home = "https://2b.local/home.html";
+    const string Home = "https://zimai.local/home.html";
     // On llama-server's chat page: its look (chat.css, which takes the place of CSS below); a way back to the home
-    // page, top right, where the page has nothing; and the start screen's "Hello there" heading renamed to Agent 2B,
+    // page, top right, where the page has nothing; and the start screen's "Hello there" heading renamed to ZimAI,
     // whenever the page draws it. Colors are palette.css's.
     const string ChatScript = @"
 if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoaded', () => {
@@ -748,8 +748,8 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
   style.textContent = CSS;
   document.head.appendChild(style);
   const b = document.createElement('button');
-  b.innerHTML = '&larr; 2B';
-  b.title = 'Back to the 2B home page';
+  b.innerHTML = '&larr; ZimAI';
+  b.title = 'Back to the ZimAI home page';
   b.style.cssText = 'position:fixed;top:14px;right:16px;z-index:99999;padding:6px 14px;border-radius:999px;' +
     'border:1px solid #e2d8c8;background:#fbf8f3;color:#3d342b;font:600 13px Segoe UI,sans-serif;cursor:pointer;' +
     'box-shadow:0 1px 3px rgba(61,52,43,.12)';
@@ -757,7 +757,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
   document.body.appendChild(b);
   const rename = () => {
     for (const h of document.querySelectorAll('h1')) {
-      if (h.textContent.trim() === 'Hello there') h.innerHTML = 'Agent <span class=""two-b"">2B</span>';
+      if (h.textContent.trim() === 'Hello there') h.innerHTML = 'Zim<span class=""ai"">AI</span>';
     }
   };
   new MutationObserver(rename).observe(document.body, { childList: true, subtree: true });
@@ -779,7 +779,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
     bool ticking;
 
     public Window() {
-        Text = "Agent 2B";
+        Text = "ZimAI";
         Icon = Icon.ExtractAssociatedIcon(Paths.Exe);
         ClientSize = new Size(940, 680);
         MinimumSize = new Size(640, 560);
@@ -791,7 +791,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         Load += async (s, e) => await Start();
         FormClosing += (s, e) => {
             if (download.Active && MessageBox.Show("Stop downloading the model? It picks up where it left off next time.",
-                                                   "Agent 2B", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No) {
+                                                   "ZimAI", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.No) {
                 e.Cancel = true;
             }
         };
@@ -807,16 +807,16 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
             var env = await CoreWebView2Environment.CreateAsync(null, Paths.Browser);
             await view.EnsureCoreWebView2Async(env);
         } catch (WebView2RuntimeNotFoundException) {
-            MessageBox.Show("2B needs the Microsoft Edge WebView2 Runtime, which comes with Windows 11 and most of Windows 10. " +
-                            "The download page opens next.", "Agent 2B", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show("ZimAI needs the Microsoft Edge WebView2 Runtime, which comes with Windows 11 and most of Windows 10. " +
+                            "The download page opens next.", "ZimAI", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             Process.Start("https://developer.microsoft.com/microsoft-edge/webview2/");
             Close();
             return;
         }
         var core = view.CoreWebView2;
         core.Settings.IsStatusBarEnabled = false;
-        core.Settings.AreDevToolsEnabled = Environment.GetEnvironmentVariable("AGENT_2B_DEVTOOLS") != null;
-        core.SetVirtualHostNameToFolderMapping("2b.local", Paths.App, CoreWebView2HostResourceAccessKind.Allow);
+        core.Settings.AreDevToolsEnabled = Environment.GetEnvironmentVariable("ZIMAI_DEVTOOLS") != null;
+        core.SetVirtualHostNameToFolderMapping("zimai.local", Paths.App, CoreWebView2HostResourceAccessKind.Allow);
         string css = File.ReadAllText(Path.Combine(Paths.App, "chat.css"));
         await core.AddScriptToExecuteOnDocumentCreatedAsync(ChatScript.Replace("CSS;", Json.Of(css) + ";"));
         core.WebMessageReceived += (s, e) => {
@@ -836,7 +836,7 @@ if (location.origin === '" + Model.Server + @"') addEventListener('DOMContentLoa
         timer.Start();
     }
 
-    /** Whether this PC can run 2B (Requirements), in the background: nvidia-smi takes a moment. */
+    /** Whether this PC can run ZimAI (Requirements), in the background: nvidia-smi takes a moment. */
     void CheckSystem() {
         Task.Run(() => { system = Requirements.Check(); });
     }

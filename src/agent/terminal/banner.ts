@@ -2,5 +2,5 @@
 import { BOLD, GOLD, ROSE, RST, VIOLET } from "./theme.ts";
 
 export function banner(root: string): string {
-  return `\n${BOLD}${GOLD}Agent 2B${RST} · ${ROSE}Local Agent${RST} · ${VIOLET}${root}${RST}`;
+  return `\n${BOLD}${GOLD}ZimAI${RST} · ${ROSE}Local AI${RST} · ${VIOLET}${root}${RST}`;
 }

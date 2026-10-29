@@ -1,4 +1,4 @@
-// The loading screen, from typing `2b` until the model server takes requests: the agent asks 2B.exe for it
+// The loading screen, from typing `zim` until the model server takes requests: the agent asks ZimAI.exe for it
 // (server/server.ts) and shows up right away. llama-server doesn't report its progress, so the
 // bar is an estimate from how long the last load took, and the stage below it comes from the server's log.
 import * as fs from "node:fs";
@@ -86,8 +86,8 @@ export async function waitForServer(): Promise<number | null> {
       const tail = splitLines(freshLog(start)).slice(-12);
       console.log(`${RED}✗${RST} The model server ${why}.`);
       if (tail.length) console.log(tail.map(l => `  ${DIM}${l}${RST}`).join("\n"));
-      console.log(`  Out of memory? Close other programs that use the GPU or a lot of RAM, and start 2b again.\n` +
-                  `  A corrupted download? Delete ${MODEL} and download it again in the 2B window.\n` +
+      console.log(`  Out of memory? Close other programs that use the GPU or a lot of RAM, and start zim again.\n` +
+                  `  A corrupted download? Delete ${MODEL} and download it again in the ZimAI window.\n` +
                   `  ${DIM}The whole log: ${LOG}${RST}`);
       return null;
     }

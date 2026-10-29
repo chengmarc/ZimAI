@@ -1,7 +1,7 @@
 <!doctype html>
 <!-- The Store's screenshots: render.ps1 loads this page at 1366 x 768 (rendered at 2x) once per shot, named by the
      hash (#promo, #chat, #home). Each is a caption on the left and the real app on the right: the home page
-     (src/app/home.html) drawing the state 2B.exe would send it, the terminal demo (docs/demo.svg) stopped at a
+     (src/app/home.html) drawing the state ZimAI.exe would send it, the terminal demo (docs/demo.svg) stopped at a
      moment, or a capture of the Chat page (chat.png). Needs Edge's --allow-file-access-from-files, to read those
      files from file://. -->
 <html lang="en">
@@ -65,7 +65,7 @@
     width: 940px; border-radius: 9px; overflow: hidden; background: var(--bg);
     box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14), 0 32px 80px rgba(0, 0, 0, 0.55), 0 10px 24px rgba(0, 0, 0, 0.3);
   }
-  /* A Windows 11 title bar, with the icon and title 2B.exe and its terminal both set. */
+  /* A Windows 11 title bar, with the icon and title ZimAI.exe and its terminal both set. */
   .titlebar { height: 32px; display: flex; align-items: center; background: #f3efe8; color: #1b1b1b; font: 12px "Segoe UI", sans-serif; }
   .titlebar img { width: 16px; height: 16px; margin: 0 10px 0 12px; }
   .titlebar span { flex: 1; }
@@ -77,7 +77,7 @@
 </head>
 <body>
   <div class="caption">
-    <div class="app"><img src="../../src/app/icon.svg" alt=""><span>Agent 2B<small>Unlimited AI for small jobs</small></span></div>
+    <div class="app"><img src="../../src/app/icon.svg" alt=""><span>ZimAI<small>Unlimited AI for small jobs</small></span></div>
     <div id="limit"></div>
     <h1 id="title"></h1>
     <p id="text"></p>
@@ -85,11 +85,11 @@
     <div id="numbers"></div>
   </div>
   <div class="window">
-    <div class="titlebar"><img src="../../src/app/icon.svg" alt=""><span>Agent 2B</span><i>&#xE921;</i><i>&#xE922;</i><i>&#xE8BB;</i></div>
+    <div class="titlebar"><img src="../../src/app/icon.svg" alt=""><span>ZimAI</span><i>&#xE921;</i><i>&#xE922;</i><i>&#xE8BB;</i></div>
   </div>
 
 <script>
-// What 2B.exe sends the home page on this developer's PC (an RTX 5060 Laptop GPU with 8 GB and 16 GB of RAM), as in
+// What ZimAI.exe sends the home page on this developer's PC (an RTX 5060 Laptop GPU with 8 GB and 16 GB of RAM), as in
 // app.cs; the plan is llama-fit-params' for it.
 const MODEL = { name: "GPT OSS 20B", size: 12109566624, parameters: "20.9", license: "Apache-2.0", need: 12109566624, free: 412e9, drive: "C:" };
 const SYSTEM = { name: "NVIDIA GeForce RTX 5060 Laptop GPU", vram: 8, ram: 16, cuda: "12.8", gpuUsable: true, useGpu: true,
@@ -110,7 +110,7 @@ const NUMBERS = `
         <div><b>128&nbsp;k</b><span>tokens of context<br>on a GPU</span></div>
       </div>`;
 
-// Popular GPUs by the verdict 2B's check gives them (Requirements in app.cs), with 16 GB of RAM: Great is 16 GB of
+// Popular GPUs by the verdict ZimAI's check gives them (Requirements in app.cs), with 16 GB of RAM: Great is 16 GB of
 // VRAM or more, Good is an RTX with 8 to 12 GB, Slow is 6 GB or a GTX 10-series (no tensor cores).
 const GPUS = [
   ["great", "Great", "the whole model on the GPU", ["RTX 5090", "RTX 5080", "RTX 5070 Ti", "RTX 5060 Ti 16 GB", "RTX 4090", "RTX 4080", "RTX 4070 Ti Super", "RTX 4060 Ti 16 GB", "RTX 3090"]],
@@ -132,7 +132,7 @@ const SHOTS = {
     title: 'Out of credits? <span class="brand">Not here.</span>',
     text: "For the jobs your cloud AI's limits shouldn't go to. It reads, runs and edits on your PC, asking first.",
     numbers: NUMBERS,
-    demo: 10,
+    demo: 12.3,
   },
   chat: {
     title: 'Quick questions, <span class="brand">no quota.</span>',
@@ -141,7 +141,7 @@ const SHOTS = {
   },
   home: {
     title: 'On the PC <span class="brand">you already have.</span>',
-    text: "Your GeForce, or just the CPU. 2B checks your PC before downloading, then fits the model to it.",
+    text: "Your GeForce, or just the CPU. ZimAI checks your PC before downloading, then fits the model to it.",
     numbers: GPUS,
     home: READY,
   },

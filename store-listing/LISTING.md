@@ -1,6 +1,6 @@
-# Microsoft Store submission — Agent 2B
+# Microsoft Store submission — ZimAI
 
-Everything to paste into Partner Center → Agent 2B, in the submission's order: Properties, Store listings (English
+Everything to paste into Partner Center → ZimAI, in the submission's order: Properties, Store listings (English
 (United States)), Submission options. Pricing and availability, Age ratings and Packages are filled in Partner Center
 by hand. Images are beside this file (the screenshots in [desktop/](desktop/)), rendered by
 `powershell -ExecutionPolicy Bypass -File store-listing\generator\render.ps1`.
@@ -9,24 +9,24 @@ by hand. Images are beside this file (the screenshots in [desktop/](desktop/)), 
 
 - **Category:** Developer tools. **Subcategory:** none.
 - **Privacy policy:** paste [PRIVACY.md](PRIVACY.md) as it is; it's plain text, written for Partner Center's box.
-- **Website:** `https://github.com/chengmarc/agent-2b`
-- **Support contact info:** `https://github.com/chengmarc/agent-2b/issues`
+- **Website:** `https://github.com/chengmarc/zimai`
+- **Support contact info:** `https://github.com/chengmarc/zimai/issues`
 - **System requirements:** what the Store shows under the listing, and a warning on a PC that doesn't meet the
-  minimum. It doesn't stop the install; 2B's own check does that (`Requirements` in `src/app/app.cs`, which these
+  minimum. It doesn't stop the install; ZimAI's own check does that (`Requirements` in `src/app/app.cs`, which these
   follow). Leave every other row unchecked: no touch, camera, microphone, Bluetooth or the like.
 
   | | Minimum hardware | Recommended hardware |
   |---|---|---|
   | Keyboard | ✓ (the terminal is typed into) | |
   | Memory | 16 GB | 16 GB |
-  | Video memory | leave unchecked: 2B runs on the CPU without a GPU | the largest option offered (8 GB or more) |
+  | Video memory | leave unchecked: ZimAI runs on the CPU without a GPU | the largest option offered (8 GB or more) |
   | Processor | `64-bit (x64)` | |
   | Graphics | leave empty | `NVIDIA RTX, 8 GB VRAM or more` |
-  | DirectX | leave empty: 2B uses CUDA, not DirectX | |
+  | DirectX | leave empty: ZimAI uses CUDA, not DirectX | |
 
   Minimum memory is 16 GB, though 8 GB is enough with a 12 GB GPU: the Store has one value per row, and most PCs
-  with 8 GB of RAM can't run 2B. The text in Additional system requirements (below) says so. There's no minimum GPU:
-  without one, 2B runs on the CPU, much slower.
+  with 8 GB of RAM can't run ZimAI. The text in Additional system requirements (below) says so. There's no minimum GPU:
+  without one, ZimAI runs on the CPU, much slower.
 
 - **Product declarations:** none apply. Leave "This product has been tested to meet accessibility guidelines"
   unchecked unless it has been.
@@ -38,7 +38,7 @@ by hand. Images are beside this file (the screenshots in [desktop/](desktop/)), 
 ```
 Unlimited AI for small jobs. Out of credits? Not here.
 
-Agent 2B is a free AI that runs on your own PC, for the jobs your cloud AI's limits shouldn't go to. Keep your subscription for the big work; hand 2B the small stuff, as often as you like. It runs on your NVIDIA GPU, or on the CPU if you don't have one, so there are no credits, no rate limits, and nothing you ask or open leaves your PC. You don't need an account, an API key or a plan.
+ZimAI is a free AI that runs on your own PC, for the jobs your cloud AI's limits shouldn't go to. Keep your subscription for the big work; hand ZimAI the small stuff, as often as you like. It runs on your NVIDIA GPU, or on the CPU if you don't have one, so there are no credits, no rate limits, and nothing you ask or open leaves your PC. You don't need an account, an API key or a plan.
 
 Hand it the small jobs
 • Finished a big rework and out of quota? Ask it to draft the commit message from your changes.
@@ -62,7 +62,7 @@ Quick questions in Chat
 On the PC you already have: the GPU you game on, or just the CPU
 • You don't need a workstation or data-center card: a GeForce from a GTX 1060 6 GB to an RTX 5090 is enough.
 • No NVIDIA GPU? It runs on the CPU with 16 GB of RAM, much slower, but it works.
-• Want the GPU for a game? Turn off Use GPU and 2B moves to the CPU.
+• Want the GPU for a game? Turn off Use GPU and ZimAI moves to the CPU.
 • Before anything downloads, the app checks your PC and tells you plainly whether it can run it.
 • There's nothing to configure: the model is split between your GPU's memory and your RAM to fit whatever is free. Loading takes about 30 seconds on a GPU.
 
@@ -82,11 +82,11 @@ Requirements
 • 13 GB of free disk space for the model
 • For speed, an NVIDIA GPU with 6 GB of video memory or more: a GTX 1060 6 GB, a GTX 1660, or any desktop RTX. 8 GB or more is better; with 16 GB the whole model fits on the GPU. It needs a driver with CUDA 12.4 or later.
 
-Without an NVIDIA GPU, including on AMD and Intel graphics, 2B runs on the CPU, much slower.
+Without an NVIDIA GPU, including on AMD and Intel graphics, ZimAI runs on the CPU, much slower.
 
-Agent 2B is open source under the Apache 2.0 license.
+ZimAI is open source under the Apache 2.0 license.
 
-NVIDIA, GeForce, GTX and RTX are trademarks of NVIDIA Corporation. Agent 2B is an independent project, not affiliated with or endorsed by NVIDIA, OpenAI or Hugging Face.
+NVIDIA, GeForce, GTX and RTX are trademarks of NVIDIA Corporation. ZimAI is an independent project, not affiliated with or endorsed by NVIDIA, OpenAI or Hugging Face.
 ```
 
 ### What's new in this version
@@ -133,16 +133,16 @@ Upload in this order (the first is shown first):
 
 ### Trailers, Xbox images
 
-Leave empty: 2B has no trailer, and isn't an Xbox app.
+Leave empty: ZimAI has no trailer, and isn't an Xbox app.
 
 ### Supplemental fields
 
-- **Short title:** leave empty; "Agent 2B" is short already.
+- **Short title:** leave empty; "ZimAI" is short already.
 - **Voice title:** leave empty, for the same reason.
 - **Short description** (270 characters or fewer):
 
   ```
-  Unlimited AI for small jobs. When your cloud AI is out of credits, or the job isn't worth it, 2B reads, edits and runs things in your projects on your own PC, asking before every change. No limits, no account. Fastest on an NVIDIA GPU; runs on the CPU too.
+  Unlimited AI for small jobs. When your cloud AI is out of credits, or the job isn't worth it, ZimAI reads, edits and runs things in your projects on your own PC, asking before every change. No limits, no account. Fastest on an NVIDIA GPU; runs on the CPU too.
   ```
 
 ### Additional information
@@ -182,7 +182,7 @@ Leave empty: 2B has no trailer, and isn't an Xbox app.
   © 2026 chengmarc. NVIDIA, GeForce, GTX and RTX are trademarks of NVIDIA Corporation.
   ```
 
-- **Additional license terms:** `Apache License 2.0: https://github.com/chengmarc/agent-2b/blob/main/LICENSE`
+- **Additional license terms:** `Apache License 2.0: https://github.com/chengmarc/zimai/blob/main/LICENSE`
 - **Developed by:** `chengmarc`
 
 ## Submission options
@@ -192,11 +192,11 @@ Leave empty: 2B has no trailer, and isn't an Xbox app.
 - **Restricted capabilities → runFullTrust:**
 
   ```
-  Agent 2B is a desktop app built with C# (Windows Forms and WebView2), packaged with the Desktop Bridge. runFullTrust is required for any packaged Win32 desktop app to launch its executable (EntryPoint="Windows.FullTrustApplication"). It is used only to run the app itself: 2B.exe, and the llama.cpp model server, Node.js and Git Bash it ships with. It reads and writes files only in the folders the user works in, asking before every change, and it has no telemetry. The terminal (Git Bash) is started outside the package with the documented desktop app breakaway policy (PROC_THREAD_ATTRIBUTE_DESKTOP_APP_POLICY), so the commands the user approves there behave as in any terminal; the app requests no other restricted capability.
+  ZimAI is a desktop app built with C# (Windows Forms and WebView2), packaged with the Desktop Bridge. runFullTrust is required for any packaged Win32 desktop app to launch its executable (EntryPoint="Windows.FullTrustApplication"). It is used only to run the app itself: ZimAI.exe, and the llama.cpp model server, Node.js and Git Bash it ships with. It reads and writes files only in the folders the user works in, asking before every change, and it has no telemetry. The terminal (Git Bash) is started outside the package with the documented desktop app breakaway policy (PROC_THREAD_ATTRIBUTE_DESKTOP_APP_POLICY), so the commands the user approves there behave as in any terminal; the app requests no other restricted capability.
   ```
 
 - **Notes for certification:**
 
   ```
-  No account or sign-in is needed, and there's nothing to configure: 2B picks the model (gpt-oss-20b) and its settings itself. It runs on an NVIDIA GPU (6 GB of video memory or more, CUDA 12.4 or later) or, without one, on the CPU with 16 GB of RAM, much slower; the System row says GPU Available or CPU Only. 1. Click Download in the Model row (12 GB from Hugging Face; if it's interrupted, click Resume). 2. Wait until the Server row says Ready (about 30 seconds on a GPU, longer on the CPU). 3. Click Terminal and type "list the files in this folder"; it asks before running the command (answer y) and then lists them. Or click Chat and ask a question in the window. On a PC with less than 16 GB of RAM and no GPU 2B can use, the System row says "Not Supported" with the reason, and nothing is downloaded. Since the last submission: the unvirtualizedResources capability, which was denied, has been removed, and the package declares only runFullTrust.
+  No account or sign-in is needed, and there's nothing to configure: ZimAI picks the model (gpt-oss-20b) and its settings itself. It runs on an NVIDIA GPU (6 GB of video memory or more, CUDA 12.4 or later) or, without one, on the CPU with 16 GB of RAM, much slower; the System row says GPU Available or CPU Only. 1. Click Download in the Model row (12 GB from Hugging Face; if it's interrupted, click Resume). 2. Wait until the Server row says Ready (about 30 seconds on a GPU, longer on the CPU). 3. Click Terminal and type "list the files in this folder"; it asks before running the command (answer y) and then lists them. Or click Chat and ask a question in the window. On a PC with less than 16 GB of RAM and no GPU ZimAI can use, the System row says "Not Supported" with the reason, and nothing is downloaded. Since the last submission: the unvirtualizedResources capability, which was denied, has been removed, and the package declares only runFullTrust.
   ```
