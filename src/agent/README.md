@@ -36,7 +36,6 @@ The model, its download and the server's settings are `ZimAI.exe`'s (`Model` in 
 is who the model is ([`prompt/identity.md`](prompt/identity.md)), which Chat shares. gpt-oss is also assumed here:
 - `chat_template_kwargs` in `agent.ts`: `reasoning_effort` is a variable of the gpt-oss chat template, like the
   server's `model_identity`, so `/effort` and `prompt/identity.md` do nothing under another template.
-- `prompt/identity.md`, which describes gpt-oss-20b.
 
 ## Explanation
 
