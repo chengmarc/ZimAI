@@ -20,7 +20,9 @@ the model's full 128k on the GPU, whatever its VRAM, and 64k on the CPU; and the
 if that leaves 2 GB free, otherwise it's memory-mapped. The plan goes to `data/logs/server-plan` for the window's Server
 row. The keeper writes its own pid to `data/logs/server.pid` before it plans, so the server counts as starting from
 then; it starts llama-server with the plan, and stops it a few seconds after the last ZimAI window or agent is gone,
-then exits. Each of those leaves a file named by its pid in `data/logs/clients/` while it runs. The
+then exits. A memory-mapped part is read only as the model first uses it, which would stall the first message, so
+while the server loads, the keeper reads the model file once into Windows' file cache; it writes
+`data/logs/server-ready` once the server takes requests and that read is done, and the window and the agent wait for it. Each of those leaves a file named by its pid in `data/logs/clients/` while it runs. The
 window's Chat and each `zim` ask for the server by running `ZimAI.exe --server`; if a keeper is already running, the new
 one quits. A server counts as this install's only while the keeper in `server.pid` runs, so two ZimAI installs on one computer
 never stop each other's server. They do share its port, so only one of them can have a server running.
@@ -77,6 +79,7 @@ src/
       server.log        llama-server's log, overwritten at each start
       server.pid        the keeper's pid, while it runs (planning included)
       server-plan       how it was fitted to this computer: context, GPU and RAM use
+      server-ready      there once the server takes requests, the mapped part of the model read in (Keeper)
       load-seconds      how long the last load took, for the agent's loading screen
       clients/<pid>     one empty file per open ZimAI window and agent
 ```

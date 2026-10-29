@@ -13,4 +13,5 @@ export const MODEL = path.join(DATA, "model", "_model.gguf");
 export const LOG = path.join(DATA, "logs", "server.log");
 export const SERVER_PID = path.join(DATA, "logs", "server.pid");
 export const LOAD_SECONDS = path.join(DATA, "logs", "load-seconds");
+export const SERVER_READY = path.join(DATA, "logs", "server-ready");   // there once the keeper says the server is ready
 export const CLIENTS = path.join(DATA, "logs", "clients");   // <pid>: each open ZimAI window and agent; the server stays up for them

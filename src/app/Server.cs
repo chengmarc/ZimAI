@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 // Who needs the model server: each open ZimAI window and agent leaves a file named by its pid in Paths.Clients.
 static class Clients {
@@ -57,6 +58,10 @@ static class Defaults {
 
 // The model server's keeper (ZimAI.exe --server): starts llama-server, and stops it, by its pid, once no client has
 // been running for a few seconds. One per install (the mutex); asking again while it runs does nothing.
+// It says the server is ready (Paths.ServerReady) once it takes requests and, if part of the model is memory-mapped
+// (Plan), once that part is read too: llama.cpp reads a mapped part from disk only as the model first uses it, so the
+// first message would stall while a prompt pulls most of it in, in small scattered reads. Read here, start to end,
+// while the server loads, it's in Windows' file cache before anyone types, and the wait is part of loading.
 static class Keeper {
     const int GraceSeconds = 10;   // after starting, before the first client must be there
     const int IdleSeconds = 3;     // with no clients, before stopping
@@ -71,6 +76,7 @@ static class Keeper {
             // This process's pid, from the start: it runs exactly as long as the server, planning included, so the
             // window and the agent see one start time (the file's) and one process to check.
             File.WriteAllText(Paths.ServerPid, Process.GetCurrentProcess().Id.ToString());
+            try { File.Delete(Paths.ServerReady); } catch { }
             bool cpu = Requirements.OnCpu();
             Plan plan = Plan.Make(cpu);
             if (plan != null) File.WriteAllText(Paths.ServerPlan, plan.Describe());
@@ -80,12 +86,14 @@ static class Keeper {
             };
             Defaults.Apply(start.EnvironmentVariables);
             var server = Process.Start(start);
+            Task warm = plan == null || plan.Mapped ? Task.Run(() => Warm()) : null;   // with no plan, it's mapped too
             bool loaded = false;
             int idle = 0;
             while (!server.WaitForExit(1000)) {
-                if (!loaded && Server.Healthy()) {
+                if (!loaded && (warm == null || warm.IsCompleted) && Server.Healthy()) {
                     loaded = true;
                     File.WriteAllText(Paths.LoadSeconds, ((int)(DateTime.Now - started).TotalSeconds).ToString());
+                    File.WriteAllText(Paths.ServerReady, "");
                 }
                 idle = Clients.Alive() > 0 ? 0 : idle + 1;
                 if (idle >= IdleSeconds && (DateTime.Now - started).TotalSeconds > GraceSeconds) {
@@ -93,9 +101,20 @@ static class Keeper {
                     break;
                 }
             }
-            try { File.Delete(Paths.ServerPid); File.Delete(Paths.ServerPlan); } catch { }
+            try { File.Delete(Paths.ServerReady); File.Delete(Paths.ServerPid); File.Delete(Paths.ServerPlan); } catch { }
             return 0;
         }
+    }
+
+    /** Read the model file once, start to end, into Windows' file cache; a failure only leaves the first message slow. */
+    static void Warm() {
+        try {
+            var buffer = new byte[4 << 20];
+            using (var file = new FileStream(Paths.Model, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096,
+                                             FileOptions.SequentialScan)) {
+                while (file.Read(buffer, 0, buffer.Length) > 0) { }
+            }
+        } catch { }
     }
 }
 
@@ -115,12 +134,13 @@ static class Server {
         }
     }
 
-    /** "ready", "loading" or "stopped": this install's server, by its pid (another install's may answer the port). */
+    /** "ready", "loading" or "stopped": this install's server, by its pid (another install's may answer the port), and
+     *  ready once its keeper says so (Keeper). */
     public static string State() {
         int pid;
         try { pid = int.Parse(File.ReadAllText(Paths.ServerPid).Trim()); } catch { return "stopped"; }
         if (!Clients.Running(pid)) return "stopped";
-        return Healthy() ? "ready" : "loading";
+        return File.Exists(Paths.ServerReady) && Healthy() ? "ready" : "loading";
     }
 
     public static bool Healthy() {
