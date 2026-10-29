@@ -12,12 +12,23 @@
     /* The cards' shadows, in --strong's warm brown rather than grey: resting, and lifted under the pointer */
     --shadow: 0 1px 2px rgba(61, 52, 43, 0.05), 0 4px 14px rgba(61, 52, 43, 0.06);
     --shadow-lift: 0 2px 4px rgba(61, 52, 43, 0.06), 0 10px 24px rgba(61, 52, 43, 0.10);
+    /* Light, as the icon's loop gives off: what glows (the bars, the switch, a card under the pointer) */
+    --glow: 0 0 10px color-mix(in srgb, var(--rose) 45%, transparent);
+    --glow-lift: 0 2px 4px rgba(61, 52, 43, 0.05), 0 10px 28px color-mix(in srgb, var(--rose) 16%, transparent),
+                 0 4px 18px color-mix(in srgb, var(--violet) 12%, transparent);
   }
   * { box-sizing: border-box; }
   [hidden] { display: none !important; }
   html, body { margin: 0; height: 100%; }
   body {
-    background: var(--bg); color: var(--strong);
+    /* The icon's tile, faintly: its corner glows (amber, rose, violet) on the page's paper */
+    background:
+      radial-gradient(50% 45% at 0% 0%, color-mix(in srgb, var(--gold) 13%, transparent), transparent),
+      radial-gradient(40% 40% at 100% 0%, color-mix(in srgb, var(--rose) 8%, transparent), transparent),
+      radial-gradient(55% 50% at 100% 100%, color-mix(in srgb, var(--violet) 13%, transparent), transparent),
+      var(--bg);
+    background-attachment: fixed;
+    color: var(--strong);
     font: 14px/1.5 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
     display: flex; flex-direction: column; align-items: center;
     padding: 40px 24px 20px; user-select: none; overflow-y: auto;
@@ -25,7 +36,7 @@
   main { width: 100%; max-width: 640px; flex: 1; display: flex; flex-direction: column; gap: 22px; }
 
   header { display: flex; align-items: center; gap: 18px; }
-  header img { width: 72px; height: 72px; }
+  header img { width: 72px; height: 72px; filter: drop-shadow(0 6px 14px color-mix(in srgb, var(--violet) 30%, transparent)); }
   h1 { margin: 0; font: 650 28px/1.15 "Segoe UI Variable Display", "Segoe UI", system-ui, sans-serif; letter-spacing: -0.01em; }
   h1 span { background: var(--brand); -webkit-background-clip: text; background-clip: text; color: transparent; }
   header p { margin: 4px 0 0; color: var(--muted); }
@@ -41,7 +52,8 @@
   .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
 
   .bar { grid-column: 2 / 4; height: 6px; border-radius: 3px; background: #ece4d6; overflow: hidden; }
-  .bar i { display: block; height: 100%; width: 0; background: var(--brand); border-radius: 3px; transition: width 0.4s; }
+  .bar { overflow: visible; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--brand); border-radius: 3px; box-shadow: var(--glow); transition: width 0.4s; }
   .bar.sweep i { width: 30%; animation: sweep 1.4s ease-in-out infinite alternate; }
   @keyframes sweep { from { margin-left: 0; } to { margin-left: 70%; } }
 
@@ -67,7 +79,7 @@
     content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff;
     box-shadow: 0 1px 3px rgba(61, 52, 43, 0.3); transition: left 0.15s;
   }
-  .switch[aria-checked="true"] i { background: var(--brand); }
+  .switch[aria-checked="true"] i { background: var(--brand); box-shadow: var(--glow); }
   .switch[aria-checked="true"] i::after { left: 21px; }
   .pill.off::before { background: transparent; box-shadow: inset 0 0 0 1.5px currentColor; }
   @keyframes pulse { from { opacity: 1; } to { opacity: 0.25; } }
@@ -79,7 +91,7 @@
   }
   .btn:hover { background: #f3ece1; }
   .btn.primary { border: 0; color: #fff; background: var(--brand); padding: 8px 18px; }
-  .btn.primary:hover { filter: brightness(1.06); }
+  .btn.primary:hover:not(:disabled) { filter: brightness(1.06); box-shadow: var(--glow); }
 
   .ways { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .way {
@@ -88,10 +100,11 @@
     box-shadow: var(--shadow); transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
   }
   .way::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: var(--brand); opacity: 0; transition: opacity 0.15s; }
-  .way:hover:not(:disabled) { border-color: #d4c6b0; box-shadow: var(--shadow-lift); transform: translateY(-1px); }
+  .way:hover:not(:disabled) { border-color: color-mix(in srgb, var(--rose) 30%, var(--line)); box-shadow: var(--glow-lift); transform: translateY(-1px); }
   .way:hover:not(:disabled)::before { opacity: 1; }
   .way:disabled { cursor: default; opacity: 0.5; }
-  .way svg { width: 26px; height: 26px; color: var(--rose); }
+  /* Drawn in the icon's gradient (#way-ink, below), glowing a little */
+  .way svg { width: 26px; height: 26px; stroke: url(#way-ink); filter: drop-shadow(0 0 4px color-mix(in srgb, var(--rose) 35%, transparent)); }
   .way strong { font-size: 17px; font-weight: 650; }
   .way span { color: var(--muted); font-size: 13px; }
   .way .bar { margin-top: 6px; }
@@ -116,6 +129,11 @@
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position: absolute">
+  <linearGradient id="way-ink" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" style="stop-color: var(--gold)"/><stop offset="0.55" style="stop-color: var(--rose)"/><stop offset="1" style="stop-color: var(--violet)"/>
+  </linearGradient>
+</svg>
 <main>
   <header>
     <img src="icon.svg" alt="">
@@ -162,6 +180,7 @@
       <span>Hand 2B a job in Git Bash: it reads, edits and runs things in your projects.</span>
     </button>
   </section>
+
 </main>
 <footer>
   <button id="folder">Data folder</button>
