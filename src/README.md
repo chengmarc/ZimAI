@@ -53,7 +53,7 @@ src/
     palette.css         the colors
     chat.css            the look of llama.cpp's chat page in the window
     identity.md         who the model is, for Chat and the agent
-    icon.svg  icon.ico  the icon (the .ico is built into 2B.exe and shown by the terminal)
+    icon.svg  icon.ico  the icon (the .ico, built from the .svg by store-listing/generator/icon.ps1, is in 2B.exe and the terminal)
     mintty.conf         the terminal's look
   agent/                the coding agent: `2b` in the terminal
   runtime/              downloaded by packaging/fetch.ps1 (untracked)

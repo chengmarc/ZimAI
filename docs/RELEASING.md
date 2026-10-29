@@ -94,6 +94,12 @@ the state written in `shots.html`, and the README's terminal demo, `docs/demo.sv
 captions or the state there, and the system requirements in `LISTING.md` when `Requirements` in `src/app/app.cs`
 changes.
 
+When `src/app/icon.svg` changes, rebuild `icon.ico` first, then re-render:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File store-listing\generator\icon.ps1
+```
+
 The Chat screenshot is the exception: `store-listing/generator/chat.png` is a capture, since the Chat page is llama-server's own and
 only runs with the model loaded. Retake it when that page or `src/app/chat.css` changes, then re-render. In the app,
 click Chat, start a new chat and send:
@@ -156,3 +162,4 @@ the app.
 | [`packaging/AppxManifest.xml`](../packaging/AppxManifest.xml) | The package manifest; `build.ps1` fills in the identity and version |
 | [`store-listing/LISTING.md`](../store-listing/LISTING.md) | The Store listing's text, field by field |
 | [`store-listing/generator/render.ps1`](../store-listing/generator/render.ps1) | Renders the listing's images into `store-listing/` |
+| [`store-listing/generator/icon.ps1`](../store-listing/generator/icon.ps1) | Builds `src/app/icon.ico` from `src/app/icon.svg`, with bolder frames under 64 pixels |
