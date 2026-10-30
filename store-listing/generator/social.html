@@ -1,0 +1,59 @@
+<!doctype html>
+<!-- GitHub's social preview, the card shown when the repo's link is shared: render.ps1 loads this page at 1280 x 640
+     into docs/social-preview.png, which is uploaded in the repo's Settings. The name and its line on the left, and on
+     the right Store shot 1's moment: the Chat page (chat-limit.png, by chat.ps1) with another AI's usage limit crossed
+     out over it. GitHub crops a little off the edges in places, so everything stays 56px clear of them. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="brand.css">
+<link rel="stylesheet" href="window.css">
+<style>
+  html, body { width: 1280px; height: 640px; }
+  /* The dots fade out behind the window. */
+  body::before { mask-image: linear-gradient(90deg, #000 0%, rgba(0, 0, 0, 0.6) 30%, transparent 55%); }
+
+  /* A narrow column, so the window can be large. */
+  .caption { position: absolute; left: 64px; top: 0; bottom: 0; width: 380px; display: flex; flex-direction: column; justify-content: center; }
+  /* The icon beside the name and the slogan, as on the screenshots (shots.html). */
+  .app { display: flex; align-items: center; gap: 18px; }
+  .app img { width: 76px; height: 76px; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.45)); }
+  .app b { display: block; font-size: 38px; line-height: 1.05; font-weight: 700; letter-spacing: -0.01em; }
+  .app small { display: block; margin-top: 3px; font-size: 19px; font-weight: 500; color: rgba(255, 255, 255, 0.75); }
+  /* The hook, the card's headline, fills the column's width: the script below sets its font size. */
+  h1 { width: max-content; white-space: nowrap; margin: 40px 0 0; line-height: 1.1; font-weight: 700; letter-spacing: -0.02em; }
+  .caption p { margin: 18px 0 0; font: 400 19px/1.5 "Segoe UI Variable Text", "Segoe UI", sans-serif; color: rgba(255, 255, 255, 0.78); }
+  .facts { display: flex; gap: 7px; margin-top: 26px; }
+
+  /* The window, as large as fits beside the caption and inside the edges. */
+  .window { right: 56px; top: 50%; transform-origin: right center; transform: translateY(-50%) scale(0.78); }
+</style>
+</head>
+<body>
+  <div class="caption">
+    <div class="app"><img src="../../src/ui/icon.svg" alt=""><span><b>Zim<span class="brand">AI</span></b><small>Unlimited AI for Small Jobs</small></span></div>
+    <h1>Hit your usage limit?<br><span class="brand">Keep going.</span></h1>
+    <!-- Store shot 1's line (shots.html). -->
+    <p>When your AI stops halfway through, ZimAI picks up the job, on your own PC, with no limit of its own.</p>
+    <!-- The same facts as on the screenshots (shots.html). -->
+    <div class="facts"><span>No limits</span><span>Works offline</span><span>No account</span></div>
+  </div>
+  <div class="window">
+    <div class="wall"><div class="wall-card">
+      <div class="wall-head"><i>&#xE7BA;</i>Usage limit</div>
+      <b>You've reached your usage limit</b>
+      <div class="meter">
+        <div class="meter-text"><span><b>100%</b> used</span><span>Resets at 4:00 PM</span></div></div>
+      <div class="wall-buttons"><span>Upgrade plan</span><span>Wait 4 h 12 m</span></div>
+    </div></div>
+    <div class="titlebar"><img src="../../src/ui/icon.svg" alt=""><span>ZimAI</span><i>&#xE921;</i><i>&#xE922;</i><i>&#xE8BB;</i></div>
+    <img class="client" src="chat-limit.png" alt="">
+  </div>
+<script>
+  // The headline, measured at 100px and scaled so its wider line spans the caption's width.
+  const h1 = document.querySelector("h1");
+  h1.style.fontSize = "100px";
+  h1.style.fontSize = 100 * document.querySelector(".caption").clientWidth / h1.getBoundingClientRect().width + "px";
+</script>
+</body>
+</html>
