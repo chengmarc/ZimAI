@@ -39,8 +39,9 @@ plus `makeappx.exe` for the Store package. Nothing in `packaging/` ships inside 
    ```
 
 7. Upload `dist/ZimAI.msix` in a new Partner Center submission, with the product name ZimAI, and paste a short form of
-   the notes into "What's new in this version" ([`store-listing/LISTING.md`](../store-listing/LISTING.md) keeps it). If
-   the window or the demo changed, re-render the listing images first (below).
+   the notes into "What's new in this version" ([`store-listing/localization/`](../store-listing/localization/) keeps
+   it). The listing's images are in `dist/en/`: `-Clean` deletes them with the rest of `dist/`, so render them after
+   the build (below).
 
 ### Try a change to the app
 
@@ -85,10 +86,10 @@ folder.
 
 ### Fill in the Partner Center submission
 
-[`store-listing/LISTING.md`](../store-listing/LISTING.md) has every field to paste, in Partner Center's order: the description,
-features, keywords, system requirements, the wording for the restricted capability (`runFullTrust`) and the notes
-for certification. Its images are beside it: the logos in `store-listing/`, the screenshots in
-`store-listing/desktop/`.
+[`store-listing/SUBMISSION.md`](../store-listing/SUBMISSION.md) goes through the submission in Partner Center's order,
+with what's entered once: the properties, the system requirements, the wording for the restricted capability
+(`runFullTrust`) and the notes for certification. Each language's Store listing is its text, such as
+`store-listing/localization/en.md`, and its images, in `dist/en/`.
 
 ### Re-render the listing images
 
@@ -96,11 +97,16 @@ for certification. Its images are beside it: the logos in `store-listing/`, the 
 powershell -ExecutionPolicy Bypass -File store-listing\generator\render.ps1
 ```
 
-It redraws the images in `store-listing/` with Microsoft Edge in headless mode, from `generator/logo.html` (box
+It draws each language's images in `dist/<code>/` with Microsoft Edge in headless mode, from `generator/logo.html` (box
 art, poster art, tile icon) and `generator/shots.html` (the screenshots). The screenshots show the real home page, `src/ui/home.html`, drawing
 the state written in `shots.html`, the README's terminal demo, `docs/demo.svg`, stopped at a moment, and two captures
-of the Chat page (below). Their lines come from `docs/POSITIONING.md`. Change the captions or the state in
-`shots.html`, and the system requirements in `LISTING.md` when `Requirements` in `src/app/Requirements.cs` changes.
+of the Chat page (below). Git keeps none of these, only the README's screenshots, which this command copies into
+`docs/screenshots/`. Every changed screenshot stays in git history, so commit them for a release, not for every
+render. The home page's glows keep moving, so `screenshot-3-home.png` differs slightly each render; restore the
+committed one unless something else changed.
+
+The words are in `generator/captions.js`, and their lines come from `docs/POSITIONING.md`. Change the state in
+`shots.html`, and the system requirements in `SUBMISSION.md` when `Requirements` in `src/app/Requirements.cs` changes.
 
 When `src/ui/icon.svg` changes, rebuild `icon.ico` first, then re-render:
 
@@ -149,6 +155,7 @@ the app.
 |---|---|
 | `dist/ZimAI-portable.zip` | GitHub release |
 | `dist/ZimAI.msix` | Partner Center (only with `-Msix`) |
+| `dist/<code>/*.png` | Partner Center: the Store images, one folder per language (from `render.ps1`) |
 
 `build/` holds intermediates: `build/ZimAI/` is the staged app (`src/` without `data/`, plus `LICENSE`), and
 `build/downloads/` holds `packaging\fetch.ps1`'s unfinished downloads. `-Clean` deletes both, along with `dist/`.
@@ -169,6 +176,8 @@ the app.
 | [`packaging/fetch.ps1`](../packaging/fetch.ps1) | Downloads Node.js, Git Bash, llama.cpp and the WebView2 SDK into `src/runtime/` |
 | [`packaging/build.ps1`](../packaging/build.ps1) | Builds `src/ZimAI.exe` and the portable zip; `-Msix` adds the Store package, `-Exe` builds only `ZimAI.exe` |
 | [`packaging/AppxManifest.xml`](../packaging/AppxManifest.xml) | The package manifest; `build.ps1` fills in the identity and version |
-| [`store-listing/LISTING.md`](../store-listing/LISTING.md) | The Store listing's text, field by field |
-| [`store-listing/generator/render.ps1`](../store-listing/generator/render.ps1) | Renders the listing's images into `store-listing/` |
+| [`store-listing/SUBMISSION.md`](../store-listing/SUBMISSION.md) | What to enter in Partner Center, in its order: the properties and submission options, and how to fill in each listing |
+| [`store-listing/localization/`](../store-listing/localization/) | The Store listing's text, one file per language |
+| [`store-listing/generator/captions.js`](../store-listing/generator/captions.js) | The words on the Store's images, one set per language |
+| [`store-listing/generator/render.ps1`](../store-listing/generator/render.ps1) | Renders the listing's images into `dist/` |
 | [`store-listing/generator/icon.ps1`](../store-listing/generator/icon.ps1) | Builds `src/ui/icon.ico` from `src/ui/icon.svg`, with bolder frames under 64 pixels |

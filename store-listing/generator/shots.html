@@ -1,7 +1,7 @@
 <!doctype html>
 <!-- The Store's screenshots: render.ps1 loads this page at 1366 x 768 (rendered at 2x) once per shot, named by the
-     hash (#limit, #chat, #home, #terminal). Each is a caption on the left, its line from docs/POSITIONING.md, and the
-     real app on the right: the home page (src/ui/home.html) drawing the state ZimAI.exe would send it, the terminal
+     hash with its language (#en.limit, #en.chat, #en.home, #en.terminal). Each is a caption on the left, in captions.js's
+     words, and the real app on the right: the home page (src/ui/home.html) drawing the state ZimAI.exe would send it, the terminal
      demo (docs/demo.svg) stopped at a moment, or a capture of the Chat page (chat-*.png, by chat.ps1). Needs Edge's
      --allow-file-access-from-files, to read those files from file://. -->
 <html lang="en">
@@ -34,28 +34,7 @@
 </style>
 </head>
 <body>
-  <div class="caption">
-    <div class="app"><img src="../../src/ui/icon.svg" alt=""><span>ZimAI<small>Unlimited AI for Small Jobs</small></span></div>
-    <h1 id="title"></h1>
-    <p id="text"></p>
-    <div class="facts" id="facts"></div>
-    <div class="facts gpu"><span>Dedicated GPU Preferred</span></div>
-    <div class="size">
-      <b class="brand">$0</b>
-      <div class="scale"><span>No usage limit, no credits, no plan to upgrade</span></div>
-    </div>
-  </div>
-  <div class="window">
-    <div class="wall"><div class="wall-card">
-      <div class="wall-head"><i>&#xE7BA;</i>Usage limit</div>
-      <b>You've reached your usage limit</b>
-      <div class="meter">
-        <div class="meter-text"><span><b>100%</b> used</span><span>Resets at 4:00 PM</span></div></div>
-      <div class="wall-buttons"><span>Upgrade plan</span><span>Wait 4 h 12 m</span></div>
-    </div></div>
-    <div class="titlebar"><img src="../../src/ui/icon.svg" alt=""><span>ZimAI</span><i>&#xE921;</i><i>&#xE922;</i><i>&#xE8BB;</i></div>
-  </div>
-
+<script src="captions.js"></script>
 <script>
 // What ZimAI.exe sends the home page on this developer's PC (an RTX 5060 Laptop GPU with 8 GB and 16 GB of RAM), as in
 // app/Window.cs (Push); the plan is the one its server ran with (logs/server-plan).
@@ -67,35 +46,23 @@ const READY = {
   server: { state: "ready", plan: { context: 131072, gpu: 5880, ram: 10907, mapped: 1 } }, error: null,
 };
 
-// The same on every shot, with the GPU pill and the price (above): what it needs, and what it doesn't.
-const FACTS = ["No limits", "Works offline", "No account"];
-
-// Each shot, in upload order: its line (docs/POSITIONING.md), the need it meets in the customer's words, and what's
-// in the window: a home page state, the demo at a time (s), or an image of the window's contents at 960 x 640
-// (chat-*.png: captures of the real Chat page at 2x, by chat.ps1).
+// Each shot, in upload order: what's in the window: a home page state, the demo at a time (s), or an image of the
+// window's contents at 960 x 640 (chat-*.png: captures of the real Chat page at 2x, by chat.ps1).
 const SHOTS = {
   limit: {
-    title: 'Hit your limit? <span class="brand">Keep going.</span>',
-    text: "When your AI stops halfway through, ZimAI picks up the job, on your own PC, with no limit of its own.",
     image: "chat-limit.png",
     wall: true,
   },
   chat: {
-    title: 'Resets at 4 PM? <span class="brand">Not here.</span>',
-    text: "Emails, formulas, rewrites, quick questions: ask as often as you like. Your chats stay on your PC.",
     image: "chat-everyday.png",
     wall: true,
     tilt: 3,   // the other way from shot 1's, so the two don't look copied
   },
   home: {
-    title: "Your AI runs out. <span class=\"brand\">Your PC didn't.</span>",
-    text: "It runs on your own PC: your GeForce, or just the CPU. ZimAI checks it before downloading, then fits the model to it.",
     home: READY,
     hover: "chat",   // the home page's Chat card, as under the pointer
   },
   terminal: {
-    title: 'The AI that never says <span class="brand">come back later.</span>',
-    text: "For developers, a terminal that works in your projects. It reads, runs and edits on your PC, asking first.",
     demo: 12.3,
   },
 };
@@ -111,14 +78,36 @@ function hover(doc, id) {
   doc.getElementById(id).classList.add("hover");
 }
 
-const shot = SHOTS[location.hash.slice(1)];
-if (!shot) throw new Error("Unknown shot " + location.hash);
+// The hash names a language and a shot: ``en.limit``.
+const [language, name] = location.hash.slice(1).split(".");
+const words = CAPTIONS[language];
+const shot = SHOTS[name];
+if (!shot || !words?.shots[name]) throw new Error("Unknown shot " + location.hash);
+document.documentElement.lang = language;
+document.body.insertAdjacentHTML("afterbegin", `
+  <div class="caption">
+    <div class="app"><img src="../../src/ui/icon.svg" alt=""><span>ZimAI<small>${words.tagline}</small></span></div>
+    <h1>${words.shots[name].title}</h1>
+    <p>${words.shots[name].text}</p>
+    <div class="facts">${words.facts.map(f => `<span>${f}</span>`).join("")}</div>
+    <div class="facts gpu"><span>${words.gpu}</span></div>
+    <div class="size">
+      <b class="brand">${words.price}</b>
+      <div class="scale"><span>${words.priceText}</span></div>
+    </div>
+  </div>
+  <div class="window">
+    <div class="wall"><div class="wall-card">
+      <div class="wall-head"><i>&#xE7BA;</i>${words.wall.head}</div>
+      <b>${words.wall.title}</b>
+      <div class="meter">
+        <div class="meter-text"><span>${words.wall.used}</span><span>${words.wall.resets}</span></div></div>
+      <div class="wall-buttons"><span>${words.wall.upgrade}</span><span>${words.wall.wait}</span></div>
+    </div></div>
+    <div class="titlebar"><img src="../../src/ui/icon.svg" alt=""><span>ZimAI</span><i>&#xE921;</i><i>&#xE922;</i><i>&#xE8BB;</i></div>
+  </div>`);
 if (!shot.wall) document.querySelector(".wall").remove();
 else if (shot.tilt) document.querySelector(".wall").style.transform = `rotate(${shot.tilt}deg)`;
-document.getElementById("title").innerHTML = shot.title;
-document.getElementById("text").textContent = shot.text || "";
-if (!shot.text) document.getElementById("text").remove();
-document.getElementById("facts").innerHTML = FACTS.map(f => `<span>${f}</span>`).join("");
 const win = document.querySelector(".window");
 
 if (shot.image) {

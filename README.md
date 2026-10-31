@@ -14,10 +14,9 @@
 
 ## Screenshots
 
-<img src="store-listing/desktop/screenshot-1-limit.png">
-<img src="store-listing/desktop/screenshot-2-chat.png">
-<img src="store-listing/desktop/screenshot-3-home.png">
-<img src="store-listing/desktop/screenshot-4-terminal.png">
+<img src="docs/screenshots/screenshot-2-chat.png">
+<img src="docs/screenshots/screenshot-3-home.png">
+<img src="docs/screenshots/screenshot-4-terminal.png">
 
 ## Demonstration
 

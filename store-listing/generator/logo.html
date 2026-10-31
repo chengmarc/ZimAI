@@ -1,6 +1,7 @@
 <!doctype html>
-<!-- The Store's box art (1:1) and poster art (9:16), and with #tile its app tile icon: render.ps1 loads this page at
-     each size. Everything is sized from the shorter side, so one layout serves both arts. -->
+<!-- The Store's box art (1:1) and poster art (9:16), and its app tile icon: render.ps1 loads this page at each size,
+     once per language. The hash names the language, with .tile and its size in pixels for the icon alone: en, en.tile.300.
+     Everything else is sized from the shorter side, so one layout serves both arts. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -15,19 +16,28 @@
   h1 { position: relative; margin: 6vmin 0 0; font-size: 11vmin; line-height: 1; font-weight: 700; letter-spacing: -0.02em; }
   p { position: relative; margin: 3vmin 0 0; font-size: 4.4vmin; font-weight: 500; color: rgba(255, 255, 255, 0.78); }
 
-  /* #tile: the icon alone, filling a transparent square. */
+  /* .tile: the icon alone, filling a transparent square of --tile. */
   .tile body { background: transparent; }
   .tile body::before, .tile h1, .tile p { display: none; }
   /* In pixels: headless Edge keeps a minimum window size, larger than the tile, and shoots its top-left corner. */
-  .tile img { position: fixed; left: 0; top: 0; width: 300px; height: 300px; filter: none; }
+  .tile img { position: fixed; left: 0; top: 0; width: var(--tile); height: var(--tile); filter: none; }
 </style>
-<script>if (location.hash.length > 1) document.documentElement.className = location.hash.slice(1);</script>
+<script>
+  const [language, part, size] = location.hash.slice(1).split(".");
+  document.documentElement.lang = language;
+  if (part === "tile") {
+    document.documentElement.className = "tile";
+    document.documentElement.style.setProperty("--tile", `${size}px`);
+  }
+</script>
 </head>
 <body>
   <img src="../../src/ui/icon.svg" alt="">
   <div>
     <h1>Zim<span class="brand">AI</span></h1>
-    <p>Unlimited AI for Small Jobs</p>
+    <p id="tagline"></p>
   </div>
+  <script src="captions.js"></script>
+  <script>document.getElementById("tagline").textContent = CAPTIONS[language].tagline;</script>
 </body>
 </html>
