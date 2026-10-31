@@ -3,3 +3,8 @@
 # ...except the double-click scripts, which cmd.exe wants with CRLF.
 *.cmd text eol=crlf
 *.ico binary
+
+# Derived files, tracked because a reader outside the build needs them. Never edit them by hand: change the source and
+# rerun store-listing/generator/render.ps1.
+docs/screenshots/*.png linguist-generated
+docs/social-preview.png linguist-generated

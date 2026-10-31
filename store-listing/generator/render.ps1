@@ -1,44 +1,55 @@
-# Renders the images uploaded to Partner Center into store-listing\ (the logos) and store-listing\desktop\ (the
-# screenshots), and GitHub's social preview into docs\, from the pages beside this script (logo.html, shots.html,
-# social.html), which draw them from the app's own files: its icon, its home page, the README's terminal demo, and the
-# Chat captures (chat-*.png, by chat.ps1, run first). Uses Microsoft Edge, which comes with Windows, in headless mode.
-# LISTING.md says where each image goes.
+# Renders the images uploaded to Partner Center into dist\, the logos and the screenshots in <code>\, one folder per
+# language. Also GitHub's social preview, docs\social-preview.png, and the README's English screenshots, in
+# docs\screenshots\. They are drawn by the pages beside this script (logo.html, shots.html, social.html) from captions.js's
+# words and the app's own files: its icon, its home page, the README's terminal demo, and the Chat captures (chat-*.png,
+# by chat.ps1, run first). Uses Microsoft Edge, which comes with Windows, in headless mode.
+# SUBMISSION.md says where each image goes.
 # Run: powershell -ExecutionPolicy Bypass -File store-listing\generator\render.ps1
 # ASCII only: Windows PowerShell reads a script in the system code page.
 $ErrorActionPreference = "Stop"
 
 $Generator = $PSScriptRoot
 $Listing = Split-Path $Generator
-$EdgeProfile = Join-Path $Listing "..\build\edge-render"   # a profile of its own, so a running Edge isn't involved
+$Root = Split-Path $Listing
+$Output = Join-Path $Root "dist"
+$EdgeProfile = Join-Path $Root "build\edge-render"   # a profile of its own, so a running Edge isn't involved
+
+# Every image is in every language, with captions.js's words, each in its own folder.
+$Languages = @("en")
+$Shots = @("limit", "chat", "home", "terminal")
+$ReadmeShots = @("chat", "home", "terminal")   # the social preview, above them in the README, is already shot 1's moment
 
 $Edge = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe") |
     Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $Edge) { throw "Microsoft Edge wasn't found." }
 
-# Each image: file (in store-listing\), page (with its hash), and its size in CSS pixels, rendered at 2x unless Scale says otherwise.
+# Each image: file (in dist\), page (with its hash), and its size in CSS pixels, rendered at 2x unless Scale says otherwise.
 # Shrink: rendered at 2x, then scaled down to its size, so tilted edges come out smooth (Edge doesn't smooth them at 1x).
 # Partner Center's sizes: screenshots 1366 x 768 or larger, box art 2160 x 2160, poster art 1440 x 2160, tile 300 x 300.
 $Images = @(
-    @{ File = "desktop\screenshot-1-limit.png"; Page = "shots.html#limit"; Width = 1366; Height = 768 },
-    @{ File = "desktop\screenshot-2-chat.png"; Page = "shots.html#chat"; Width = 1366; Height = 768 },
-    @{ File = "desktop\screenshot-3-home.png"; Page = "shots.html#home"; Width = 1366; Height = 768 },
-    @{ File = "desktop\screenshot-4-terminal.png"; Page = "shots.html#terminal"; Width = 1366; Height = 768 },
-    @{ File = "box-art-2160.png"; Page = "logo.html"; Width = 1080; Height = 1080 },
-    @{ File = "poster-art-1440x2160.png"; Page = "logo.html"; Width = 720; Height = 1080 },
-    @{ File = "store-logo-300.png"; Page = "logo.html#tile"; Width = 300; Height = 300; Scale = 1; Transparent = $true },
+    foreach ($code in $Languages) {
+        $number = 0
+        foreach ($shot in $Shots) {
+            $number++
+            @{ File = "$code\screenshot-$number-$shot.png"; Page = "shots.html#$code.$shot"; Width = 1366; Height = 768 }
+        }
+        @{ File = "$code\box-art-2160.png"; Page = "logo.html#$code"; Width = 1080; Height = 1080 }
+        @{ File = "$code\poster-art-1440x2160.png"; Page = "logo.html#$code"; Width = 720; Height = 1080 }
+        @{ File = "$code\store-logo-300.png"; Page = "logo.html#$code.tile.300"; Width = 300; Height = 300; Scale = 1; Transparent = $true }
+    }
     # GitHub's social preview (1280 x 640, under 1 MB), heading the README; uploaded by hand in the repo's settings.
     @{ File = "..\docs\social-preview.png"; Page = "social.html"; Width = 1280; Height = 640; Shrink = $true }
 )
 
 Add-Type -AssemblyName System.Drawing
-foreach ($folder in $Listing, (Join-Path $Listing "desktop")) {
+foreach ($folder in $Languages | ForEach-Object { Join-Path $Output $_ }) {
     New-Item -ItemType Directory -Force $folder | Out-Null
     Get-ChildItem $folder -Filter *.png | Remove-Item
 }
 
 foreach ($image in $Images) {
     $scale = if ($image.Scale) { $image.Scale } else { 2 }
-    $file = Join-Path $Listing $image.File
+    $file = Join-Path $Output $image.File
     $url = ([Uri](Join-Path $Generator ($image.Page -replace "#.*$", ""))).AbsoluteUri + ($image.Page -replace "^[^#]*", "")
     # --virtual-time-budget lets the page load what it fetches before the shot is taken, without waiting in real time.
     $edgeArgs = @("--headless=new", "--disable-gpu", "--hide-scrollbars", "--allow-file-access-from-files",
@@ -71,5 +82,14 @@ foreach ($image in $Images) {
         $small.Dispose()
         $size = "$($image.Width) x $($image.Height)"
     }
-    Write-Host "store-listing\$($image.File)  $size"
+    Write-Host "dist\$($image.File)  $size"
 }
+
+# What the README shows: those English screenshots, copied where git tracks them.
+$Readme = Join-Path $Root "docs\screenshots"
+New-Item -ItemType Directory -Force $Readme | Out-Null
+Get-ChildItem (Join-Path $Output "en") -Filter screenshot-*.png |
+    Where-Object { ($_.BaseName -replace "^screenshot-\d-", "") -in $ReadmeShots } | ForEach-Object {
+        Copy-Item $_.FullName $Readme
+        Write-Host "docs\screenshots\$($_.Name)"
+    }
