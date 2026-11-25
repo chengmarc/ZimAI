@@ -47,10 +47,9 @@ $StoreImages = @(
     }
 )
 $OtherImages = @(
-    # GitHub's social preview (1280 x 640, under 1 MB), uploaded by hand in the repo's settings.
-    @{ File = "social-preview.png"; Page = "social.html"; Width = 1280; Height = 640; Shrink = $true }
-    # The portfolio tile, mostly seen as a small square thumbnail; uploaded by hand to a job profile. At 1x: at 2x,
-    # Edge draws the dialog's large shadow in visible tiles.
+    # GitHub's social preview (1280 x 640, under 1 MB) and the portfolio tile, mostly seen as a small square thumbnail;
+    # both uploaded by hand. At 1x: at 2x, Edge draws the dialog's large shadow in visible tiles.
+    @{ File = "social-preview.png"; Page = "social.html"; Width = 1280; Height = 640; Scale = 1 }
     @{ File = "portfolio.png"; Page = "portfolio.html"; Width = 1080; Height = 1080; Scale = 1 }
 )
 $Images = if ($NoStore) { $OtherImages } else { $StoreImages + $OtherImages }
