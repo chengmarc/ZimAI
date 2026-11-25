@@ -1,11 +1,11 @@
 # Renders every designed image of the app into promo\out\, by where it goes:
 #   store\microsoft-store\<code>\   uploaded to Partner Center, one folder per language: the logos and the screenshots
 #                                   (..\listing\SUBMISSION.md says where each goes)
-#   github\social-preview.png       GitHub's social preview, uploaded in the repo's Settings; it also heads the README
-#   portfolio\portfolio.png         a square tile for the portfolio section of a job profile
-# and copies the README's English screenshots into docs\screenshots\. Git keeps github\ and portfolio\, which are
-# uploaded by hand and wanted between renders, and the README's screenshots; the Store's images are made again for
-# each submission.
+#   social-preview.png              GitHub's social preview, uploaded in the repo's Settings; it also heads the README
+#   portfolio.png                   a square tile for the portfolio section of a job profile
+# and copies the README's English screenshots into docs\screenshots\. Git keeps the social preview and the portfolio
+# tile, which are uploaded by hand and wanted between renders, and the README's screenshots; the Store's images, in
+# store\, are made again for each submission.
 # They are drawn by the pages beside this script (logo.html, shots.html, social.html, portfolio.html) from captions.js's
 # words and the app's own files: its icon, its home page, the README's terminal demo, and the Chat captures (chat-*.png,
 # by chat.ps1, run first). Uses Microsoft Edge, which comes with Windows, in headless mode.
@@ -49,10 +49,10 @@ $StoreImages = @(
 )
 $OtherImages = @(
     # GitHub's social preview (1280 x 640, under 1 MB), heading the README; uploaded by hand in the repo's settings.
-    @{ File = "github\social-preview.png"; Page = "social.html"; Width = 1280; Height = 640; Shrink = $true }
+    @{ File = "social-preview.png"; Page = "social.html"; Width = 1280; Height = 640; Shrink = $true }
     # The portfolio tile, mostly seen as a small square thumbnail; uploaded by hand to a job profile. At 1x: at 2x,
     # Edge draws the dialog's large shadow in visible tiles.
-    @{ File = "portfolio\portfolio.png"; Page = "portfolio.html"; Width = 1080; Height = 1080; Scale = 1 }
+    @{ File = "portfolio.png"; Page = "portfolio.html"; Width = 1080; Height = 1080; Scale = 1 }
 )
 $Images = if ($NoStore) { $OtherImages } else { $StoreImages + $OtherImages }
 

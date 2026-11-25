@@ -9,11 +9,8 @@
 /build/
 /dist/
 
-# Made by promo/generator/render.ps1: the Store's images are made again for each submission; the ones uploaded by hand
-# elsewhere are kept.
-/promo/out/*
-!/promo/out/github/
-!/promo/out/portfolio/
+# The Store images promo/generator/render.ps1 makes, again for each submission; the rest of promo/out/ is kept.
+/promo/out/store/
 
 # Local Claude Code settings
 /.claude/
