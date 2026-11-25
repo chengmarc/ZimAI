@@ -64,7 +64,7 @@ src/
     chat.css              the look of llama.cpp's chat page in the window
     palette.css           the colors
     mintty.conf           the terminal's look
-    icon.svg  icon.ico    the icon (the .ico, built from the .svg by store-listing/generator/icon.ps1, is also in
+    icon.svg  icon.ico    the icon (the .ico, built from the .svg by promo/generator/icon.ps1, is also in
                           ZimAI.exe and the terminal)
   agent/                the coding agent: `zim` in the terminal; also who the model is (prompt/identity.md),
                         which ZimAI.exe reads

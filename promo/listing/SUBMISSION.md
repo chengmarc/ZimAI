@@ -2,9 +2,9 @@
 
 How to fill in a Partner Center submission for ZimAI, in its order: Properties, Store listings, Submission options.
 What's entered once for the product or the submission is here, to paste. What's entered per language is that language's
-Store listing: its text in `localization/<code>.md`, and its images in `dist/<code>/`. Pricing and availability, Age
+Store listing: its text in `localization/<code>.md`, and its images in `promo/out/store/microsoft-store/<code>/`. Pricing and availability, Age
 ratings and Packages are filled in Partner Center by hand. The images are made by
-`store-listing\generator\render.ps1`, and only the README's screenshots, in `docs/screenshots/`, are kept in git.
+`promo\generator\render.ps1`, and only the README's screenshots, in `docs/screenshots/`, are kept in git.
 
 ## Properties
 
@@ -32,7 +32,7 @@ The fields in `localization/<code>.md`, within Partner Center's limits:
 
 - **Description**
 - **What's new in this version** (1500 characters or fewer): the short form of this version's notes
-  ([docs/release-notes/](../docs/release-notes/)). Rewrite this for each submission, in every file.
+  ([docs/release-notes/](../../docs/release-notes/)). Rewrite this for each submission, in every file.
 - **Product features:** one per line in Partner Center ("Add more" for each). Each finishes "With this app, you
   can …".
 - **Short description** (270 characters or fewer), under Supplemental fields.
@@ -42,8 +42,8 @@ The fields in `localization/<code>.md`, within Partner Center's limits:
 
 ### Screenshots
 
-From `dist/<code>/`, in this order (the first is shown first). The line on each is fixed in
-[POSITIONING.md](../docs/POSITIONING.md) → The four screenshots:
+From `promo/out/store/microsoft-store/<code>/`, in this order (the first is shown first). The line on each is fixed in
+[POSITIONING.md](../../docs/POSITIONING.md) → The four screenshots:
 
 1. `screenshot-1-limit.png`: Hit your limit? Keep going. (a generic usage-limit banner, and ZimAI picking up the job)
 2. `screenshot-2-chat.png`: Resets at 4 PM? Not here. (Chat finishing an everyday job)
@@ -52,7 +52,7 @@ From `dist/<code>/`, in this order (the first is shown first). The line on each 
 
 ### Store logos
 
-From `dist/<code>/`.
+From `promo/out/store/microsoft-store/<code>/`.
 
 | Slot | File |
 |---|---|

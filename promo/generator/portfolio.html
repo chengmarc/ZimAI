@@ -1,0 +1,43 @@
+<!doctype html>
+<!-- A portfolio tile for a job profile (Boss 直聘, 猎聘, 脉脉): render.ps1 loads this page at 1080 x 1080 into
+     promo/out/portfolio/portfolio.png. It's mostly seen as a thumbnail about 1.5 cm wide, four to a row, so the app fills the square
+     and only the name, at the top, has to read at that size; the tag under it is for when the tile is opened.
+     The same layout on every repo's tile, so they read as a set. The window and the crossed-out usage limit are
+     the Store's (window.css, chat-limit.png by chat.ps1). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="brand.css">
+<link rel="stylesheet" href="window.css">
+<style>
+  html, body { width: 1080px; height: 1080px; }
+  body::before { mask-image: linear-gradient(180deg, #000 0%, rgba(0, 0, 0, 0.5) 28%, transparent 45%); }
+
+  /* The label: icon and name in the top-left corner, over a shade so they read on anything. */
+  .label { position: absolute; left: 0; right: 0; top: 0; z-index: 5; display: flex; align-items: center; gap: 30px; padding: 52px 56px 0; }
+  .label img { width: 156px; height: 156px; flex: none; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5)); }
+  .label b { display: block; width: max-content; white-space: nowrap; font-size: 124px; line-height: 0.95; font-weight: 700; letter-spacing: -0.03em; }
+  .label small { display: block; margin-top: 14px; font: 600 40px "Segoe UI Variable Text", "Segoe UI", sans-serif; color: rgba(255, 255, 255, 0.8); }
+
+  /* The app, as large as the square allows: the window bleeds off the right and the bottom. */
+  .window { left: 40px; top: 290px; transform-origin: top left; transform: scale(1.2); }
+</style>
+</head>
+<body>
+  <div class="label">
+    <img src="../../src/ui/icon.svg" alt="">
+    <span><b>Zim<span class="brand">AI</span></b><small>Local LLM desktop app</small></span>
+  </div>
+  <div class="window">
+    <div class="wall"><div class="wall-card">
+      <div class="wall-head"><i>&#xE7BA;</i>Usage limit</div>
+      <b>You've reached your usage limit</b>
+      <div class="meter">
+        <div class="meter-text"><span><b>100%</b> used</span><span>Resets at 4:00 PM</span></div></div>
+      <div class="wall-buttons"><span>Upgrade plan</span><span>Wait 4 h 12 m</span></div>
+    </div></div>
+    <div class="titlebar"><img src="../../src/ui/icon.svg" alt=""><span>ZimAI</span><i>&#xE921;</i><i>&#xE922;</i><i>&#xE8BB;</i></div>
+    <img class="client" src="chat-limit.png" alt="">
+  </div>
+</body>
+</html>

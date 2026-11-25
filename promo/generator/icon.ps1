@@ -1,7 +1,7 @@
 # Builds src\ui\icon.ico from src\ui\icon.svg: one PNG frame per size Windows asks for, rendered by Microsoft Edge
 # in headless mode. Under 64 pixels the loop's thin lines would blur away, so those frames reweight its layers (#halo,
 # #tube, #core, #flare in icon.svg): a bolder tube, less glow. Re-run render.ps1 after, for the Store logo.
-# Run: powershell -ExecutionPolicy Bypass -File store-listing\generator\icon.ps1
+# Run: powershell -ExecutionPolicy Bypass -File promo\generator\icon.ps1
 # ASCII only: Windows PowerShell reads a script in the system code page.
 $ErrorActionPreference = "Stop"
 

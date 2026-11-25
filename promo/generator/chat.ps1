@@ -4,7 +4,7 @@
 # server must be running with the model loaded: open ZimAI and click Start first. Then run render.ps1.
 # It uses a headless Microsoft Edge with a profile of its own, emptied each run, driven over its DevTools protocol: the
 # app's own chat history is never touched.
-# Run: powershell -ExecutionPolicy Bypass -File store-listing\generator\chat.ps1 [-Only chat-limit.png]
+# Run: powershell -ExecutionPolicy Bypass -File promo\generator\chat.ps1 [-Only chat-limit.png]
 # -Only retakes one capture and keeps the other: the answers differ each run.
 # ASCII only: Windows PowerShell reads a script in the system code page.
 param([string]$Only)
@@ -128,7 +128,7 @@ try {
         $raw = Invoke-Raw "Page.captureScreenshot" @{ format = "png" }
         $data = [regex]::Match($raw, '"data":"([^"]+)"').Groups[1].Value
         [IO.File]::WriteAllBytes((Join-Path $Generator $capture.File), [Convert]::FromBase64String($data))
-        Write-Host "store-listing\generator\$($capture.File)"
+        Write-Host "promo\generator\$($capture.File)"
     }
 } finally {
     $ws.Dispose()

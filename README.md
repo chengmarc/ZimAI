@@ -8,7 +8,7 @@
 
   <h1>ZimAI - Unlimited AI for Small Jobs</h1>
 
-  <img src="docs/social-preview.png">
+  <img src="promo/out/github/social-preview.png">
 
 </div>
 

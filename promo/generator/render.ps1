@@ -1,17 +1,25 @@
-# Renders the images uploaded to Partner Center into dist\, the logos and the screenshots in <code>\, one folder per
-# language. Also GitHub's social preview, docs\social-preview.png, and the README's English screenshots, in
-# docs\screenshots\. They are drawn by the pages beside this script (logo.html, shots.html, social.html) from captions.js's
+# Renders every designed image of the app into promo\out\, by where it goes:
+#   store\microsoft-store\<code>\   uploaded to Partner Center, one folder per language: the logos and the screenshots
+#                                   (..\listing\SUBMISSION.md says where each goes)
+#   github\social-preview.png       GitHub's social preview, uploaded in the repo's Settings; it also heads the README
+#   portfolio\portfolio.png         a square tile for the portfolio section of a job profile
+# and copies the README's English screenshots into docs\screenshots\. Git keeps github\ and portfolio\, which are
+# uploaded by hand and wanted between renders, and the README's screenshots; the Store's images are made again for
+# each submission.
+# They are drawn by the pages beside this script (logo.html, shots.html, social.html, portfolio.html) from captions.js's
 # words and the app's own files: its icon, its home page, the README's terminal demo, and the Chat captures (chat-*.png,
 # by chat.ps1, run first). Uses Microsoft Edge, which comes with Windows, in headless mode.
-# SUBMISSION.md says where each image goes.
-# Run: powershell -ExecutionPolicy Bypass -File store-listing\generator\render.ps1
+# Run: powershell -ExecutionPolicy Bypass -File promo\generator\render.ps1 [-NoStore]
+# -NoStore: only the social preview and the portfolio tile, in a few seconds.
 # ASCII only: Windows PowerShell reads a script in the system code page.
+param([switch]$NoStore)
 $ErrorActionPreference = "Stop"
 
 $Generator = $PSScriptRoot
-$Listing = Split-Path $Generator
-$Root = Split-Path $Listing
-$Output = Join-Path $Root "dist"
+$Promo = Split-Path $Generator
+$Root = Split-Path $Promo
+$Output = Join-Path $Promo "out"
+$Store = "store\microsoft-store"
 $EdgeProfile = Join-Path $Root "build\edge-render"   # a profile of its own, so a running Edge isn't involved
 
 # Every image is in every language, with captions.js's words, each in its own folder.
@@ -23,33 +31,43 @@ $Edge = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$en
     Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $Edge) { throw "Microsoft Edge wasn't found." }
 
-# Each image: file (in dist\), page (with its hash), and its size in CSS pixels, rendered at 2x unless Scale says otherwise.
-# Shrink: rendered at 2x, then scaled down to its size, so tilted edges come out smooth (Edge doesn't smooth them at 1x).
+# Each image: file (in promo\out\), page (with its hash), and its size in CSS pixels, rendered at 2x unless Scale says
+# otherwise. Shrink: rendered at 2x, then scaled down to its size, so tilted edges come out smooth (Edge doesn't smooth
+# them at 1x).
 # Partner Center's sizes: screenshots 1366 x 768 or larger, box art 2160 x 2160, poster art 1440 x 2160, tile 300 x 300.
-$Images = @(
+$StoreImages = @(
     foreach ($code in $Languages) {
         $number = 0
         foreach ($shot in $Shots) {
             $number++
-            @{ File = "$code\screenshot-$number-$shot.png"; Page = "shots.html#$code.$shot"; Width = 1366; Height = 768 }
+            @{ File = "$Store\$code\screenshot-$number-$shot.png"; Page = "shots.html#$code.$shot"; Width = 1366; Height = 768 }
         }
-        @{ File = "$code\box-art-2160.png"; Page = "logo.html#$code"; Width = 1080; Height = 1080 }
-        @{ File = "$code\poster-art-1440x2160.png"; Page = "logo.html#$code"; Width = 720; Height = 1080 }
-        @{ File = "$code\store-logo-300.png"; Page = "logo.html#$code.tile.300"; Width = 300; Height = 300; Scale = 1; Transparent = $true }
+        @{ File = "$Store\$code\box-art-2160.png"; Page = "logo.html#$code"; Width = 1080; Height = 1080 }
+        @{ File = "$Store\$code\poster-art-1440x2160.png"; Page = "logo.html#$code"; Width = 720; Height = 1080 }
+        @{ File = "$Store\$code\store-logo-300.png"; Page = "logo.html#$code.tile.300"; Width = 300; Height = 300; Scale = 1; Transparent = $true }
     }
-    # GitHub's social preview (1280 x 640, under 1 MB), heading the README; uploaded by hand in the repo's settings.
-    @{ File = "..\docs\social-preview.png"; Page = "social.html"; Width = 1280; Height = 640; Shrink = $true }
 )
+$OtherImages = @(
+    # GitHub's social preview (1280 x 640, under 1 MB), heading the README; uploaded by hand in the repo's settings.
+    @{ File = "github\social-preview.png"; Page = "social.html"; Width = 1280; Height = 640; Shrink = $true }
+    # The portfolio tile, mostly seen as a small square thumbnail; uploaded by hand to a job profile. At 1x: at 2x,
+    # Edge draws the dialog's large shadow in visible tiles.
+    @{ File = "portfolio\portfolio.png"; Page = "portfolio.html"; Width = 1080; Height = 1080; Scale = 1 }
+)
+$Images = if ($NoStore) { $OtherImages } else { $StoreImages + $OtherImages }
 
 Add-Type -AssemblyName System.Drawing
-foreach ($folder in $Languages | ForEach-Object { Join-Path $Output $_ }) {
-    New-Item -ItemType Directory -Force $folder | Out-Null
-    Get-ChildItem $folder -Filter *.png | Remove-Item
+if (-not $NoStore) {
+    foreach ($folder in $Languages | ForEach-Object { Join-Path $Output "$Store\$_" }) {
+        New-Item -ItemType Directory -Force $folder | Out-Null
+        Get-ChildItem $folder -Filter *.png | Remove-Item
+    }
 }
 
 foreach ($image in $Images) {
     $scale = if ($image.Scale) { $image.Scale } else { 2 }
     $file = Join-Path $Output $image.File
+    New-Item -ItemType Directory -Force (Split-Path $file) | Out-Null
     $url = ([Uri](Join-Path $Generator ($image.Page -replace "#.*$", ""))).AbsoluteUri + ($image.Page -replace "^[^#]*", "")
     # --virtual-time-budget lets the page load what it fetches before the shot is taken, without waiting in real time.
     $edgeArgs = @("--headless=new", "--disable-gpu", "--hide-scrollbars", "--allow-file-access-from-files",
@@ -82,14 +100,16 @@ foreach ($image in $Images) {
         $small.Dispose()
         $size = "$($image.Width) x $($image.Height)"
     }
-    Write-Host "dist\$($image.File)  $size"
+    Write-Host "promo\out\$($image.File)  $size"
 }
 
 # What the README shows: those English screenshots, copied where git tracks them.
-$Readme = Join-Path $Root "docs\screenshots"
-New-Item -ItemType Directory -Force $Readme | Out-Null
-Get-ChildItem (Join-Path $Output "en") -Filter screenshot-*.png |
-    Where-Object { ($_.BaseName -replace "^screenshot-\d-", "") -in $ReadmeShots } | ForEach-Object {
-        Copy-Item $_.FullName $Readme
-        Write-Host "docs\screenshots\$($_.Name)"
-    }
+if (-not $NoStore) {
+    $Readme = Join-Path $Root "docs\screenshots"
+    New-Item -ItemType Directory -Force $Readme | Out-Null
+    Get-ChildItem (Join-Path $Output "$Store\en") -Filter screenshot-*.png |
+        Where-Object { ($_.BaseName -replace "^screenshot-\d-", "") -in $ReadmeShots } | ForEach-Object {
+            Copy-Item $_.FullName $Readme
+            Write-Host "docs\screenshots\$($_.Name)"
+        }
+}

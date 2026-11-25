@@ -5,6 +5,7 @@
 *.ico binary
 
 # Derived files, tracked because a reader outside the build needs them. Never edit them by hand: change the source and
-# rerun store-listing/generator/render.ps1.
+# rerun promo/generator/render.ps1.
 docs/screenshots/*.png linguist-generated
-docs/social-preview.png linguist-generated
+promo/out/github/*.png linguist-generated
+promo/out/portfolio/*.png linguist-generated
