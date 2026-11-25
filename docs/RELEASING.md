@@ -101,7 +101,7 @@ art, poster art, tile icon) and `generator/shots.html` (the screenshots). The sc
 the state written in `shots.html`, the README's terminal demo, `docs/demo.svg`, stopped at a moment, and two captures
 of the Chat page (below). Git keeps none of these, only the README's screenshots, which this command copies into
 `docs/screenshots/`. Every changed screenshot stays in git history, so commit them for a release, not for every
-render. It also draws the images uploaded by hand elsewhere, which git keeps: `promo/out/social-preview.png`
+render. It also draws the images uploaded by hand elsewhere, which git doesn't keep either: `promo/out/social-preview.png`
 (from `social.html`; upload it again in the repo's Settings → Social preview when it changes) and
 `promo/out/portfolio.png` (from `portfolio.html`, a square tile for a job profile's portfolio). `-NoStore`
 draws just those two, in a few seconds. The home page's glows keep moving, so `screenshot-3-home.png` differs slightly each render; restore the

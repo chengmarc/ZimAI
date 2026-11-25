@@ -7,4 +7,3 @@
 # Derived files, tracked because a reader outside the build needs them. Never edit them by hand: change the source and
 # rerun promo/generator/render.ps1.
 docs/screenshots/*.png linguist-generated
-promo/out/*.png linguist-generated
