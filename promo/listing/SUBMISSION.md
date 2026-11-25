@@ -4,7 +4,7 @@ How to fill in a Partner Center submission for ZimAI, in its order: Properties, 
 What's entered once for the product or the submission is here, to paste. What's entered per language is that language's
 Store listing: its text in `localization/<code>.md`, and its images in `promo/out/store/microsoft-store/<code>/`. Pricing and availability, Age
 ratings and Packages are filled in Partner Center by hand. The images are made by
-`promo\generator\render.ps1`, and only the README's screenshots, in `docs/screenshots/`, are kept in git.
+`promo\generator\render.ps1`, and only the README's screenshot, in `docs/screenshots/`, is kept in git.
 
 ## Properties
 

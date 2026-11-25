@@ -10,12 +10,9 @@
 
 </div>
 
-## Screenshots
+## Screenshot
 
-<img src="docs/screenshots/screenshot-1-limit.png">
-<img src="docs/screenshots/screenshot-2-chat.png">
 <img src="docs/screenshots/screenshot-3-home.png">
-<img src="docs/screenshots/screenshot-4-terminal.png">
 
 ## Demonstration
 

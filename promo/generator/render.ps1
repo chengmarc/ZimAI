@@ -3,7 +3,7 @@
 #                                   (..\listing\SUBMISSION.md says where each goes)
 #   social-preview.png              GitHub's social preview, uploaded in the repo's Settings
 #   portfolio.png                   a square tile for the portfolio section of a job profile
-# and copies the README's English screenshots into docs\screenshots\. Git keeps only the README's
+# and copies the README's English screenshot into docs\screenshots\. Git keeps only the README's
 # screenshots: everything in promo\out\ is uploaded by hand, so it's made again whenever it's needed, never kept.
 # They are drawn by the pages beside this script (logo.html, shots.html, social.html, portfolio.html) from captions.js's
 # words and the app's own files: its icon, its home page, the README's terminal demo, and the Chat captures (chat-*.png,
@@ -24,7 +24,7 @@ $EdgeProfile = Join-Path $Root "build\edge-render"   # a profile of its own, so 
 # Every image is in every language, with captions.js's words, each in its own folder.
 $Languages = @("en")
 $Shots = @("limit", "chat", "home", "terminal")
-$ReadmeShots = @("limit", "chat", "home", "terminal")
+$ReadmeShots = @("home")   # the one screenshot the README shows
 
 $Edge = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe") |
     Where-Object { Test-Path $_ } | Select-Object -First 1

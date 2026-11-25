@@ -99,7 +99,7 @@ powershell -ExecutionPolicy Bypass -File promo\generator\render.ps1
 It draws each language's images in `promo/out/store/microsoft-store/<code>/` with Microsoft Edge in headless mode, from `generator/logo.html` (box
 art, poster art, tile icon) and `generator/shots.html` (the screenshots). The screenshots show the real home page, `src/ui/home.html`, drawing
 the state written in `shots.html`, the README's terminal demo, `docs/demo.svg`, stopped at a moment, and two captures
-of the Chat page (below). Git keeps none of these, only the README's screenshots, which this command copies into
+of the Chat page (below). Git keeps none of these, only the README's screenshot, `screenshot-3-home.png`, which this command copies into
 `docs/screenshots/`. Every changed screenshot stays in git history, so commit them for a release, not for every
 render. It also draws the images uploaded by hand elsewhere, which git doesn't keep either: `promo/out/social-preview.png`
 (from `social.html`; upload it again in the repo's Settings → Social preview when it changes) and
