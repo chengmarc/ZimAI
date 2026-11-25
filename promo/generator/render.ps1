@@ -1,7 +1,7 @@
 # Renders every designed image of the app into promo\out\, by where it goes:
 #   store\microsoft-store\<code>\   uploaded to Partner Center, one folder per language: the logos and the screenshots
 #                                   (..\listing\SUBMISSION.md says where each goes)
-#   social-preview.png              GitHub's social preview, uploaded in the repo's Settings; it also heads the README
+#   social-preview.png              GitHub's social preview, uploaded in the repo's Settings
 #   portfolio.png                   a square tile for the portfolio section of a job profile
 # and copies the README's English screenshots into docs\screenshots\. Git keeps the social preview and the portfolio
 # tile, which are uploaded by hand and wanted between renders, and the README's screenshots; the Store's images, in
@@ -25,7 +25,7 @@ $EdgeProfile = Join-Path $Root "build\edge-render"   # a profile of its own, so 
 # Every image is in every language, with captions.js's words, each in its own folder.
 $Languages = @("en")
 $Shots = @("limit", "chat", "home", "terminal")
-$ReadmeShots = @("chat", "home", "terminal")   # the social preview, above them in the README, is already shot 1's moment
+$ReadmeShots = @("limit", "chat", "home", "terminal")
 
 $Edge = @("${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe", "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe") |
     Where-Object { Test-Path $_ } | Select-Object -First 1
@@ -48,7 +48,7 @@ $StoreImages = @(
     }
 )
 $OtherImages = @(
-    # GitHub's social preview (1280 x 640, under 1 MB), heading the README; uploaded by hand in the repo's settings.
+    # GitHub's social preview (1280 x 640, under 1 MB), uploaded by hand in the repo's settings.
     @{ File = "social-preview.png"; Page = "social.html"; Width = 1280; Height = 640; Shrink = $true }
     # The portfolio tile, mostly seen as a small square thumbnail; uploaded by hand to a job profile. At 1x: at 2x,
     # Edge draws the dialog's large shadow in visible tiles.
