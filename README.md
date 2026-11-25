@@ -8,15 +8,10 @@
 
   <h1>ZimAI - Unlimited AI for Small Jobs</h1>
 
-</div>
-
-## Screenshot
-
-<img src="docs/screenshots/screenshot-3-home.png">
-
-## Demonstration
-
+  <img src="docs/screenshots/screenshot-3-home.png">
   <img src="docs/demo.svg">
+
+</div>
 
 ## Try it
 
